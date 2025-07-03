@@ -37,6 +37,11 @@ impl Matrix {
 		ret true
 	}
 
+	// Reports whether the Matrix is a square matrix.
+	fn IsSquare(*self): bool {
+		ret self.m == self.n
+	}
+
 	// Returns value of the specified (i x j) position.
 	// Position index starts from zero for column and row.
 	//
