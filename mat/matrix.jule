@@ -17,6 +17,19 @@ impl Matrix {
 	fn Dims(*self): (m: int, n: int) {
 		ret self.m, self.n
 	}
+
+	// Reports whether the all values of Matrix are zero.
+	//
+	// Special cases:
+	//	IsZero() = true, if Dims() == (0, 0)
+	fn IsZero(*self): bool {
+		for _, x in self.data {
+			if x != 0 {
+				ret false
+			}
+		}
+		ret true
+	}
 }
 
 // Returns new (m x n) matrix for type T.

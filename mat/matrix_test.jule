@@ -1,0 +1,17 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+#test
+fn testMatrixIsZero(t: &testing::T) {
+	mut x := New[int](0, 0)
+	if !x.IsZero() {
+		t.Errorf("IsZero() = false, when Dims() == (0, 0)")
+	}
+	x = New[int](2, 2)
+	if !x.IsZero() {
+		t.Errorf("IsZero() = false, when Dims() == (2, 2)")
+	}
+}
