@@ -106,10 +106,18 @@ impl Matrix {
 		if self.m == 0 {
 			ret 0
 		}
+		// Compute trace of self.
+
 		mut n := self.data[0]
 		mut i := 1
-		for i < self.m; i++ {
-			n += self.data[i+i*self.m] // column-major
+
+		// The index on raw data for the matrix self.
+		// Use for avoid to compute i+i*self.m for each iteration step.
+		// It also eliminates multiplication, just basic binary addition.
+		mut k := i + self.m
+
+		for i < self.m; i, k = i+1, k+self.m+1 {
+			n += self.data[k]
 		}
 		ret n
 	}
@@ -157,7 +165,7 @@ impl Matrix {
 
 		mut i := 0
 		for i < z.n; i, zm = i+1, zm+z.m {
-			// The column index on raw data for the matrix self.
+			// The index on raw data for the matrix self.
 			// Use for avoid to compute i+j*self.m for each iteration step.
 			// It eliminates multiplication, just basic binary addition.
 			mut sm := i
