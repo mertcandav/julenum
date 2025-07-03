@@ -1,0 +1,35 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// A matrix for type T.
+struct Matrix[T: numeric] {
+	// Dimensions (m x n).
+	m: int
+	n: int
+
+	// Data array, column-major.
+	data: []T
+}
+
+impl Matrix {
+	// Returns dimensions of the Matrix.
+	fn Dims(*self): (m: int, n: int) {
+		ret self.m, self.n
+	}
+}
+
+// Returns new (m x n) matrix for type T.
+//
+// Constraints:
+//	m >= 0
+//	n >= 0
+fn New[T](m: int, n: int): Matrix[T] {
+	if m < 0 || n < 0 {
+		panic("mat: New: m < 0 || n < 0")
+	}
+	let mut mat: Matrix[T]
+	mat.m, mat.n = m, n
+	mat.data = make([]T, m*n)
+	ret mat
+}
