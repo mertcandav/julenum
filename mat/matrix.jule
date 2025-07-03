@@ -66,29 +66,25 @@ impl Matrix {
 		*self = *z
 	}
 
-	// Copies k to z.
-	// Sets *self to the *z.
+	// Copies z to self.
 	//
-	// If z have enough capacity, Copy will use it to avoid making allocation.
-	fn Copy(mut *self, mut &z: *Matrix[T], &k: *Matrix[T]) {
-		// Special case: if z and k is the same pointer,
-		// assign z to self directly.
-		if z == k {
-			*self = *z
+	// If self have enough capacity, Copy will use it to avoid making allocation.
+	fn Copy(mut *self, mut &z: *Matrix[T]) {
+		// Fast case: if z and self is the same pointer.
+		if z == self {
 			ret
 		}
 
-		if cap(z.data) >= len(k.data) {
+		if cap(self.data) >= len(z.data) {
 			// In this case, we have enough slice capacity or length to copy.
 			// To avoid making allocation, use the full capacity if needed.
-			z.data = z.data[:len(k.data)]
-			copy(z.data, k.data)
+			self.data = self.data[:len(z.data)]
+			copy(self.data, z.data)
 		} else {
 			// No enough space, we have to allocate new slice.
-			z.data = make([]T, len(k.data))
-			copy(z.data, k.data)
+			self.data = make([]T, len(z.data))
+			copy(self.data, z.data)
 		}
-		*self = *z
 	}
 }
 

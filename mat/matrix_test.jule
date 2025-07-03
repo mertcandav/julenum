@@ -111,17 +111,17 @@ fn testMatrixCopy(t: &testing::T) {
 		[3, 4],
 	])
 	mut b := New[int](0, 0)
-	b.Copy(&b, &a)
+	b.Copy(&a)
 	if alias(a.data, b.data) {
 		t.Errorf("#1: expected independent copy, found shared allocation")
 	}
 	bdata := b.data
-	b.Copy(&b, &a)
+	b.Copy(&a)
 	if !alias(b.data, bdata) {
 		t.Errorf("#2: expected shared allocation, found new allocation")
 	}
-	a.Copy(&b, &b)
-	if !alias(a.data, b.data) {
+	a.Copy(&a)
+	if !alias(a.data, a.data) {
 		t.Errorf("#3: expected shared allocation, found new allocation")
 	}
 }
