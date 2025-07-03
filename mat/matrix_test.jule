@@ -5,6 +5,21 @@
 use "std/testing"
 
 #test
+fn testMatrixGetSet(t: &testing::T) {
+	mut x := New[f64](2, 2)
+	x.Set(0, 0, 1)
+	x.Set(0, 1, 3)
+	x.Set(1, 0, 2)
+	x.Set(1, 1, 4)
+	if x.Get(0, 0) != 1 ||
+		x.Get(0, 1) != 3 ||
+		x.Get(1, 0) != 2 ||
+		x.Get(1, 1) != 4 {
+		t.Errorf("expected [1, 2, 3, 4], found {}", x.data)
+	}
+}
+
+#test
 fn testMatrixIsZero(t: &testing::T) {
 	mut x := New[int](0, 0)
 	if !x.IsZero() {
