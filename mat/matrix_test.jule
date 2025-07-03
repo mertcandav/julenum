@@ -137,3 +137,42 @@ fn testMatrixFill(t: &testing::T) {
 		}
 	}
 }
+
+struct caseMatrixTrace {
+	input: [][]int
+	trace: int
+}
+
+let testsMatrixTrace: []caseMatrixTrace = [
+	{
+		input: [[1, 2], [3, 4]],
+		trace: 5,
+	},
+	{
+		input: [[1, 2, 4], [3, 4, 8], [0, 0, 8]],
+		trace: 13,
+	},
+	{
+		input: [[7, 1], [3, 5]],
+		trace: 12,
+	},
+	{
+		input: [[2, 9, 1], [4, -3, 6], [0, 8, 5]],
+		trace: 4,
+	},
+	{
+		input: [[-1, 2, 3], [4, 0, -5], [6, 7, -8]],
+		trace: -9,
+	},
+]
+
+#test
+fn testMatrixTrace(t: &testing::T) {
+	for _, test in testsMatrixTrace {
+		m := NewFrom(test.input)
+		trace := m.Trace()
+		if trace != test.trace {
+			t.Errorf("expected {}, found {}, for {}", test.trace, trace, test.input)
+		}
+	}
+}

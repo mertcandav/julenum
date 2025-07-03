@@ -91,6 +91,28 @@ impl Matrix {
 			copy(self.data, z.data)
 		}
 	}
+
+	// Returns trace of matrix.
+	// Panics if matrix is not a square matrix.
+	//
+	// Special cases:
+	//	Trace() = 0, for (0 x 0) matrices
+	#disable boundary
+	fn Trace(*self): T {
+		if self.m != self.n {
+			panic("mat: Matrix.Trace: trace computation on non-square matrix")
+		}
+		// Special case: trace of (0 x 0) matrix.
+		if self.m == 0 {
+			ret 0
+		}
+		mut n := self.data[0]
+		mut i := 1
+		for i < self.m; i++ {
+			n += self.data[i+i*self.m] // column-major
+		}
+		ret n
+	}
 }
 
 // Same as New, but it does not checks anything.
