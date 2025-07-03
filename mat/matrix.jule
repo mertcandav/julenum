@@ -74,9 +74,9 @@ impl Matrix {
 	// Copies z to self.
 	//
 	// If self have enough capacity, Copy will use it to avoid making allocation.
-	fn Copy(mut *self, mut &z: *Matrix[T]) {
+	fn Copy(mut *self, &z: *Matrix[T]) {
 		// Fast case: if z and self is the same pointer.
-		if z == self {
+		if self == z {
 			ret
 		}
 
