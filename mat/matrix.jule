@@ -100,6 +100,11 @@ fn uncheckedNew[T: numeric](m: int, n: int): Matrix[T] {
 	ret mat
 }
 
+// Returns new empty (0 x 0) Matrix for type T.
+fn Empty[T: numeric](): Matrix[T] {
+	ret uncheckedNew[T](0, 0)
+}
+
 // Returns new (m x n) Matrix for type T.
 //
 // Constraints:
