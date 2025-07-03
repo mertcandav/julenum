@@ -172,24 +172,26 @@ fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 		ret uncheckedNew[T](0, 0)
 	}
 
-	mut mat := uncheckedNew[T](m, n)
-	mut i := 0 // current row
-	for i < m; i++ {
-		row := values[i] // No risk for boundary.
-		// Make sure all rows have same amount of values.
-		// It also makes safe array access with no boundary check.
-		if len(row) != n {
+	// Make sure all rows have same amount of values.
+	// It also makes safe array access with no boundary check.
+	mut j := 1
+	for j < m; j++ {
+		if len(values[j]) != n {
 			panic("mat: NewFrom: rows have different amount of values")
 		}
+	}
+	j = 0 // Set to zero to reuse.
 
-		// Compute Matrix position of the value by row-major.
-		// Because iteration is row-major.
-		mut k := i * n // Copy start position for the Matrix.
-		mut j := 0     // Copy start position of the row.
-		for j < n; k, j = k+1, j+1 {
-			mat.data[k] = row[j]
+	mut mat := uncheckedNew[T](m, n)
+	mut k := 0
+	for j < n; j++ {
+		mut i := 0
+		for i < m; i++ {
+			mat.data[k] = values[i][j]
+			k++
 		}
 	}
+
 	ret mat
 }
 
