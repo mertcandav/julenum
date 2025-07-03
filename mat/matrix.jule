@@ -113,6 +113,61 @@ impl Matrix {
 		}
 		ret n
 	}
+
+	// Sets self to the transpose of the matrix z.
+	// If self have enough capacity, Transpose will use it to avoid making allocation.
+	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	#disable boundary
+	fn Transpose(mut *self, &z: *Matrix[T]) {
+		// Special case: (0 x 0) matrix.
+		// Set self to (0 x 0), do not deallocate slice.
+		if z.m == 0 && z.n == 0 {
+			self.m, self.n = 0, 0
+			ret
+		}
+
+		// (m x n) matrix will become (n x m).
+		// So size will not be changed.
+		// Make sure the self data have enough space.
+		if self == z || alias(self.data, z.data) {
+			// Matrix self and matrix z have shared data.
+			// We have to allocate new Matrix to compute properly.
+			mut r := uncheckedNew[T](z.n, z.m)
+			r.Transpose(z)
+			*self = r
+			ret
+		} else if cap(self.data) >= len(z.data) {
+			// In this case, we have enough slice capacity or length to store result.
+			// To avoid making allocation, use the full capacity if needed.
+			self.data = self.data[:len(z.data)]
+			// (m x n) matrix will become (n x m).
+			self.m, self.n = z.n, z.m
+		} else {
+			// No enough space, we have to allocate new slice.
+			self.data = make([]T, len(z.data))
+			// (m x n) matrix will become (n x m).
+			self.m, self.n = z.n, z.m
+		}
+		// Compute transpose of z.
+
+		// The column index on raw data for the matrix z.
+		// Use for avoid to compute j+i*z.m for each iteration step.
+		// It also eliminates multiplication, just basic binary addition.
+		mut zm := 0
+
+		mut i := 0
+		for i < z.n; i, zm = i+1, zm+z.m {
+			// The column index on raw data for the matrix self.
+			// Use for avoid to compute i+j*self.m for each iteration step.
+			// It eliminates multiplication, just basic binary addition.
+			mut sm := i
+
+			mut j := 0
+			for j < z.m; j, sm = j+1, sm+self.m {
+				self.data[sm] = z.data[j+zm] // column-major
+			}
+		}
+	}
 }
 
 // Same as New, but it does not checks anything.
