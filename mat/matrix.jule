@@ -55,8 +55,19 @@ impl Matrix {
 		self.data[i+j*self.m] = value // column-major
 	}
 
+	// Fills k with value.
+	// Sets *self to the *z.
+	#disable boundary
+	fn Fill(mut *self, mut &z: *Matrix[T], value: T) {
+		mut i := 0
+		for i < len(z.data); i++ {
+			z.data[i] = value
+		}
+		*self = *z
+	}
+
 	// Copies k to z.
-	// Sets *self to the z.
+	// Sets *self to the *z.
 	//
 	// If z have enough capacity, Copy will use it to avoid making allocation.
 	fn Copy(mut *self, mut &z: *Matrix[T], &k: *Matrix[T]) {

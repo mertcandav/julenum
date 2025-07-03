@@ -125,3 +125,15 @@ fn testMatrixCopy(t: &testing::T) {
 		t.Errorf("#3: expected shared allocation, found new allocation")
 	}
 }
+
+#test
+fn testMatrixFill(t: &testing::T) {
+	mut a := New[int](5, 5)
+	a.Fill(&a, 8)
+	for i in a.data {
+		if a.data[i] != 8 {
+			t.Errorf("data expected to be filled with 8, found {}", a.data)
+			break
+		}
+	}
+}
