@@ -35,7 +35,7 @@ impl Matrix {
 	// Position index starts from zero for column and row.
 	//
 	// Implementation will not check for boundaries, invalid position may cause panic.
-	// To provide fast computation, it will not check whether the (i x j) is valid (column x row).
+	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
 	fn Get(*self, i: int, j: int): T {
 		ret self.data[i+j*self.m] // column-major
 	}
@@ -44,23 +44,81 @@ impl Matrix {
 	// Position index starts from zero for column and row.
 	//
 	// Implementation will not check for boundaries, invalid position may cause panic.
-	// To provide fast computation, it will not check whether the (i x j) is valid (column x row).
+	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
 	fn Set(mut *self, i: int, j: int, value: T) {
 		self.data[i+j*self.m] = value // column-major
 	}
 }
 
-// Returns new (m x n) matrix for type T.
+// Same as New, but it does not checks anything.
+fn uncheckedNew[T: numeric](m: int, n: int): Matrix[T] {
+	let mut mat: Matrix[T]
+	mat.m, mat.n = m, n
+	mat.data = make([]T, m*n)
+	ret mat
+}
+
+// Returns new (m x n) Matrix for type T.
 //
 // Constraints:
 //	m >= 0
 //	n >= 0
-fn New[T](m: int, n: int): Matrix[T] {
+fn New[T: numeric](m: int, n: int): Matrix[T] {
 	if m < 0 || n < 0 {
 		panic("mat: New: m < 0 || n < 0")
 	}
-	let mut mat: Matrix[T]
-	mat.m, mat.n = m, n
-	mat.data = make([]T, m*n)
+	ret uncheckedNew[T](m, n)
+}
+
+// Returns new (m x n) Matrix for type T.
+// Uses len(values) for m, len(values[1]) for n.
+// Panics if all rows are not have same amount of values.
+//
+// Special cases:
+//	NewFrom(values) = (0 x 0) Matrix, if len(values) == 0
+//	NewFrom(values) = (0 x 0) Matrix, if len(values) == 1 && len(values[1]) == 0
+//
+// Example Use:
+//
+//	mat::NewFrom([
+//		[1, 2, 4],
+//		[3, 4, 5],
+//	])
+//
+//	Equals to:
+//		    ╭       ╮
+//		    │ 1 2 4 │
+//		A = │ 3 4 5 │
+//		    ╰       ╯(2 x 3)
+#disable boundary
+fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
+	m := len(values)
+	if m == 0 {
+		ret uncheckedNew[T](0, 0)
+	}
+
+	n := len(values[0])
+	if n == 0 {
+		ret uncheckedNew[T](0, 0)
+	}
+
+	mut mat := uncheckedNew[T](m, n)
+	mut i := 0 // current row
+	for i < m; i++ {
+		row := values[i] // No risk for boundary.
+		// Make sure all rows have same amount of values.
+		// It also makes safe array access with no boundary check.
+		if len(row) != n {
+			panic("mat: NewFrom: rows have different amount of values")
+		}
+
+		// Compute Matrix position of the value by row-major.
+		// Because iteration is row-major.
+		mut k := i * n // Copy start position for the Matrix.
+		mut j := 0     // Copy start position of the row.
+		for j < n; k, j = k+1, j+1 {
+			mat.data[k] = row[j]
+		}
+	}
 	ret mat
 }
