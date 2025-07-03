@@ -88,3 +88,25 @@ fn testNewFrom(t: &testing::T) {
 		}
 	}
 }
+
+#test
+fn testMatrixCopy(t: &testing::T) {
+	mut a := NewFrom([
+		[1, 2],
+		[3, 4],
+	])
+	mut b := New[int](0, 0)
+	b.Copy(&b, &a)
+	if alias(a.data, b.data) {
+		t.Errorf("#1: expected independent copy, found shared allocation")
+	}
+	bdata := b.data
+	b.Copy(&b, &a)
+	if !alias(b.data, bdata) {
+		t.Errorf("#2: expected shared allocation, found new allocation")
+	}
+	a.Copy(&b, &b)
+	if !alias(a.data, b.data) {
+		t.Errorf("#3: expected shared allocation, found new allocation")
+	}
+}

@@ -3,6 +3,12 @@
 // license that can be found in the LICENSE file.
 
 // A matrix for type T.
+// Uses internal mutable slice to store data.
+// Matrix computations may use available capacity of the underlying slice
+// to avoid making new allocation. So shared data needs extra attention.
+// Any mutable operation may be reflected to shared common data.
+// If you need to share same Matrix instance, use smart pointers.
+// If you need to have guaranteed independent copy, use Copy with empty Matrix.
 struct Matrix[T: numeric] {
 	// Dimensions (m x n).
 	m: int
@@ -13,7 +19,7 @@ struct Matrix[T: numeric] {
 }
 
 impl Matrix {
-	// Returns dimensions of the Matrix.
+	// Returns dimensions of the Matrix (m x n).
 	fn Dims(*self): (m: int, n: int) {
 		ret self.m, self.n
 	}
@@ -47,6 +53,31 @@ impl Matrix {
 	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
 	fn Set(mut *self, i: int, j: int, value: T) {
 		self.data[i+j*self.m] = value // column-major
+	}
+
+	// Copies k to z.
+	// Sets *self to the z.
+	//
+	// If z have enough capacity, Copy will use it to avoid making allocation.
+	fn Copy(mut *self, mut &z: *Matrix[T], &k: *Matrix[T]) {
+		// Special case: if z and k is the same pointer,
+		// assign z to self directly.
+		if z == k {
+			*self = *z
+			ret
+		}
+
+		if cap(z.data) >= len(k.data) {
+			// In this case, we have enough slice capacity or length to copy.
+			// To avoid making allocation, use the full capacity if needed.
+			z.data = z.data[:len(k.data)]
+			copy(z.data, k.data)
+		} else {
+			// No enough space, we have to allocate new slice.
+			z.data = make([]T, len(k.data))
+			copy(z.data, k.data)
+		}
+		*self = *z
 	}
 }
 
@@ -121,4 +152,14 @@ fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 		}
 	}
 	ret mat
+}
+
+// Reports whether x and y share the same base array.
+//
+// Note: alias assumes that the capacity of underlying arrays
+// is never changed for values; i.e. that there are
+// no 3-operand slice expressions in this code (or worse,
+// reflect-based operations to the same effect).
+fn alias[T](x: []T, y: []T): bool {
+	ret cap(x) > 0 && cap(y) > 0 && &x[0:cap(x)][cap(x)-1] == &y[0:cap(y)][cap(y)-1]
 }
