@@ -30,6 +30,15 @@ impl Matrix {
 		}
 		ret true
 	}
+
+	// Returns value of the specified (i x j) position.
+	// Position index starts from zero for column and row.
+	//
+	// Implementation will not check for boundaries, invalid position may cause panic.
+	// To provide fast computation, it will not check whether the (i x j) is valid (column x row).
+	fn Get(*self, i: int, j: int): T {
+		ret self.data[i+j*self.m] // column-major
+	}
 }
 
 // Returns new (m x n) matrix for type T.
