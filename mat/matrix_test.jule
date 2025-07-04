@@ -136,6 +136,18 @@ fn testMatrixFill(t: &testing::T) {
 			break
 		}
 	}
+
+	b := New[int](2, 2)
+	a.Fill(&b, 42)
+	if len(a.data) != len(b.data) {
+		t.Errorf("data length expected {}, found {}", len(b.data), len(a.data))
+	}
+	for i in a.data {
+		if a.data[i] != 42 {
+			t.Errorf("data expected to be filled with 42, found {}", a.data)
+			break
+		}
+	}
 }
 
 struct caseMatrixTrace {

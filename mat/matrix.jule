@@ -60,15 +60,24 @@ impl Matrix {
 		self.data[i+j*self.m] = value // column-major
 	}
 
-	// Fills k with value.
-	// Sets *self to the *z.
+	// Sets self to z, filled with k.
+	// If self have enough capacity, Fill will use it to avoid making allocation.
 	#disable boundary
-	fn Fill(mut *self, mut &z: *Matrix[T], value: T) {
+	fn Fill(mut *self, &z: *Matrix[T], k: T) {
+		// Make sure the self data have enough space.
+		if cap(self.data) >= len(z.data) {
+			// In this case, we have enough slice capacity or length to store result.
+			// To avoid making allocation, use the full capacity if needed.
+			self.data = self.data[:len(z.data)]
+		} else {
+			// No enough space, we have to allocate new slice.
+			self.data = make([]T, len(z.data))
+		}
+
 		mut i := 0
 		for i < len(z.data); i++ {
-			z.data[i] = value
+			self.data[i] = k
 		}
-		*self = *z
 	}
 
 	// Copies z to self.
