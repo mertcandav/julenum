@@ -381,3 +381,55 @@ fn testMatrixAddScalar(t: &testing::T) {
 		ret mat
 	})
 }
+
+let testsMatrixSubScalar: []testMatrixScalar = [
+	{
+		input: nil,
+		data: [],
+		k: 0,
+	},
+	{
+		input: [][]int([[], []]),
+		data: [],
+		k: 0,
+	},
+	{
+		input: [[1, 2, 4], [3, 4, 5]],
+		data: [-1, 1, 0, 2, 2, 3],
+		k: 2,
+	},
+	{
+		input: [[1]],
+		data: [0],
+		k: 1,
+	},
+	{
+		input: [[1], [2], [3], [4]],
+		data: [-2, -1, 0, 1],
+		k: 3,
+	},
+	{
+		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
+		data: [1, 2, 3, 4, 2, 3, 4, 5],
+		k: 0,
+	},
+	{
+		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
+		data: [2, 3, 4, 5, 3, 4, 5, 6],
+		k: -1,
+	},
+	{
+		input: [[1, 2, 3, 4, 5]],
+		data: [101, 102, 103, 104, 105],
+		k: -100,
+	},
+]
+
+#test
+fn testMatrixSubScalar(t: &testing::T) {
+	testCaseMatrixScalar(t, testsMatrixSubScalar, fn|test| {
+		mut mat := NewFrom(test.input)
+		mat.SubScalar(&mat, test.k)
+		ret mat
+	})
+}

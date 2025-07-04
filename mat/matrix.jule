@@ -222,6 +222,14 @@ impl Matrix {
 		}
 	}
 
+	// Sets self to the difference z-k.
+	// If self have enough capacity, SubScalar will use it to avoid making allocation.
+	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	#disable boundary
+	fn SubScalar(mut *self, &z: *Matrix[T], k: T) {
+		self.AddScalar(z, -k)
+	}
+
 	// Sets self to the product z*k.
 	// If self have enough capacity, MulScalar will use it to avoid making allocation.
 	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
