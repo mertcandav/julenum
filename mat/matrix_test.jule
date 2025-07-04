@@ -546,6 +546,13 @@ let testsMatrixAdd: []testMatrixASM = [
 		m: 2,
 		n: 2,
 	},
+	{
+		xinput: [[1]],
+		yinput: [[1]],
+		data: [2],
+		m: 1,
+		n: 1,
+	},
 ]
 
 #test
@@ -554,6 +561,82 @@ fn testMatrixAdd(t: &testing::T) {
 		mut x := NewFrom(test.xinput)
 		y := NewFrom(test.yinput)
 		x.Add(&x, &y)
+		ret x
+	})
+}
+
+let testsMatrixSub: []testMatrixASM = [
+	{
+		xinput: nil,
+		yinput: nil,
+		data: [],
+		m: 0,
+		n: 0,
+	},
+	{
+		xinput: [[], []],
+		yinput: [[], []],
+		data: [],
+		m: 0,
+		n: 0,
+	},
+	{
+		xinput: [[1, 2, 3], [4, 5, 6]],
+		yinput: [[0, 7, 8], [13, 20, 60]],
+		data: [1, -9, -5, -15, -5, -54],
+		m: 2,
+		n: 3,
+	},
+	{
+		xinput: [[1, 2], [3, 4]],
+		yinput: [[5, 6], [7, 8]],
+		data: [-4, -4, -4, -4],
+		m: 2,
+		n: 2,
+	},
+	{
+		xinput: [[10, 20], [30, 40]],
+		yinput: [[0, 0], [0, 0]],
+		data: [10, 30, 20, 40],
+		m: 2,
+		n: 2,
+	},
+	{
+		xinput: [[10, 20], [30, 40]],
+		yinput: [[1, 2], [3, 4]],
+		data: [9, 27, 18, 36],
+		m: 2,
+		n: 2,
+	},
+	{
+		xinput: [[-1, -2], [-3, -4]],
+		yinput: [[5, 6], [7, 8]],
+		data: [-6, -10, -8, -12],
+		m: 2,
+		n: 2,
+	},
+	{
+		xinput: [[0, 0], [0, 0]],
+		yinput: [[0, 0], [0, 0]],
+		data: [0, 0, 0, 0],
+		m: 2,
+		n: 2,
+	},
+	{
+		xinput: [[1]],
+		yinput: [[1]],
+		data: [0],
+		m: 1,
+		n: 1,
+	},
+]
+
+#test
+fn testMatrixSub(t: &testing::T) {
+	testCaseMatrixASM(t, "-", testsMatrixSub, fn|test| {
+		mut x := NewFrom(test.xinput)
+		y := NewFrom(test.yinput)
+		x.Sub(&x, &y)
 		ret x
 	})
 }
