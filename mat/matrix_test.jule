@@ -255,3 +255,77 @@ fn testMatrixTranspose(t: &testing::T) {
 		}
 	}
 }
+
+struct testMatrixScalar {
+	input: [][]int
+	data:  []int
+	k:     int
+}
+
+let testsMatrixMulScalar: []testMatrixScalar = [
+	{
+		input: nil,
+		data: [],
+		k: 0,
+	},
+	{
+		input: [][]int([[], []]),
+		data: [],
+		k: 0,
+	},
+	{
+		input: [[1, 2, 4], [3, 4, 5]],
+		data: [2, 6, 4, 8, 8, 10],
+		k: 2,
+	},
+	{
+		input: [[1]],
+		data: [10],
+		k: 10,
+	},
+	{
+		input: [[1], [2], [3], [4]],
+		data: [-1, -2, -3, -4],
+		k: -1,
+	},
+	{
+		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
+		data: [1, 2, 3, 4, 2, 3, 4, 5],
+		k: 1,
+	},
+	{
+		input: [[1, 2, 3, 4, 5]],
+		data: [3, 6, 9, 12, 15],
+		k: 3,
+	},
+	{
+		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
+		data: [0, 0, 0, 0, 0, 0, 0, 0],
+		k: 0,
+	},
+]
+
+fn testCaseMatrixScalar(t: &testing::T, tests: []testMatrixScalar, r: fn(test: testMatrixScalar): Matrix[int]) {
+	for _, test in tests {
+		mut mat := r(test)
+		if len(mat.data) != len(test.data) {
+			t.Errorf("data expected {}, found {}, for {}", test.data, mat.data, test.input)
+			continue
+		}
+		for i in test.data {
+			if test.data[i] != mat.data[i] {
+				t.Errorf("data expected {}, found {}, for {}", test.data, mat.data, test.input)
+				break
+			}
+		}
+	}
+}
+
+#test
+fn testMatrixMulScalar(t: &testing::T) {
+	testCaseMatrixScalar(t, testsMatrixMulScalar, fn|test| {
+		mut mat := NewFrom(test.input)
+		mat.MulScalar(&mat, test.k)
+		ret mat
+	})
+}
