@@ -292,6 +292,39 @@ impl Matrix {
 			self.data[i] = z.data[i] * k
 		}
 	}
+
+	// Sets self to the sum x+y.
+	// If self have enough capacity, Add will use it to avoid making allocation.
+	// If matrices are (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	#disable boundary
+	fn Add(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
+		if x.m != y.m || x.n != y.n {
+			panic("mat: Matrix.Add: matrices have different size")
+		}
+
+		// Special case: (0 x 0) matrix.
+		// Set self to (0 x 0), do not deallocate slice.
+		if x.m == 0 && x.n == 0 {
+			self.m, self.n = 0, 0
+			ret
+		}
+
+		// Make sure the self data have enough space.
+		self.m, self.n = x.m, x.n
+		if cap(self.data) >= len(x.data) {
+			// In this case, we have enough slice capacity or length to store result.
+			// To avoid making allocation, use the full capacity if needed.
+			self.data = self.data[:len(x.data)]
+		} else {
+			// No enough space, we have to allocate new slice.
+			self.data = make([]T, len(x.data))
+		}
+
+		mut i := 0
+		for i < len(self.data); i++ {
+			self.data[i] = x.data[i] + y.data[i]
+		}
+	}
 }
 
 // Same as New, but it does not checks anything.
