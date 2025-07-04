@@ -186,6 +186,42 @@ impl Matrix {
 		}
 	}
 
+	// Sets self to the sum z+k.
+	// If self have enough capacity, AddScalar will use it to avoid making allocation.
+	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	#disable boundary
+	fn AddScalar(mut *self, &z: *Matrix[T], k: T) {
+		// Special case: (0 x 0) matrix.
+		// Set self to (0 x 0), do not deallocate slice.
+		if z.m == 0 && z.n == 0 {
+			self.m, self.n = 0, 0
+			ret
+		}
+
+		// Make sure the self data have enough space.
+		if cap(self.data) >= len(z.data) {
+			// In this case, we have enough slice capacity or length to store result.
+			// To avoid making allocation, use the full capacity if needed.
+			self.data = self.data[:len(z.data)]
+		} else {
+			// No enough space, we have to allocate new slice.
+			self.data = make([]T, len(z.data))
+		}
+		// Compute z+k.
+
+		// Special case: k is zero. Result will always be same matrix.
+		// Copy data instead of scalar addition.
+		if k == 0 {
+			copy(self.data, z.data)
+			ret
+		}
+
+		mut i := 0
+		for i < len(self.data); i++ {
+			self.data[i] = z.data[i] + k
+		}
+	}
+
 	// Sets self to the product z*k.
 	// If self have enough capacity, MulScalar will use it to avoid making allocation.
 	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
