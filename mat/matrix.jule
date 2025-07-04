@@ -79,6 +79,8 @@ impl Matrix {
 	// If self have enough capacity, Fill will use it to avoid making allocation.
 	#disable boundary
 	fn Fill(mut *self, &z: *Matrix[T], k: T) {
+		self.m, self.n = z.m, z.n
+
 		// Make sure the self data have enough space.
 		if cap(self.data) >= len(z.data) {
 			// In this case, we have enough slice capacity or length to store result.
@@ -104,6 +106,7 @@ impl Matrix {
 			ret
 		}
 
+		self.m, self.n = z.m, z.n
 		if cap(self.data) >= len(z.data) {
 			// In this case, we have enough slice capacity or length to copy.
 			// To avoid making allocation, use the full capacity if needed.
@@ -163,7 +166,7 @@ impl Matrix {
 		// Make sure the self data have enough space.
 		if self == z || alias(self.data, z.data) {
 			// Matrix self and matrix z have shared data.
-			// We have to allocate new Matrix to compute properly.
+			// We have to allocate new (n x m) Matrix to compute properly.
 			mut r := uncheckedNew[T](z.n, z.m)
 			r.Transpose(z)
 			*self = r
@@ -214,6 +217,7 @@ impl Matrix {
 		}
 
 		// Make sure the self data have enough space.
+		self.m, self.n = z.m, z.n
 		if cap(self.data) >= len(z.data) {
 			// In this case, we have enough slice capacity or length to store result.
 			// To avoid making allocation, use the full capacity if needed.
@@ -265,6 +269,7 @@ impl Matrix {
 		}
 
 		// Make sure the self data have enough space.
+		self.m, self.n = z.m, z.n
 		if cap(self.data) >= len(z.data) {
 			// In this case, we have enough slice capacity or length to store result.
 			// To avoid making allocation, use the full capacity if needed.

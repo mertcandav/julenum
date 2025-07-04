@@ -284,7 +284,21 @@ struct testMatrixScalar {
 
 fn testCaseMatrixScalar(t: &testing::T, tests: []testMatrixScalar, r: fn(test: testMatrixScalar): Matrix[int]) {
 	for _, test in tests {
+		// Compute dimensions.
+		mut m := len(test.input)
+		mut n := 0
+		if m > 0 {
+			n = len(test.input[0])
+		}
+		if n == 0 {
+			m = 0
+		}
+
 		mut mat := r(test)
+		if mat.m != m || mat.n != n {
+			t.Errorf("expected ({} x {}), found ({}, {}), for {}", m, n, mat.m, mat.n, test.input)
+			continue
+		}
 		if len(mat.data) != len(test.data) {
 			t.Errorf("data expected {}, found {}, for {}", test.data, mat.data, test.input)
 			continue
