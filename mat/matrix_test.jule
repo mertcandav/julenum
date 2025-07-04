@@ -31,6 +31,26 @@ fn testMatrixIsZero(t: &testing::T) {
 	}
 }
 
+#test
+fn testMatrixEqual(t: &testing::T) {
+	mut a := NewFrom([
+		[1, 2],
+		[3, 4],
+	])
+	mut b := New[int](0, 0)
+	if a.Equal(&b) {
+		t.Errorf("#1: expected false, found true")
+	}
+	b = New[int](2, 2)
+	if a.Equal(&b) {
+		t.Errorf("#2: expected false, found true")
+	}
+	a.Copy(&b)
+	if !a.Equal(&b) {
+		t.Errorf("#3: expected true, found false")
+	}
+}
+
 struct caseNewFrom {
 	input: [][]int
 	data:  []int

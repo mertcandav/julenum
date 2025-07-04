@@ -60,6 +60,21 @@ impl Matrix {
 		self.data[i+j*self.m] = value // column-major
 	}
 
+	// Reports whether self and z matrices are equal.
+	#disable boundary
+	fn Equal(*self, &z: *Matrix[T]): bool {
+		if self.m != z.m || self.n != z.n {
+			ret false
+		}
+		mut i := 0
+		for i < len(self.data); i++ {
+			if self.data[i] != z.data[i] {
+				ret false
+			}
+		}
+		ret true
+	}
+
 	// Sets self to z, filled with k.
 	// If self have enough capacity, Fill will use it to avoid making allocation.
 	#disable boundary
