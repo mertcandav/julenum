@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+// Size of a uint in bits.
+const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
+
 // A matrix for type T.
 // Uses internal mutable slice to store data.
 // Matrix computations may use available capacity of the underlying slice
@@ -48,7 +51,7 @@ impl Matrix {
 	// Implementation will not check for boundaries, invalid position may cause panic.
 	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
 	fn Get(*self, i: int, j: int): T {
-		ret self.data[i+j*self.m] // column-major
+		ret self.data[i+j*self.m]
 	}
 
 	// Sets value of the specified (i x j) position.
@@ -57,7 +60,7 @@ impl Matrix {
 	// Implementation will not check for boundaries, invalid position may cause panic.
 	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
 	fn Set(mut *self, i: int, j: int, value: T) {
-		self.data[i+j*self.m] = value // column-major
+		self.data[i+j*self.m] = value
 	}
 
 	// Reports whether self and z matrices are equal.
@@ -137,12 +140,7 @@ impl Matrix {
 
 		mut n := self.data[0]
 		mut i := 1
-
-		// The index on raw data for the matrix self.
-		// Use for avoid to compute i+i*self.m for each iteration step.
-		// It also eliminates multiplication, just basic binary addition.
-		mut k := i + self.m
-
+		mut k := i + self.m // i + i*self.m
 		for i < self.m; i, k = i+1, k+self.m+1 {
 			n += self.data[k]
 		}
@@ -185,21 +183,13 @@ impl Matrix {
 		}
 		// Compute transpose of z.
 
-		// The column index on raw data for the matrix z.
-		// Use for avoid to compute j+i*z.m for each iteration step.
-		// It also eliminates multiplication, just basic binary addition.
-		mut zm := 0
-
 		mut i := 0
+		mut zm := 0 + 0*z.m // j + i*z.m
 		for i < z.n; i, zm = i+1, zm+z.m {
-			// The index on raw data for the matrix self.
-			// Use for avoid to compute i+j*self.m for each iteration step.
-			// It eliminates multiplication, just basic binary addition.
-			mut sm := i
-
+			mut sm := i + 0*self.m // i + j*self.m
 			mut j := 0
 			for j < z.m; j, sm = j+1, sm+self.m {
-				self.data[sm] = z.data[j+zm] // column-major
+				self.data[sm] = z.data[j+zm]
 			}
 		}
 	}
@@ -320,10 +310,7 @@ impl Matrix {
 			self.data = make([]T, len(x.data))
 		}
 
-		mut i := 0
-		for i < len(self.data); i++ {
-			self.data[i] = x.data[i] + y.data[i]
-		}
+		addRaw(self, x, y)
 	}
 
 	// Sets self to the difference x-y.
@@ -353,9 +340,156 @@ impl Matrix {
 			self.data = make([]T, len(x.data))
 		}
 
-		mut i := 0
-		for i < len(self.data); i++ {
-			self.data[i] = x.data[i] - y.data[i]
+		subRaw(self, x, y)
+	}
+
+	// Sets self to the product x*y.
+	// If self have enough capacity, Mul will use it to avoid making allocation.
+	#disable boundary
+	fn Mul(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
+		if x.m < 1 || x.n < 1 ||
+			y.m < 1 || y.n < 1 {
+			panic("mat: Matrix.Mul: matrices must have at least (1 x 1) size")
+		}
+		if x.n != y.m {
+			panic("mat: Matrix.Mul: dimensions are not compatible for multiplication")
+		}
+		// Compute x*y.
+
+		// Use basic multiplication if matrices are small.
+		n := max(max(x.m, x.n), y.n)
+		if n < strassenThreshold {
+			// Make sure the self data have enough space.
+			rsize := x.m * y.n
+			if self == x || self == y ||
+				alias(self.data, x.data) || alias(self.data, y.data) {
+				// self is an alias for x or y - cannot reuse.
+				// We have to allocate new Matrix to compute properly.
+				mut r := uncheckedNew[T](x.m, y.n)
+				basicMul(&r, x, y)
+				*self = r
+				ret
+			} else if cap(self.data) >= rsize {
+				// In this case, we have enough slice capacity or length to store result.
+				// To avoid making allocation, use the full capacity if needed.
+				self.data = self.data[:rsize]
+			} else {
+				// No enough space, we have to allocate new slice.
+				self.data = make([]T, rsize)
+			}
+
+			self.m, self.n = x.m, y.n
+			basicMul(self, x, y)
+			ret
+		}
+		// Matrices are big for basic multiplication.
+		// Use Strassen algorithm to compute efficiently.
+		// https://en.wikipedia.org/wiki/Strassen_algorithm
+
+		// Determine smallest power-of-two dimension to pad matrices to.
+		// Ensures Strassen recursion works correctly.
+		k := nextPowerOfTwo(n)
+
+		// Total common buffer allocation size estimation for Strassen implementation:
+		// Let n = size
+		// - Padded matrices (worst case): 3n² (A, B, and C)
+		// - Recursive temporary space per level: 17 × (n/2)^2 = (17/4) × n²
+		// - Depth of recursion: log₂(n / threshold)
+		// - Recursive workspace total:
+		//   S(n) = (17/4)n² + (17/4)(n/2)² + ... + (17/4)(threshold)²
+		//   This is a geometric series: S ≈ (17/3) × n²   (as n → ∞)
+		// => Total = 3n² + (17/3)n² = (26/3)n² ≈ 8.67n²
+		// We use a conservative multiplier of 9 to ensure no overflow at threshold=64.
+		mut strassenSize := 9 * k * k
+
+		// Determine whether the input matrices needs padding.
+		xPadNeed := !isPowerOfTwo(x.m) || !isPowerOfTwo(x.n)
+		yPadNeed := !isPowerOfTwo(y.m) || !isPowerOfTwo(y.n)
+
+		// Remove size of the matrices, if it does not need padding.
+		// It helps to reduce size of the common buffer allocation.
+		if !xPadNeed {
+			strassenSize -= x.m * x.n
+		}
+		if !yPadNeed {
+			strassenSize -= y.m * y.n
+		}
+
+		// strassenSpace is a single buffer to compute x*y with Strassen algorithm.
+		// It will be used for internal matrix data and the final matrix.
+		// Once allocated, it will be used for the whole computation, no extra allocation.
+		let mut strassenSpace: []T
+		if self == x || self == y ||
+			alias(self.data, x.data) || alias(self.data, y.data) {
+			// self is an alias for x or y - cannot reuse.
+			// We have to allocate new Matrix to compute properly.
+			strassenSpace = make([]T, strassenSize)
+		} else if cap(self.data) >= strassenSize {
+			// In this case, we have enough slice capacity or length to store result.
+			// To avoid making allocation, use the full capacity if needed.
+			strassenSpace = self.data[:strassenSize]
+		} else {
+			// No enough space, we have to allocate new slice.
+			strassenSpace = make([]T, strassenSize)
+		}
+
+		// Allocate z first to get end of the space.
+		// It is important to save whole buffer allocation.
+		// In the final stage, we will keep allocation for the result.
+		// For the next computation, this buffer will be available.
+		// to achieve that, the result matrix will be copied from the head of this allocation.
+		// The z matrix will be result with possible padding.
+		// To avoid collision during the copy, use the trailing space for z.
+		zpos := len(strassenSpace) - k*k
+		mut z := Matrix[T]{
+			m: k,
+			n: k,
+			data: strassenSpace[zpos:],
+		}
+		strassenSpace = strassenSpace[:zpos]
+		mut r := strassenSpace[:x.m*y.n] // The final result allocation.
+
+		// Allocate padded matrices from common buffer, if needed.
+		let mut xPad: Matrix[T]
+		let mut yPad: Matrix[T]
+		if xPadNeed {
+			// Copy input matrices into zero-padded square matrices.
+			xPad = getMatrix(k, k, &strassenSpace)
+			padAndCopy(&xPad, x)
+		} else {
+			xPad = unsafe { **(&x) } // Break immutability, it will not be mutated.
+		}
+		if yPadNeed {
+			// Copy input matrices into zero-padded square matrices.
+			yPad = getMatrix(k, k, &strassenSpace)
+			padAndCopy(&yPad, y)
+		} else {
+			yPad = unsafe { **(&y) } // Break immutability, it will not be mutated.
+		}
+
+		// Time to compute the product x*y using Strassen algorithm.
+		strassen(&z, &xPad, &yPad, strassenSpace)
+
+		// Set result to self.
+		self.m, self.n = x.m, y.n
+		self.data = r
+
+		// The z matrix is the raw result now.
+		// If it have same size with the actual result matrix, copy data directly.
+		// Otherwise, extract resulting matrix from top-left of padded output.
+		if z.m == self.m && z.n == self.n {
+			copy(self.data, z.data)
+		} else {
+			mut sm := 0 + 0*self.m // i + j*self.m
+			mut zm := 0 + 0*z.m    // i + j*z.m
+			mut j := 0
+			for j < self.n; j, sm, zm = j+1, sm+self.m, zm+z.m {
+				mut i := 0
+				for i < self.m; i++ {
+					// Fast access form of: self.Set(i, j, z.Get(i, j))
+					self.data[i+sm] = z.data[i+zm]
+				}
+			}
 		}
 	}
 }
@@ -373,7 +507,7 @@ fn Empty[T: numeric](): Matrix[T] {
 	ret uncheckedNew[T](0, 0)
 }
 
-// Returns new (m x n) Matrix for type T.
+// Returns new (m x n) zero Matrix for type T.
 //
 // Constraints:
 //	m >= 0
@@ -440,12 +574,274 @@ fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 	ret mat
 }
 
+// Sets z to the sum x+y.
+// z must be have enough space for the sum x+y.
+#disable boundary
+fn addRaw[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
+	mut i := 0
+	for i < len(z.data); i++ {
+		z.data[i] = x.data[i] + y.data[i]
+	}
+}
+
+// Sets z to the difference x-y.
+// z must be have enough space for the difference x-y.
+#disable boundary
+fn subRaw[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
+	mut i := 0
+	for i < len(z.data); i++ {
+		z.data[i] = x.data[i] - y.data[i]
+	}
+}
+
+// Basic matrix multiplication implementation.
+// Multiplies x and y and leaves the result in z.
+// z must be have enough space for the product x*k.
+// It will not update dimensions of the z.
+#disable boundary
+fn basicMul[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
+	mut i := 0
+	for i < x.m; i++ {
+		mut zm := i + 0*z.m // i + j*z.m
+		mut ym := 0 + 0*y.m // k + j*y.m
+
+		mut j := 0
+		for j < y.n; j, zm, ym = j+1, zm+z.m, ym+y.m {
+			let mut sum: T
+			mut k := 0
+			for k < x.n; k++ {
+				// Fast access form of: x.Get(i, k) * y.Get(k, j)
+				sum += x.data[i+k*x.m] * y.data[k+ym]
+			}
+			// Fast access form of: z.Set(i, j, sum)
+			z.data[zm] = sum
+		}
+	}
+}
+
+// Threshold for switching to basic multiplication.
+// This value is crucial for performance, Strassen algorithm is inefficient for tiny matrices.
+const strassenThreshold = 64
+
+// Performs recursive Strassen matrix multiplication using single shared allocation.
+// Assumes square matrices of size n × n where n is a power of 2.
+// Writes final result to z, it must be have enough space for the product x*y.
+#disable boundary
+fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[T], mut space: []T) {
+	// If the matrix size is small enough, use basic matrix multiplication.
+	// This threshold balances recursion overhead and cache-local performance.
+	// Threshold choice (e.g., 64) is crucial for performance and determines space needs.
+	n := max(max(x.m, x.n), y.n)
+	if n < strassenThreshold {
+		basicMul(z, x, y)
+		ret
+	}
+
+	// Half-size for quadrant splitting.
+	k := n >> 1 // k = n / 2
+
+	// Strassen requires 7 recursive multiplications and uses temporaries.
+	// Allocate required submatrices from the workspace buffer:
+	// - 7 intermediate result matrices (M1 through M7)
+	// - 2 temporary matrices for sum/diff (S1, S2)
+	// - 8 quadrant matrices (A11..A22, B11..B22) for copying subblocks
+
+	// Each matrix is of size (k × k), so total allocation per level is:
+	// 17 × (k × k) = 17k²
+
+	// Allocate intermediate result matrices.
+	mut m1 := getMatrix(k, k, &space)
+	mut m2 := getMatrix(k, k, &space)
+	mut m3 := getMatrix(k, k, &space)
+	mut m4 := getMatrix(k, k, &space)
+	mut m5 := getMatrix(k, k, &space)
+	mut m6 := getMatrix(k, k, &space)
+	mut m7 := getMatrix(k, k, &space)
+	mut s1 := getMatrix(k, k, &space)
+	mut s2 := getMatrix(k, k, &space)
+
+	// Allocate quadrant matrices from input x.
+	mut a11 := getMatrix(k, k, &space)
+	copySubMatrix(&a11, x, 0, 0, k)
+	mut a12 := getMatrix(k, k, &space)
+	copySubMatrix(&a12, x, 0, k, k)
+	mut a21 := getMatrix(k, k, &space)
+	copySubMatrix(&a21, x, k, 0, k)
+	mut a22 := getMatrix(k, k, &space)
+	copySubMatrix(&a22, x, k, k, k)
+
+	// Allocate quadrant matrices from input y.
+	mut b11 := getMatrix(k, k, &space)
+	copySubMatrix(&b11, y, 0, 0, k)
+	mut b12 := getMatrix(k, k, &space)
+	copySubMatrix(&b12, y, 0, k, k)
+	mut b21 := getMatrix(k, k, &space)
+	copySubMatrix(&b21, y, k, 0, k)
+	mut b22 := getMatrix(k, k, &space)
+	copySubMatrix(&b22, y, k, k, k)
+
+	// M1 = (A11 + A22) * (B11 + B22)
+	addRaw(&s1, &a11, &a22)
+	addRaw(&s2, &b11, &b22)
+	strassen(&m1, &s1, &s2, space)
+
+	// M2 = (A21 + A22) * B11
+	addRaw(&s1, &a21, &a22)
+	strassen(&m2, &s1, &b11, space)
+
+	// M3 = A11 * (B12 - B22)
+	subRaw(&s1, &b12, &b22)
+	strassen(&m3, &a11, &s1, space)
+
+	// M4 = A22 * (B21 - B11)
+	subRaw(&s1, &b21, &b11)
+	strassen(&m4, &a22, &s1, space)
+
+	// M5 = (A11 + A12) * B22
+	addRaw(&s1, &a11, &a12)
+	strassen(&m5, &s1, &b22, space)
+
+	// M6 = (A21 - A11) * (B11 + B12)
+	subRaw(&s1, &a21, &a11)
+	addRaw(&s2, &b11, &b12)
+	strassen(&m6, &s1, &s2, space)
+
+	// M7 = (A12 - A22) * (B21 + B22)
+	subRaw(&s1, &a12, &a22)
+	addRaw(&s2, &b21, &b22)
+	strassen(&m7, &s1, &s2, space)
+
+	// C11 = M1 + M4 - M5 + M7
+	addRaw(&s1, &m1, &m4)
+	subRaw(&s2, &s1, &m5)
+	addRaw(&s1, &s2, &m7)
+	copyToQuadrant(z, &s1, 0, 0)
+
+	// C12 = M3 + M5
+	addRaw(&s1, &m3, &m5)
+	copyToQuadrant(z, &s1, 0, k)
+
+	// C21 = M2 + M4
+	addRaw(&s1, &m2, &m4)
+	copyToQuadrant(z, &s1, k, 0)
+
+	// C22 = M1 - M2 + M3 + M6
+	subRaw(&s1, &m1, &m2)
+	addRaw(&s2, &s1, &m3)
+	addRaw(&s1, &s2, &m6)
+	copyToQuadrant(z, &s1, k, k)
+}
+
+// Places k matrix into a quadrant of z matrix at offset (m, n).
+#disable boundary
+fn copyToQuadrant[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], m: int, n: int) {
+	mut kj := 0 * k.m             // j * k.m
+	mut zm := (m + 0) + (n+0)*z.m // (m + i) + (n+j)*z.m
+	mut j := 0
+	for j < k.m; j, kj, zm = j+1, kj+k.m, zm+z.m {
+		mut i := 0
+		for i < k.m; i++ {
+			// Fast access form of: z.Set(m+i, n+j, k.Get(i, j))
+			z.data[i+zm] = k.data[i+kj]
+		}
+	}
+}
+
+// Copies submatrix (of size × size) from source k at (m, n) to z.
+// z must be have enough space to copy k.
+#disable boundary
+fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], m: int, n: int, size: int) {
+	mut zm := 0 + 0*z.m           // i + j*z.m
+	mut km := (m + 0) + (n+0)*k.m // (m + i) + (n+j)*k.m
+	mut j := 0
+	for j < size; j, zm, km = j+1, zm+z.m, km+k.m {
+		mut i := 0
+		for i < size; i++ {
+			// Fast access form of: z.Set(i, j, k.Get(m+i, n+j))
+			z.data[i+zm] = k.data[i+km]
+		}
+	}
+}
+
+// Pads and copies k matrix into larger workspace matrix z.
+// Fills remaining elements with zeros.
+// z must be have enough space to copy k.
+#disable boundary
+fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
+	// Clear the z matrix if k is smaller than.
+	if k.m < z.m || k.n < z.n {
+		for i in z.data {
+			z.data[i] = 0
+		}
+	}
+
+	mut zm := 0 + 0*z.m // i + j*z.m
+	mut km := 0 + 0*k.m // i + j*k.m
+	mut j := 0
+	for j < k.n; j, zm, km = j+1, zm+z.m, km+k.m {
+		mut i := 0
+		for i < k.m; i++ {
+			// Fast access form of: z.Set(i, j, k.Get(i, j))
+			z.data[i+zm] = k.data[i+km]
+		}
+	}
+}
+
+// Returns new (m x n) Matrix for type T from space.
+// The result matrix will use shared data from space.
+// Space will be trimmed according to size.
+fn getMatrix[T: numeric](m: int, n: int, mut &space: *[]T): Matrix[T] {
+	k := m * n
+	if k > len(*space) {
+		panic("mat: getMatrix: internal error, no space")
+	}
+	mut data := (*space)[:k]
+	*space = (*space)[k:]
+	ret Matrix[T]{
+		m: m,
+		n: n,
+		data: data,
+	}
+}
+
 // Reports whether x and y share the same base array.
 //
 // Note: alias assumes that the capacity of underlying arrays
 // is never changed for values; i.e. that there are
 // no 3-operand slice expressions in this code (or worse,
 // reflect-based operations to the same effect).
-fn alias[T](x: []T, y: []T): bool {
+fn alias[T: numeric](x: []T, y: []T): bool {
 	ret cap(x) > 0 && cap(y) > 0 && &x[0:cap(x)][cap(x)-1] == &y[0:cap(y)][cap(y)-1]
+}
+
+// https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+fn isPowerOfTwo(n: int): bool {
+	ret n&(n-1) == 0
+}
+
+// https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+fn nextPowerOfTwo(mut n: int): int {
+	if n <= 1 {
+		ret 1
+	}
+	if isPowerOfTwo(n) {
+		ret n
+	}
+	n--
+	n |= n >> 1
+	n |= n >> 2
+	n |= n >> 4
+	n |= n >> 8
+	n |= n >> 16
+	if uintSize == 64 { // 64-bit architecture
+		n |= n >> 32
+	}
+	ret n + 1
+}
+
+fn max(x: int, y: int): int {
+	if x > y {
+		ret x
+	}
+	ret y
 }
