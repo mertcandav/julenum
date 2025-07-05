@@ -40,7 +40,7 @@ impl Matrix {
 		ret true
 	}
 
-	// Reports whether the Matrix is a square matrix.
+	// Reports whether the Matrix is a square matrix (M == N).
 	fn IsSquare(*self): bool {
 		ret self.m == self.n
 	}
