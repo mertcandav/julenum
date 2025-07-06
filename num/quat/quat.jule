@@ -33,6 +33,11 @@ impl Quat {
 	fn Add(mut *self, &x: *Quat, &y: *Quat) {
 		self.R, self.I, self.J, self.K = x.R+y.R, x.I+y.I, x.J+y.J, x.K+y.K
 	}
+
+	// Sets self to the difference x-y.
+	fn Sub(mut *self, &x: *Quat, &y: *Quat) {
+		self.R, self.I, self.J, self.K = x.R-y.R, x.I-y.I, x.J-y.J, x.K-y.K
+	}
 }
 
 // Returns a quaternion NaN.
