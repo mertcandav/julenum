@@ -171,3 +171,34 @@ fn testQuatInf(t: &testing::T) {
 		}
 	}
 }
+
+struct testQuatF64 {
+	q: Quat
+	r: f64
+}
+
+let testsQuatAbs: []testQuatF64 = [
+	{q: {}, r: 0},
+	{q: NaN(), r: nan},
+	{q: Inf(0), r: inf},
+	{q: {R: 1, I: 1, J: 1, K: 1}, r: 2},
+	{q: {R: -1, I: 1, J: -1, K: 1}, r: 2},
+	{q: {R: 1, I: 2, J: 3, K: 4}, r: math::Sqrt(1 + 4 + 9 + 16)},
+	{q: {R: -1, I: -2, J: -3, K: -4}, r: math::Sqrt(1 + 4 + 9 + 16)},
+]
+
+#test
+fn testQuatAbs(t: &testing::T) {
+	for _, test in testsQuatAbs {
+		r := test.q.Abs()
+		if math::IsNaN(test.r) {
+			if !math::IsNaN(r) {
+				t.Errorf("expected {}, found {}, for Abs({})", test.r, r, test.q)
+			}
+			continue
+		}
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Inf({})", test.r, r, test.q)
+		}
+	}
+}

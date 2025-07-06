@@ -52,6 +52,51 @@ impl Quat {
 	fn Scale(mut *self, &x: *Quat, k: f64) {
 		self.R, self.I, self.J, self.K = x.R*k, x.I*k, x.J*k, x.K*k
 	}
+
+	// Returns the absolute value (also called the modulus) of quaternion.
+	//
+	// Special cases:
+	//	Abs() = +Inf, if quaternion is ±Inf.
+	//	Abs() = NaN, if quaternion is NaN
+	fn Abs(*self): f64 {
+		// Special cases.
+		match {
+		| self.Inf():
+			ret math::Inf(1)
+		| self.NaN():
+			ret math::NaN()
+		}
+
+		mut r, mut i, mut j, mut k := self.R, self.I, self.J, self.K
+		if r < 0 {
+			r = -r
+		}
+		if i < 0 {
+			i = -i
+		}
+		if j < 0 {
+			j = -j
+		}
+		if k < 0 {
+			k = -k
+		}
+		if r < i {
+			r, i = i, r
+		}
+		if r < j {
+			r, j = j, r
+		}
+		if r < k {
+			r, k = k, r
+		}
+		if r == 0 {
+			ret 0
+		}
+		i /= r
+		j /= r
+		k /= r
+		ret r * math::Sqrt(1+i*i+j*j+k*k)
+	}
 }
 
 // Returns a quaternion NaN.
