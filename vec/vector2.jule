@@ -7,3 +7,10 @@ struct Vector2 {
 	X: f64
 	Y: f64
 }
+
+impl Vector2 {
+	// Sets self to the sum x+y.
+	fn Add(mut *self, &x: *Vector2, &y: *Vector2) {
+		self.X, self.Y = x.X+y.X, x.Y+y.Y
+	}
+}
