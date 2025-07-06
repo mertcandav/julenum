@@ -12,6 +12,12 @@ struct Quat {
 	K: f64
 }
 
+// Returns a quaternion NaN.
+fn NaN(): Quat {
+	nan := math::NaN()
+	ret Quat{nan, nan, nan, nan}
+}
+
 // Returns a quaternion ±infinity by sign.
 fn Inf(sign: int): Quat {
 	inf := math::Inf(sign)
