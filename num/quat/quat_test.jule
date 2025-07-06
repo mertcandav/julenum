@@ -409,7 +409,7 @@ fn testQuatPow(t: &testing::T) {
 		mut x := test.q
 		x.Pow(&x, &test.r)
 		if !equalApprox(x, test.w) {
-			t.Errorf("expected {}, found {}, for Pow({})", test.w, x, test.q)
+			t.Errorf("expected {}, found {}, for Pow({}, {})", test.w, x, test.q, test.r)
 		}
 	}
 }
@@ -502,7 +502,47 @@ fn testQuatPowReal(t: &testing::T) {
 		mut x := test.q
 		x.PowReal(&x, test.r)
 		if !equalApprox(x, test.w) {
-			t.Errorf("expected {}, found {}, for PowReal({})", test.w, x, test.q)
+			t.Errorf("expected {}, found {}, for PowReal({}, {})", test.w, x, test.q, test.r)
+		}
+	}
+}
+
+let testsQuatSqrt: []testQuatQuat = [
+	{q: {}, r: {}},
+	// Expected velues below are from pyquaternion.
+	{
+		q: {R: 1, I: 1, J: 1, K: 1},
+		r: {R: 1.2247448713915892, I: 0.4082482904638631, J: 0.4082482904638631, K: 0.4082482904638631},
+	},
+	{
+		q: {R: 1, I: 0, J: 1, K: 1},
+		r: {R: 1.1687708944803676, I: 0, J: 0.42779983858367593, K: 0.42779983858367593},
+	},
+	{
+		q: {R: 1, I: 0, J: 0, K: 1},
+		r: {R: 1.0986841134678098, I: 0, J: 0, K: 0.45508986056222733},
+	},
+	{
+		q: {R: 0, I: 1, J: 1, K: 1},
+		r: {R: 0.9306048591020996, I: 0.5372849659117709, J: 0.5372849659117709, K: 0.5372849659117709},
+	},
+	{
+		q: {R: 0, I: 0, J: 1, K: 1},
+		r: {R: 0.8408964152537146, I: 0, J: 0.5946035575013604, K: 0.5946035575013604},
+	},
+	{
+		q: {R: 0, I: 0, J: 0, K: 1},
+		r: {R: 0.7071067811865476, I: 0, J: 0, K: 0.7071067811865475},
+	},
+]
+
+#test
+fn testQuatSqrt(t: &testing::T) {
+	for _, test in testsQuatSqrt {
+		mut x := test.q
+		x.Sqrt(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Sqrt({})", test.r, x, test.q)
 		}
 	}
 }
