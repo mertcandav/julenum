@@ -1,0 +1,33 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Reports whether two values a and b are approximately equal,
+// within a relative tolerance e. This is useful for comparing floating-point values
+// where exact equality is unreliable due to rounding errors.
+//
+// It returns true if the absolute difference between a and b
+// is less than the tolerance threshold scaled by the expected value b,
+// or if a and b are exactly equal.
+fn Tolerance(a: f64, b: f64, mut e: f64): bool {
+	// Multiplying by e here can underflow denormal values to zero.
+	// Check a==b so that at least if a and b are small and identical
+	// we say they match.
+	if a == b {
+		ret true
+	}
+	mut d := a - b
+	if d < 0 {
+		d = -d
+	}
+
+	// note: b is correct (expected) value, a is actual value.
+	// make error tolerance a fraction of b, not a.
+	if b != 0 {
+		e = e * b
+		if e < 0 {
+			e = -e
+		}
+	}
+	ret d < e
+}

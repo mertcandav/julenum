@@ -1,0 +1,42 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct toleranceTest {
+	a: f64
+	b: f64
+	e: f64
+	r: bool
+}
+
+let testsTolerance: []toleranceTest = [
+	{a: 1.0, b: 1.0, e: 0.01, r: true},
+	{a: 1.01, b: 1.0, e: 0.02, r: true},
+	{a: 1.03, b: 1.0, e: 0.02, r: false},
+	{a: 100.0, b: 100.0, e: 0.0, r: true},
+	{a: 100.1, b: 100, e: 0.0, r: false},
+	{a: 0.0, b: 0.0, e: 0.1, r: true},
+	{a: 1e-12, b: 1e-12, e: 1e-9, r: true},
+	{a: 1e-12, b: 1.0001e-12, e: 1e-4, r: true},
+	{a: 1e-12, b: 1.0001e-12, e: 1e-6, r: false},
+	{a: -1.0, b: -1.0, e: 0.01, r: true},
+	{a: -1.01, b: -1.0, e: 0.02, r: true},
+	{a: -1.03, b: -1.0, e: 0.02, r: false},
+	{a: 100.0, b: 0.0, e: 0.1, r: false},
+	{a: 0.0, b: 100.0, e: 0.1, r: false},
+	{a: 0.0, b: 1e-10, e: 0.5, r: false},
+	{a: 0.0, b: 1e-10, e: 1.0, r: false},
+	{a: 0.0, b: 1e-10, e: 1.1, r: true},
+]
+
+#test
+fn testTolerance(t: &testing::T) {
+	for _, test in testsTolerance {
+		r := Tolerance(test.a, test.b, test.e)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Tolerance({}, {}, {})", test.r, r, test.a, test.b, test.e)
+		}
+	}
+}
