@@ -31,3 +31,7 @@ fn Tolerance(a: f64, b: f64, mut e: f64): bool {
 	}
 	ret d < e
 }
+
+// Reports whether two values a and b are approximately equal
+// within a very tight default relative tolerance of 1e-14.
+fn Close(a: f64, b: f64): bool { ret Tolerance(a, b, 1e-14) }
