@@ -19,4 +19,9 @@ impl Vector3 {
 	fn Sub(mut *self, &x: *Vector3, &y: *Vector3) {
 		self.X, self.Y, self.Z = x.X-y.X, x.Y-y.Y, x.Z-y.Z
 	}
+
+	// Returns the dot product self*y.
+	fn Dot(*self, &y: *Vector3): f64 {
+		ret self.X*y.X + self.Y*y.Y + self.Z + y.Z
+	}
 }
