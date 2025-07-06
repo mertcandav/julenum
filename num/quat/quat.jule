@@ -49,7 +49,7 @@ impl Quat {
 	}
 
 	// Sets self to the product x*k.
-	fn MulScalar(mut *self, &x: *Quat, k: f64) {
+	fn Scale(mut *self, &x: *Quat, k: f64) {
 		self.R, self.I, self.J, self.K = x.R*k, x.I*k, x.J*k, x.K*k
 	}
 }
