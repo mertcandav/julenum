@@ -37,8 +37,8 @@ impl Matrix {
 	// Reports whether the all values of Matrix are zero.
 	//
 	// Special cases:
-	//	IsZero() = true, if Dims() == (0, 0)
-	fn IsZero(*self): bool {
+	//	Zero() = true, if Dims() == (0, 0)
+	fn Zero(*self): bool {
 		for _, x in self.data {
 			if x != 0 {
 				ret false
@@ -48,7 +48,7 @@ impl Matrix {
 	}
 
 	// Reports whether the Matrix is a square matrix (M == N).
-	fn IsSquare(*self): bool {
+	fn Square(*self): bool {
 		ret self.m == self.n
 	}
 
