@@ -1,0 +1,11 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Quaternion with floating-point precision.
+struct Quat {
+	R: f64
+	I: f64
+	J: f64
+	K: f64
+}
