@@ -67,4 +67,10 @@ impl Vector2 {
 		}
 		ret math::Acos(cosTheta)
 	}
+
+	// Sets self to the x vector rotated by theta radians.
+	fn Rotate(mut *self, &x: *Vector2, theta: f64) {
+		sin, cos := math::Sincos(theta)
+		self.X, self.Y = x.X*cos-x.Y*sin, x.X*sin+x.Y*cos
+	}
 }
