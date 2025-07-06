@@ -66,7 +66,7 @@ impl Quat {
 	// Sets self to the quaternion inverse of x.
 	fn Inv(mut *self, &x: *Quat) {
 		if x.Inf() {
-			self.R, self.I, self.J, self.K = 0, 0, 0, 0
+			lift(self, 0)
 			ret
 		}
 		a := x.Abs()
@@ -99,6 +99,36 @@ impl Quat {
 		v := uv.Abs()
 		self.Scale(&uv, math::Atan2(v, w)/v)
 		join(self, math::Log(a))
+	}
+
+	// Sets self to the product q**r, the base-q exponential of r.
+	// For generalized compatibility with math::Pow:
+	//
+	//	Pow(0, ±0) returns 1+0i+0j+0k
+	//	Pow(0, c) for real(c)<0 returns Inf+0i+0j+0k if imag(c), jmag(c), kmag(c) are zero,
+	//	    otherwise Inf+Inf i+Inf j+Inf k.
+	fn Pow(mut *self, &q: *Quat, &r: *Quat) {
+		if q.Zero() {
+			w, uv := split(r)
+			match {
+			| w == 0:
+				lift(self, 1)
+				ret
+			| w < 0:
+				if uv.Zero() {
+					lift(self, math::Inf(1))
+				} else {
+					*self = Inf(1)
+				}
+			| w > 0:
+				lift(self, 0)
+				ret
+			}
+		}
+		// exp(log(q) * r)
+		self.Log(q)
+		self.Mul(self, r)
+		self.Exp(self)
 	}
 
 	// Returns the absolute value (also called the modulus) of quaternion.
