@@ -414,6 +414,99 @@ fn testQuatPow(t: &testing::T) {
 	}
 }
 
+struct powRealTest {
+	q: Quat
+	r: f64
+	w: Quat
+}
+
+let testsQuatPowReal: []powRealTest = [
+	{q: {}, r: 0, w: {R: 1}},
+	{
+		q: {R: 1, I: 1, J: 1, K: 1}, r: 2,
+		w: {R: -2, I: 2, J: 2, K: 2},
+	},
+	{
+		q: {R: 1, I: 0, J: 1, K: 1}, r: 2,
+		w: {R: -1, I: 0, J: 2, K: 2},
+	},
+	{
+		q: {R: 1, I: 0, J: 0, K: 1}, r: 2,
+		w: {R: 0, I: 0, J: 0, K: 2},
+	},
+	{
+		q: {R: 0, I: 1, J: 1, K: 1}, r: 2,
+		w: {R: -3, I: 0, J: 0, K: 0},
+	},
+	{
+		q: {R: 0, I: 0, J: 1, K: 1}, r: 2,
+		w: {R: -2, I: 0, J: 0, K: 0},
+	},
+	{
+		q: {R: 0, I: 0, J: 0, K: 1}, r: 2,
+		w: {R: -1, I: 0, J: 0, K: 0},
+	},
+	{
+		q: {R: 1, I: 1, J: 1, K: 1}, r: math::Pi,
+		w: {R: -8.728144138959564, I: -0.7527136547040768, J: -0.7527136547040768, K: -0.7527136547040768},
+	},
+	{
+		q: {R: 1, I: 0, J: 1, K: 1}, r: math::Pi,
+		w: {R: -5.561182514695044, I: 0, J: 0.5556661490713818, K: 0.5556661490713818},
+	},
+	{
+		q: {R: 1, I: 0, J: 0, K: 1}, r: math::Pi,
+		w: {R: -2.320735561810013, I: 0, J: 0, K: 1.8544983901925216},
+	},
+	{
+		q: {R: 0, I: 1, J: 1, K: 1}, r: math::Pi,
+		w: {R: 1.2388947209955585, I: -3.162774128856231, J: -3.162774128856231, K: -3.162774128856231},
+	},
+	{
+		q: {R: 0, I: 0, J: 1, K: 1}, r: math::Pi,
+		w: {R: 0.6552860151073727, I: 0, J: -2.0488506614051922, K: -2.0488506614051922},
+	},
+	{
+		q: {R: 0, I: 0, J: 0, K: 1}, r: math::Pi,
+		w: {R: 0.22058404074969779, I: 0, J: 0, K: -0.9753679720836315},
+	},
+	{
+		q: {R: 1, I: 1, J: 1, K: 1}, r: 3,
+		w: {R: -8, I: 0, J: 0, K: 0},
+	},
+	{
+		q: {R: 1, I: 0, J: 1, K: 1}, r: 3,
+		w: {R: -5, I: 0, J: 1, K: 1},
+	},
+	{
+		q: {R: 1, I: 0, J: 0, K: 1}, r: 3,
+		w: {R: -2, I: 0, J: 0, K: 2},
+	},
+	{
+		q: {R: 0, I: 1, J: 1, K: 1}, r: 3,
+		w: {R: 0, I: -3, J: -3, K: -3},
+	},
+	{
+		q: {R: 0, I: 0, J: 1, K: 1}, r: 3,
+		w: {R: 0, I: 0, J: -2, K: -2},
+	},
+	{
+		q: {R: 0, I: 0, J: 0, K: 1}, r: 3,
+		w: {R: 0, I: 0, J: 0, K: -1},
+	},
+]
+
+#test
+fn testQuatPowReal(t: &testing::T) {
+	for _, test in testsQuatPowReal {
+		mut x := test.q
+		x.PowReal(&x, test.r)
+		if !equalApprox(x, test.w) {
+			t.Errorf("expected {}, found {}, for PowReal({})", test.w, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&
