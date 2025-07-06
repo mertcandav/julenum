@@ -2,10 +2,18 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // Quaternion with floating-point precision.
 struct Quat {
 	R: f64
 	I: f64
 	J: f64
 	K: f64
+}
+
+// Returns a quaternion ±infinity by sign.
+fn Inf(sign: int): Quat {
+	inf := math::Inf(sign)
+	ret Quat{inf, inf, inf, inf}
 }
