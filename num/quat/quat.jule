@@ -29,6 +29,11 @@ impl Quat {
 			math::IsInf(self.J, 0) || math::IsInf(self.K, 0)
 	}
 
+	// Reports whether all fields of quaternion is zero.
+	fn Zero(*self): bool {
+		ret self.R == 0 && self.I == 0 && self.J == 0 && self.K == 0
+	}
+
 	// Sets self to the sum of x+y.
 	fn Add(mut *self, &x: *Quat, &y: *Quat) {
 		self.R, self.I, self.J, self.K = x.R+y.R, x.I+y.I, x.J+y.J, x.K+y.K
