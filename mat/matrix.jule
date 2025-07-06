@@ -52,6 +52,32 @@ impl Matrix {
 		ret self.m == self.n
 	}
 
+	// Reports whether the matrice (M X N) is scalar matrice of c.
+	// This function only supports square matrices (M == N && N > 0).
+	#disable boundary
+	fn Scalar(*self, c: T): bool {
+		if self.m != self.n || self.n <= 0 {
+			panic("mat: Matrix.Scalar: determinant on non-square matrix")
+		}
+		mut i := 0
+		mut j := 0 // 0 + i*self.m
+		for i < self.n; i++ {
+			mut k := j         // Start position of the column i.
+			mut pivot := k + i // Pivot index for the c element.
+			j += self.m        // Point to the index of the next column of matrix.
+			for k < j; k++ {
+				if k == pivot {
+					if self.data[k] != c {
+						ret false
+					}
+				} else if self.data[k] != 0 {
+					ret false
+				}
+			}
+		}
+		ret true
+	}
+
 	// Returns value of the specified (i x j) position.
 	// Position index starts from zero for column and row.
 	//
