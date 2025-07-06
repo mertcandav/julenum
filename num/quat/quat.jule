@@ -53,6 +53,11 @@ impl Quat {
 		self.R, self.I, self.J, self.K = x.R*k, x.I*k, x.J*k, x.K*k
 	}
 
+	// Sets self to the quaternion conjugate of x.
+	fn Conj(mut *self, &x: *Quat) {
+		self.R, self.I, self.J, self.K = x.R, -x.I, -x.J, -x.K
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:
