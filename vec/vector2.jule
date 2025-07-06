@@ -36,6 +36,11 @@ impl Vector2 {
 		self.X, self.Y = x.X/y, x.Y/y
 	}
 
+	// Returns the scalar cross product of two vectors (2D cross product).
+	fn Cross(*self, &x: *Vector2): f64 {
+		ret self.X*x.Y - self.Y*x.X
+	}
+
 	// Returns length of vector.
 	fn Len(*self): f64 {
 		ret math::Sqrt(self.X*self.X + self.Y*self.Y)
