@@ -3,7 +3,53 @@
 // license that can be found in the LICENSE file.
 
 use "julenum"
+use "std/math"
 use "std/testing"
+
+struct testVector2Rotate {
+	x:     Vector2
+	theta: f64
+	r:     Vector2
+}
+
+let testsVector2Rotate: []testVector2Rotate = [
+	{
+		x: {1, 0},
+		theta: math::Pi / 2,
+		r: {0, 1},
+	},
+	{
+		x: {0, 1},
+		theta: math::Pi,
+		r: {0, -1},
+	},
+	{
+		x: {1, 1},
+		theta: math::Pi / 4,
+		r: {0, math::Sqrt(2)},
+	},
+	{
+		x: {2, 3},
+		theta: math::Pi / 2,
+		r: {-3, 2},
+	},
+	{
+		x: {5, 0},
+		theta: math::Pi * 2,
+		r: {5, 0},
+	},
+]
+
+#test
+fn testVectorRotate(t: &testing::T) {
+	for _, test in testsVector2Rotate {
+		mut x := test.x
+		x.Rotate(&x, test.theta)
+		if !julenum::Close(x.X, test.r.X) || !julenum::Close(x.Y, test.r.Y) {
+			t.Errorf("expected {}, found {}, for Rotate({}, {})", test.r, x, test.x, test.theta)
+		}
+	}
+}
 
 struct testVector2XYR {
 	x: Vector2
@@ -49,7 +95,7 @@ fn testVectorProj(t: &testing::T) {
 	for _, test in testsVector2Proj {
 		mut x, y := test.x, test.y
 		x.Proj(&x, &y)
-		if !julenum::Close(x.X, test.r.X) || !julenum::Close(x.Y, test.r.Y) {
+		if !julenum::VeryClose(x.X, test.r.X) || !julenum::VeryClose(x.Y, test.r.Y) {
 			t.Errorf("expected {}, found {}, for Proj({}, {})", test.r, x, test.x, test.y)
 		}
 	}
