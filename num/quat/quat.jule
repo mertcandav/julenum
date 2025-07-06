@@ -28,6 +28,11 @@ impl Quat {
 		ret math::IsInf(self.R, 0) || math::IsInf(self.I, 0) ||
 			math::IsInf(self.J, 0) || math::IsInf(self.K, 0)
 	}
+
+	// Sets self to the sum of x+y.
+	fn Add(mut *self, &x: *Quat, &y: *Quat) {
+		self.R, self.I, self.J, self.K = x.R+y.R, x.I+y.I, x.J+y.J, x.K+y.K
+	}
 }
 
 // Returns a quaternion NaN.
