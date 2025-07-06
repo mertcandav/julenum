@@ -15,7 +15,7 @@ const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
 // If you need to share same Matrix instance, use smart pointers.
 // If you need to have guaranteed independent copy, use Copy with empty Matrix.
 struct Matrix[T: numeric] {
-	// Dimensions (m x n).
+	// Dimensions (M x N).
 	m: int
 	n: int
 
@@ -24,9 +24,14 @@ struct Matrix[T: numeric] {
 }
 
 impl Matrix {
-	// Returns dimensions of the Matrix (m x n).
+	// Returns dimensions of the Matrix (M x N).
 	fn Dims(*self): (m: int, n: int) {
 		ret self.m, self.n
+	}
+
+	// Returns total element count of matrix (M x N).
+	fn Size(*self): int {
+		ret self.m * self.n
 	}
 
 	// Reports whether the all values of Matrix are zero.
@@ -51,7 +56,7 @@ impl Matrix {
 	// Position index starts from zero for column and row.
 	//
 	// Implementation will not check for boundaries, invalid position may cause panic.
-	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
+	// To provide fast computation, it will not check whether the (i x j) is valid (M x N).
 	fn Get(*self, i: int, j: int): T {
 		ret self.data[i+j*self.m]
 	}
@@ -60,7 +65,7 @@ impl Matrix {
 	// Position index starts from zero for column and row.
 	//
 	// Implementation will not check for boundaries, invalid position may cause panic.
-	// To provide fast computation, it will not check whether the (i x j) is valid (m x n).
+	// To provide fast computation, it will not check whether the (i x j) is valid (M x N).
 	fn Set(mut *self, i: int, j: int, value: T) {
 		self.data[i+j*self.m] = value
 	}
@@ -161,12 +166,12 @@ impl Matrix {
 			ret
 		}
 
-		// (m x n) matrix will become (n x m).
+		// (M x N) matrix will become (N x M).
 		// So size will not be changed.
 		// Make sure the self data have enough space.
 		if self == z || alias(self.data, z.data) {
 			// Matrix self and matrix z have shared data.
-			// We have to allocate new (n x m) Matrix to compute properly.
+			// We have to allocate new (N x M) Matrix to compute properly.
 			mut r := uncheckedNew[T](z.n, z.m)
 			r.Transpose(z)
 			*self = r
@@ -175,12 +180,12 @@ impl Matrix {
 			// In this case, we have enough slice capacity or length to store result.
 			// To avoid making allocation, use the full capacity if needed.
 			self.data = self.data[:len(z.data)]
-			// (m x n) matrix will become (n x m).
+			// (M x N) matrix will become (N x M).
 			self.m, self.n = z.n, z.m
 		} else {
 			// No enough space, we have to allocate new slice.
 			self.data = make([]T, len(z.data))
-			// (m x n) matrix will become (n x m).
+			// (M x N) matrix will become (N x M).
 			self.m, self.n = z.n, z.m
 		}
 		// Compute transpose of z.
@@ -749,7 +754,7 @@ fn Empty[T: numeric](): Matrix[T] {
 	ret uncheckedNew[T](0, 0)
 }
 
-// Returns new (m x n) zero Matrix for type T.
+// Returns new (M x N) zero Matrix for type T.
 //
 // Constraints:
 //	m >= 0
@@ -761,7 +766,7 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 	ret uncheckedNew[T](m, n)
 }
 
-// Returns new (m x n) Matrix for type T.
+// Returns new (M x N) Matrix for type T.
 // Uses len(values) for m, len(values[1]) for n.
 // Panics if all rows are not have same amount of values.
 //
@@ -1029,7 +1034,7 @@ fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
 	}
 }
 
-// Returns new (m x n) Matrix for type T from space.
+// Returns new (M x N) Matrix for type T from space.
 // The result matrix will use shared data from space.
 // Space will be trimmed according to size.
 fn getMatrix[T: numeric](m: int, n: int, mut &space: *[]T): Matrix[T] {
