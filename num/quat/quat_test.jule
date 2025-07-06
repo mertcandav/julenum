@@ -233,3 +233,55 @@ fn testQuatInv(t: &testing::T) {
 		}
 	}
 }
+
+struct testQuatQuat {
+	q: Quat
+	r: Quat
+}
+
+let testsQuatExp: []testQuatQuat = [
+	{q: {}, r: {R: 1}},
+	// Expected velues below are from pyquaternion.
+	{
+		q: {R: 1, I: 1, J: 1, K: 1},
+		r: {R: -0.43643792124786496, I: 1.549040352371697, J: 1.549040352371697, K: 1.549040352371697},
+	},
+	{
+		q: {R: 1, I: 0, J: 1, K: 1},
+		r: {R: 0.42389891174348104, I: 0, J: 1.8986002490721081, K: 1.8986002490721081},
+	},
+	{
+		q: {R: 1, I: 0, J: 0, K: 1},
+		r: {R: 1.4686939399158851, I: 0, J: 0, K: 2.2873552871788423},
+	},
+	{
+		q: {R: 0, I: 1, J: 1, K: 1},
+		r: {R: -0.16055653857469052, I: 0.569860099182514, J: 0.569860099182514, K: 0.569860099182514},
+	},
+	{
+		q: {R: 0, I: 0, J: 1, K: 1},
+		r: {R: 0.15594369476537437, I: 0, J: 0.6984559986366083, K: 0.6984559986366083},
+	},
+	{
+		q: {R: 0, I: 0, J: 0, K: 1},
+		r: {R: 0.5403023058681398, I: 0, J: 0, K: 0.8414709848078965},
+	},
+]
+
+#test
+fn testQuatExp(t: &testing::T) {
+	for _, test in testsQuatExp {
+		mut x := test.q
+		x.Exp(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Exp({})", test.r, x, test.q)
+		}
+	}
+}
+
+fn equalApprox(a: Quat, b: Quat): bool {
+	ret julenum::Close(a.R, b.R) &&
+		julenum::Close(a.I, b.I) &&
+		julenum::Close(a.J, b.J) &&
+		julenum::Close(a.K, b.K)
+}

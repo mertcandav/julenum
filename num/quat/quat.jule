@@ -74,6 +74,20 @@ impl Quat {
 		self.Scale(self, 1/(a*a))
 	}
 
+	// Sets self to the product e**x, the base-e exponential of x.
+	fn Exp(mut *self, &x: *Quat) {
+		w, uv := split(x)
+		if uv.Zero() {
+			lift(self, math::Exp(w))
+			ret
+		}
+		v := uv.Abs()
+		e := math::Exp(w)
+		s, c := math::Sincos(v)
+		self.Scale(&uv, e*s/v)
+		join(self, e*c)
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:
@@ -130,4 +144,16 @@ fn NaN(): Quat {
 fn Inf(sign: int): Quat {
 	inf := math::Inf(sign)
 	ret Quat{inf, inf, inf, inf}
+}
+
+fn lift(mut &q: *Quat, v: f64) {
+	q.R, q.I, q.J, q.K = v, 0, 0, 0
+}
+
+fn split(&q: *Quat): (f64, Quat) {
+	ret q.R, Quat{0, q.I, q.J, q.K}
+}
+
+fn join(mut &uv: *Quat, w: f64) {
+	uv.R = w
 }
