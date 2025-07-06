@@ -28,4 +28,9 @@ impl Vector2 {
 	fn Mul(mut *self, &x: *Vector2, y: f64) {
 		self.X, self.Y = x.X*y, x.Y*y
 	}
+
+	// Sets self to the quotient x/y.
+	fn Div(mut *self, &x: *Vector2, y: f64) {
+		self.X, self.Y = x.X/y, x.Y/y
+	}
 }
