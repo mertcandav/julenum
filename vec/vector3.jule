@@ -1,0 +1,10 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// 3D vector.
+struct Vector3 {
+	X: f64
+	Y: f64
+	Z: f64
+}
