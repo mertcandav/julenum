@@ -12,6 +12,18 @@ struct Quat {
 	K: f64
 }
 
+impl Quat {
+	// Reports whether any field of quaternion is NaN and none are an infinity.
+	fn NaN(*self): bool {
+		if math::IsInf(self.R, 0) || math::IsInf(self.I, 0) ||
+			math::IsInf(self.J, 0) || math::IsInf(self.K, 0) {
+			ret false
+		}
+		ret math::IsNaN(self.R) || math::IsNaN(self.I) ||
+			math::IsNaN(self.J) || math::IsNaN(self.K)
+	}
+}
+
 // Returns a quaternion NaN.
 fn NaN(): Quat {
 	nan := math::NaN()
