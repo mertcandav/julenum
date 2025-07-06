@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // 3D vector.
 struct Vector3 {
 	X: f64
@@ -41,5 +43,10 @@ impl Vector3 {
 		yterm := x.Z*y.X - x.X*y.Z
 		zterm := x.X*y.Y - x.Y*y.X
 		self.X, self.Y, self.Z = xterm, yterm, zterm
+	}
+
+	// Returns length of vector.
+	fn Len(*self): f64 {
+		ret math::Sqrt(self.X*self.X + self.Y*self.Y + self.Z*self.Z)
 	}
 }
