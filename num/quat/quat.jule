@@ -47,6 +47,11 @@ impl Quat {
 		k := x.R*y.K + x.I*y.J - x.J*y.I + x.K*y.R
 		self.R, self.I, self.J, self.K = r, i, j, k
 	}
+
+	// Sets self to the product x*k.
+	fn MulScalar(mut *self, &x: *Quat, k: f64) {
+		self.R, self.I, self.J, self.K = x.R*k, x.I*k, x.J*k, x.K*k
+	}
 }
 
 // Returns a quaternion NaN.
