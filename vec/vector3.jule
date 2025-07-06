@@ -14,4 +14,9 @@ impl Vector3 {
 	fn Add(mut *self, &x: *Vector3, &y: *Vector3) {
 		self.X, self.Y, self.Z = x.X+y.X, x.Y+y.Y, x.Z+y.Z
 	}
+
+	// Sets self to the difference x-y.
+	fn Sub(mut *self, &x: *Vector3, &y: *Vector3) {
+		self.X, self.Y, self.Z = x.X-y.X, x.Y-y.Y, x.Z-y.Z
+	}
 }
