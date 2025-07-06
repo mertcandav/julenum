@@ -78,6 +78,12 @@ impl Matrix {
 		ret true
 	}
 
+	// Reports whether the matrice (M X N) is an identity matrice.
+	// This function only supports square matrices (M == N && N > 0).
+	fn Identity(*self): bool {
+		ret self.Scalar(1)
+	}
+
 	// Returns value of the specified (i x j) position.
 	// Position index starts from zero for column and row.
 	//
