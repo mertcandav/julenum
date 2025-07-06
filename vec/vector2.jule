@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // 2D vector.
 struct Vector2 {
 	X: f64
@@ -32,5 +34,10 @@ impl Vector2 {
 	// Sets self to the quotient x/y.
 	fn Div(mut *self, &x: *Vector2, y: f64) {
 		self.X, self.Y = x.X/y, x.Y/y
+	}
+
+	// Returns length of vector.
+	fn Len(*self): f64 {
+		ret math::Sqrt(self.X*self.X + self.Y*self.Y)
 	}
 }
