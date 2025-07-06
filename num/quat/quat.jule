@@ -88,6 +88,19 @@ impl Quat {
 		join(self, e*c)
 	}
 
+	// Sets self to the natural logarithm of x.
+	fn Log(mut *self, &x: *Quat) {
+		w, uv := split(x)
+		if uv.Zero() {
+			lift(self, math::Log(w))
+			ret
+		}
+		a := x.Abs()
+		v := uv.Abs()
+		self.Scale(&uv, math::Atan2(v, w)/v)
+		join(self, math::Log(a))
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:

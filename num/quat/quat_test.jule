@@ -279,6 +279,46 @@ fn testQuatExp(t: &testing::T) {
 	}
 }
 
+let testsQuatLog: []testQuatQuat = [
+	{q: {}, r: {R: -inf}},
+	// Expected velues below are from pyquaternion.
+	{
+		q: {R: 1, I: 1, J: 1, K: 1},
+		r: {R: 0.6931471805599453, I: 0.6045997880780728, J: 0.6045997880780728, K: 0.6045997880780728},
+	},
+	{
+		q: {R: 1, I: 0, J: 1, K: 1},
+		r: {R: 0.5493061443340548, I: 0, J: 0.6755108588560398, K: 0.6755108588560398},
+	},
+	{
+		q: {R: 1, I: 0, J: 0, K: 1},
+		r: {R: 0.3465735902799727, I: 0, J: 0, K: 0.7853981633974484},
+	},
+	{
+		q: {R: 0, I: 1, J: 1, K: 1},
+		r: {R: 0.5493061443340548, I: 0.906899682117109, J: 0.906899682117109, K: 0.906899682117109},
+	},
+	{
+		q: {R: 0, I: 0, J: 1, K: 1},
+		r: {R: 0.3465735902799727, I: 0, J: 1.1107207345395915, K: 1.1107207345395915},
+	},
+	{
+		q: {R: 0, I: 0, J: 0, K: 1},
+		r: {R: 0, I: 0, J: 0, K: 1.5707963267948966},
+	},
+]
+
+#test
+fn testQuatLog(t: &testing::T) {
+	for _, test in testsQuatLog {
+		mut x := test.q
+		x.Log(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Log({})", test.r, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&
