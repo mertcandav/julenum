@@ -85,21 +85,22 @@ impl Matrix {
 		ret true
 	}
 
+	// Returns new buffer enough to store at least n values.
+	fn make(mut *self, n: int): []T {
+		// Reuse self capacity, if there is enough space.
+		if n <= cap(self.data) {
+			ret self.data[:n]
+		}
+		ret make([]T, n)
+	}
+
 	// Sets self to z, filled with k.
 	// If self have enough capacity, Fill will use it to avoid making allocation.
 	#disable boundary
 	fn Fill(mut *self, &z: *Matrix[T], k: T) {
-		self.m, self.n = z.m, z.n
-
 		// Make sure the self data have enough space.
-		if cap(self.data) >= len(z.data) {
-			// In this case, we have enough slice capacity or length to store result.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(z.data)]
-		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(z.data))
-		}
+		self.m, self.n = z.m, z.n
+		self.data = self.make(self.Size())
 
 		mut i := 0
 		for i < len(z.data); i++ {
@@ -116,17 +117,11 @@ impl Matrix {
 			ret
 		}
 
+		// Make sure the self data have enough space.
 		self.m, self.n = z.m, z.n
-		if cap(self.data) >= len(z.data) {
-			// In this case, we have enough slice capacity or length to copy.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(z.data)]
-			copy(self.data, z.data)
-		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(z.data))
-			copy(self.data, z.data)
-		}
+		self.data = self.make(self.Size())
+
+		copy(self.data, z.data)
 	}
 
 	// Returns trace of matrix.
@@ -176,17 +171,9 @@ impl Matrix {
 			r.Transpose(z)
 			*self = r
 			ret
-		} else if cap(self.data) >= len(z.data) {
-			// In this case, we have enough slice capacity or length to store result.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(z.data)]
-			// (M x N) matrix will become (N x M).
-			self.m, self.n = z.n, z.m
 		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(z.data))
-			// (M x N) matrix will become (N x M).
 			self.m, self.n = z.n, z.m
+			self.data = self.make(self.Size())
 		}
 		// Compute transpose of z.
 
@@ -215,14 +202,7 @@ impl Matrix {
 
 		// Make sure the self data have enough space.
 		self.m, self.n = z.m, z.n
-		if cap(self.data) >= len(z.data) {
-			// In this case, we have enough slice capacity or length to store result.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(z.data)]
-		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(z.data))
-		}
+		self.data = self.make(self.Size())
 		// Compute z+k.
 
 		// Special case: k is zero. Result will always be same matrix.
@@ -267,14 +247,7 @@ impl Matrix {
 
 		// Make sure the self data have enough space.
 		self.m, self.n = z.m, z.n
-		if cap(self.data) >= len(z.data) {
-			// In this case, we have enough slice capacity or length to store result.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(z.data)]
-		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(z.data))
-		}
+		self.data = self.make(self.Size())
 		// Compute z*k.
 
 		// Special case: k is one. Result will always be same matrix.
@@ -308,14 +281,7 @@ impl Matrix {
 
 		// Make sure the self data have enough space.
 		self.m, self.n = x.m, x.n
-		if cap(self.data) >= len(x.data) {
-			// In this case, we have enough slice capacity or length to store result.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(x.data)]
-		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(x.data))
-		}
+		self.data = self.make(self.Size())
 
 		addRaw(self, x, y)
 	}
@@ -338,14 +304,7 @@ impl Matrix {
 
 		// Make sure the self data have enough space.
 		self.m, self.n = x.m, x.n
-		if cap(self.data) >= len(x.data) {
-			// In this case, we have enough slice capacity or length to store result.
-			// To avoid making allocation, use the full capacity if needed.
-			self.data = self.data[:len(x.data)]
-		} else {
-			// No enough space, we have to allocate new slice.
-			self.data = make([]T, len(x.data))
-		}
+		self.data = self.make(self.Size())
 
 		subRaw(self, x, y)
 	}
@@ -366,26 +325,20 @@ impl Matrix {
 		// Use basic multiplication if matrices are small.
 		n := max(max(x.m, x.n), y.n)
 		if n < strassenThreshold {
-			// Make sure the self data have enough space.
-			rsize := x.m * y.n
+			// self is an alias for x or y - cannot reuse.
+			// We have to allocate new Matrix to compute properly.
 			if self == x || self == y ||
 				alias(self.data, x.data) || alias(self.data, y.data) {
-				// self is an alias for x or y - cannot reuse.
-				// We have to allocate new Matrix to compute properly.
 				mut r := uncheckedNew[T](x.m, y.n)
 				basicMul(&r, x, y)
 				*self = r
 				ret
-			} else if cap(self.data) >= rsize {
-				// In this case, we have enough slice capacity or length to store result.
-				// To avoid making allocation, use the full capacity if needed.
-				self.data = self.data[:rsize]
-			} else {
-				// No enough space, we have to allocate new slice.
-				self.data = make([]T, rsize)
 			}
 
+			// Make sure the self data have enough space.
 			self.m, self.n = x.m, y.n
+			self.data = self.make(self.Size())
+
 			basicMul(self, x, y)
 			ret
 		}
@@ -550,7 +503,7 @@ impl Matrix {
 		// - det(U) = ∏ Uᵢᵢ
 		// - det(P) = (−1)^s, where s is the number of row swaps (sign of permutation)
 
-		mut LU := make([]f64, len(self.data))
+		mut LU := make([]f64, self.Size())
 		for i in LU {
 			LU[i] = f64(self.data[i])
 		}
@@ -682,7 +635,7 @@ impl Matrix {
 		// - det(U) = ∏ Uᵢᵢ
 		// - det(P) = (−1)^s, where s is the number of row swaps (sign of permutation)
 
-		mut LU := make([]f64, len(self.data))
+		mut LU := make([]f64, self.Size())
 		for i in LU {
 			LU[i] = f64(self.data[i])
 		}
