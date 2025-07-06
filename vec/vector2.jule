@@ -40,4 +40,14 @@ impl Vector2 {
 	fn Len(*self): f64 {
 		ret math::Sqrt(self.X*self.X + self.Y*self.Y)
 	}
+
+	// Sets self to the unit vector (vector with length 1) in the same direction as x.
+	// If the vector x has zero length, it returns the zero vector (0, 0) to avoid division by zero.
+	fn Norm(mut *self, &x: *Vector2) {
+		len := x.Len()
+		if len == 0 {
+			self.X, self.Y = 0, 0
+		}
+		self.X, self.Y = x.X/len, x.Y/len
+	}
 }
