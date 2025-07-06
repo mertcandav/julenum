@@ -181,6 +181,55 @@ impl Matrix {
 		copy(self.data, z.data)
 	}
 
+	// Copies matrice z to self with custom (M x N) size.
+	// If new size is larger, it will add padding with zeros.
+	// If new size is smaller, it will cut rows and columns.
+	//
+	// If self have enough capacity, Resize will use it to avoid making allocation.
+	// If M == 0 or N == 0, self will be (0 x 0). But keeps internal allocation.
+	fn Resize(mut *self, &z: *Matrix[T], m: int, n: int) {
+		if m == 0 || n == 0 {
+			self.data = self.data[:0]
+			self.m, self.n = 0, 0
+			ret
+		}
+
+		// Same size, copy directly.
+		if self.m == m && self.n == n {
+			// If z and self is the same pointer, avoid copying cost.
+			if self != z {
+				copy(self.data, z.data)
+			}
+			ret
+		}
+		// Size is different, resize the matrix.
+
+		let mut copySpace: []T
+		if alias(self.data, z.data) {
+			// Matrix self and matrix z have shared data.
+			// We have to allocate new (M x N) Matrix to copy properly.
+			copySpace = make([]T, m*n)
+		} else {
+			copySpace = self.make(m * n)
+		}
+
+		mut r := Matrix[T]{
+			m: m,
+			n: n,
+			data: copySpace,
+		}
+
+		// New size is larger than old.
+		if m >= self.m && n >= self.n {
+			padAndCopy(&r, z)
+		} else {
+			// New size is smaller than old.
+			copySubMatrix(&r, z, 0, 0, m, n)
+		}
+
+		*self = r
+	}
+
 	// Returns trace of matrix.
 	// Panics if matrix is not a square matrix.
 	//
@@ -919,23 +968,23 @@ fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[
 
 	// Allocate quadrant matrices from input x.
 	mut a11 := getMatrix(k, k, &space)
-	copySubMatrix(&a11, x, 0, 0, k)
+	copySubMatrix(&a11, x, 0, 0, k, k)
 	mut a12 := getMatrix(k, k, &space)
-	copySubMatrix(&a12, x, 0, k, k)
+	copySubMatrix(&a12, x, 0, k, k, k)
 	mut a21 := getMatrix(k, k, &space)
-	copySubMatrix(&a21, x, k, 0, k)
+	copySubMatrix(&a21, x, k, 0, k, k)
 	mut a22 := getMatrix(k, k, &space)
-	copySubMatrix(&a22, x, k, k, k)
+	copySubMatrix(&a22, x, k, k, k, k)
 
 	// Allocate quadrant matrices from input y.
 	mut b11 := getMatrix(k, k, &space)
-	copySubMatrix(&b11, y, 0, 0, k)
+	copySubMatrix(&b11, y, 0, 0, k, k)
 	mut b12 := getMatrix(k, k, &space)
-	copySubMatrix(&b12, y, 0, k, k)
+	copySubMatrix(&b12, y, 0, k, k, k)
 	mut b21 := getMatrix(k, k, &space)
-	copySubMatrix(&b21, y, k, 0, k)
+	copySubMatrix(&b21, y, k, 0, k, k)
 	mut b22 := getMatrix(k, k, &space)
-	copySubMatrix(&b22, y, k, k, k)
+	copySubMatrix(&b22, y, k, k, k, k)
 
 	// M1 = (A11 + A22) * (B11 + B22)
 	addRaw(&s1, &a11, &a22)
@@ -1004,16 +1053,16 @@ fn copyToQuadrant[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], m: int, n: int
 	}
 }
 
-// Copies submatrix (of size × size) from source k at (m, n) to z.
+// Copies submatrix (of m × n) from source k at (a, b) to z.
 // z must be have enough space to copy k.
 #disable boundary
-fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], m: int, n: int, size: int) {
+fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int, m: int, n: int) {
 	mut zm := 0 + 0*z.m           // i + j*z.m
-	mut km := (m + 0) + (n+0)*k.m // (m + i) + (n+j)*k.m
+	mut km := (a + 0) + (b+0)*k.m // (a + i) + (b+j)*k.m
 	mut j := 0
-	for j < size; j, zm, km = j+1, zm+z.m, km+k.m {
+	for j < n; j, zm, km = j+1, zm+z.m, km+k.m {
 		mut i := 0
-		for i < size; i++ {
+		for i < m; i++ {
 			// Fast access form of: z.Set(i, j, k.Get(m+i, n+j))
 			z.data[i+zm] = k.data[i+km]
 		}
