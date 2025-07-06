@@ -22,6 +22,12 @@ impl Quat {
 		ret math::IsNaN(self.R) || math::IsNaN(self.I) ||
 			math::IsNaN(self.J) || math::IsNaN(self.K)
 	}
+
+	// Reports whether any of field of quaternion is ±infinity.
+	fn Inf(*self): bool {
+		ret math::IsInf(self.R, 0) || math::IsInf(self.I, 0) ||
+			math::IsInf(self.J, 0) || math::IsInf(self.K, 0)
+	}
 }
 
 // Returns a quaternion NaN.
