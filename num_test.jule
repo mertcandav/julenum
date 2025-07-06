@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
 use "std/testing"
 
 struct toleranceTest {
@@ -37,6 +38,40 @@ fn testTolerance(t: &testing::T) {
 		r := Tolerance(test.a, test.b, test.e)
 		if r != test.r {
 			t.Errorf("expected {}, found {}, for Tolerance({}, {}, {})", test.r, r, test.a, test.b, test.e)
+		}
+	}
+}
+
+struct abrTest {
+	a: f64
+	b: f64
+	r: bool
+}
+
+let testsAlike: []abrTest = [
+	{a: math::NaN(), b: math::NaN(), r: true},
+	{a: math::NaN(), b: 1.0, r: false},
+	{a: 1.0, b: math::NaN(), r: false},
+	{a: 1.0, b: 1.0, r: true},
+	{a: -1.0, b: -1.0, r: true},
+	{a: 1.0, b: -1.0, r: false},
+	{a: 0.0, b: 0.0, r: true},
+	{a: -0.0, b: -0.0, r: true},
+	{a: -0.0, b: 0.0, r: true},
+	{a: 0.0, b: -0.0, r: true},
+	{a: math::Copysign(0.0, -1), b: 0.0, r: false},
+	{a: 0.0, b: math::Copysign(0.0, -1), r: false},
+	{a: 123.456, b: 123.456, r: true},
+	{a: 1e308, b: 1e308, r: true},
+	{a: 1e-308, b: 1e-308, r: true},
+]
+
+#test
+fn testAlike(t: &testing::T) {
+	for _, test in testsAlike {
+		r := Alike(test.a, test.b)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Alike({}, {})", test.r, r, test.a, test.b)
 		}
 	}
 }

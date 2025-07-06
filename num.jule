@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // Reports whether two values a and b are approximately equal,
 // within a relative tolerance e. This is useful for comparing floating-point values
 // where exact equality is unreliable due to rounding errors.
@@ -39,3 +41,16 @@ fn Close(a: f64, b: f64): bool { ret Tolerance(a, b, 1e-14) }
 // Reports whether two values a and b are approximately equal
 // within an extremely tight default relative tolerance of 4e-16.
 fn VeryClose(a: f64, b: f64): bool { ret Tolerance(a, b, 4e-16) }
+
+// Reports whether two values a and b are considered alike.
+// It returns true if both are NaN (Not a Number), or if they are exactly equal
+// including matching their sign bits (distinguishing +0 and -0).
+fn Alike(a: f64, b: f64): bool {
+	match {
+	| math::IsNaN(a) && math::IsNaN(b):
+		ret true
+	| a == b:
+		ret math::Signbit(a) == math::Signbit(b)
+	}
+	ret false
+}
