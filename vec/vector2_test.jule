@@ -6,13 +6,13 @@ use "julenum"
 use "std/math"
 use "std/testing"
 
-struct testVector2Rotate {
+struct vector2RotateTest {
 	x:     Vector2
 	theta: f64
 	r:     Vector2
 }
 
-let testsVector2Rotate: []testVector2Rotate = [
+let testsVector2Rotate: []vector2RotateTest = [
 	{
 		x: {1, 0},
 		theta: math::Pi / 2,
@@ -41,7 +41,7 @@ let testsVector2Rotate: []testVector2Rotate = [
 ]
 
 #test
-fn testVectorRotate(t: &testing::T) {
+fn testVector2Rotate(t: &testing::T) {
 	for _, test in testsVector2Rotate {
 		mut x := test.x
 		x.Rotate(&x, test.theta)
@@ -91,7 +91,7 @@ let testsVector2Proj: []testVector2XYR = [
 ]
 
 #test
-fn testVectorProj(t: &testing::T) {
+fn testVector2Proj(t: &testing::T) {
 	for _, test in testsVector2Proj {
 		mut x, y := test.x, test.y
 		x.Proj(&x, &y)

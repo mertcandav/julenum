@@ -24,7 +24,7 @@ impl Vector3 {
 
 	// Returns the dot product self*y.
 	fn Dot(*self, &y: *Vector3): f64 {
-		ret self.X*y.X + self.Y*y.Y + self.Z + y.Z
+		ret self.X*y.X + self.Y*y.Y + self.Z*y.Z
 	}
 
 	// Sets self to the product x*y.
@@ -75,5 +75,18 @@ impl Vector3 {
 			cosTheta = -1
 		}
 		ret math::Acos(cosTheta)
+	}
+
+	// Sets self to projection of vector x onto y.
+	// If the vector y has zero length, it returns the zero vector (0, 0) to avoid division by zero.
+	fn Proj(mut *self, &x: *Vector3, &y: *Vector3) {
+		yl := y.Len()
+		if yl == 0 {
+			self.X, self.Y = 0, 0
+			ret
+		}
+		xy := x.Dot(y)
+		scale := xy / (yl * yl)
+		self.Mul(y, scale)
 	}
 }
