@@ -78,4 +78,17 @@ impl Vector2 {
 		sin, cos := math::Sincos(theta)
 		self.X, self.Y = x.X*cos-x.Y*sin, x.X*sin+x.Y*cos
 	}
+
+	// Sets self to projection of vector x onto y.
+	// If the vector y has zero length, it returns the zero vector (0, 0) to avoid division by zero.
+	fn Proj(mut *self, &x: *Vector2, &y: *Vector2) {
+		yl := y.Len()
+		if yl == 0 {
+			self.X, self.Y = 0, 0
+			ret
+		}
+		xy := x.Dot(y)
+		scale := xy / (yl * yl)
+		self.Mul(y, scale)
+	}
 }

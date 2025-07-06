@@ -1,0 +1,56 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum"
+use "std/testing"
+
+struct testVector2XYR {
+	x: Vector2
+	y: Vector2
+	r: Vector2
+}
+
+let testsVector2Proj: []testVector2XYR = [
+	{
+		x: {5, 2},
+		y: {1, 0},
+		r: {5, 0},
+	},
+	{
+		x: {-3, 4},
+		y: {0, 1},
+		r: {0, 4},
+	},
+	{
+		x: {6, -2},
+		y: {3, 4},
+		r: {1.2, 1.6},
+	},
+	{
+		x: {1, 1},
+		y: {1, 1},
+		r: {1, 1},
+	},
+	{
+		x: {7, 0},
+		y: {0, 5},
+		r: {0, 0},
+	},
+	{
+		x: {2, 2},
+		y: {-1, -1},
+		r: {2, 2},
+	},
+]
+
+#test
+fn testVectorProj(t: &testing::T) {
+	for _, test in testsVector2Proj {
+		mut x, y := test.x, test.y
+		x.Proj(&x, &y)
+		if !julenum::Close(x.X, test.r.X) || !julenum::Close(x.Y, test.r.Y) {
+			t.Errorf("expected {}, found {}, for Proj({}, {})", test.r, x, test.x, test.y)
+		}
+	}
+}
