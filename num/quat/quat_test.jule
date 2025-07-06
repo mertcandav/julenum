@@ -4,6 +4,7 @@
 
 use "julenum"
 use "std/math"
+use "std/math/cmplx"
 use "std/testing"
 
 struct quatArithTest {
@@ -543,6 +544,40 @@ fn testQuatSqrt(t: &testing::T) {
 		x.Sqrt(&x)
 		if !equalApprox(x, test.r) {
 			t.Errorf("expected {}, found {}, for Sqrt({})", test.r, x, test.q)
+		}
+	}
+}
+
+// Including exercises from Real Quaternionic Calculus Handbook doi:10.1007/978-3-0348-0622-0
+// Ex 6.159 (a) and (b).
+let testsQuatSin: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: math::Pi / 2}, r: {R: 1}},
+	{q: {I: math::Pi / 2}, r: {I: cmplx::Sin(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {J: math::Pi / 2}, r: {J: cmplx::Sin(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {K: math::Pi / 2}, r: {K: cmplx::Sin(cmplx::New(0, math::Pi/2)).Imag()}},
+	{
+		q: {R: 1, I: 1, J: 1, K: 1}, r: fn(): Quat {
+			p := math::Cos(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
+			// An error exists in the book's given solution for the real part.
+			ret {R: math::Sin(1) * math::Cosh(math::Sqrt(3)), I: p, J: p, K: p}
+		}(),
+	},
+	{
+		q: {I: -2, J: 1}, r: fn(): Quat {
+			s := math::Sinh(math::Sqrt(5)) / math::Sqrt(5)
+			ret Quat{I: -2 * s, J: s}
+		}(),
+	},
+]
+
+#test
+fn testQuatSin(t: &testing::T) {
+	for _, test in testsQuatSin {
+		mut x := test.q
+		x.Sin(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Sin({})", test.r, x, test.q)
 		}
 	}
 }

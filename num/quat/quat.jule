@@ -154,13 +154,27 @@ impl Quat {
 		self.Exp(self)
 	}
 
-	// Sets self to the square root of q.
+	// Sets self to the √q.
 	fn Sqrt(mut *self, &q: *Quat) {
 		if q.Zero() {
 			lift(self, 0)
 			ret
 		}
 		self.PowReal(q, 0.5)
+	}
+
+	// Sets self to the sine of q.
+	fn Sin(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Sin(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(w)
+		sh, ch := sinhcosh(v)
+		self.Scale(&uv, c*sh/v)
+		join(self, s*ch)
 	}
 
 	// Returns the absolute value (also called the modulus) of quaternion.
@@ -231,4 +245,15 @@ fn split(&q: *Quat): (f64, Quat) {
 
 fn join(mut &uv: *Quat, w: f64) {
 	uv.R = w
+}
+
+// calculate sinh and cosh
+fn sinhcosh(x: f64): (sh: f64, ch: f64) {
+	if math::Abs(x) <= 0.5 {
+		ret math::Sinh(x), math::Cosh(x)
+	}
+	mut e := math::Exp(x)
+	ei := 0.5 / e
+	e *= 0.5
+	ret e - ei, e + ei
 }
