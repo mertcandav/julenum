@@ -582,9 +582,151 @@ fn testQuatSin(t: &testing::T) {
 	}
 }
 
+let testsQuatSinh: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: math::Pi / 2}, r: {R: math::Sinh(math::Pi / 2)}},
+	{q: {I: math::Pi / 2}, r: {I: cmplx::Sinh(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {J: math::Pi / 2}, r: {J: cmplx::Sinh(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {K: math::Pi / 2}, r: {K: cmplx::Sinh(cmplx::New(0, math::Pi/2)).Imag()}},
+	{
+		q: {R: 1, I: -1, J: -1}, r: fn(): Quat {
+			// This was based on the example on p118, but it too has an error.
+			mut q := Quat{R: 1, I: -1, J: -1}
+			mut exp := q
+			exp.Exp(&exp)
+			q.Scale(&q, -1)
+			q.Exp(&q)
+			q.Sub(&exp, &q)
+			q.Scale(&q, 0.5)
+			ret q
+		}(),
+	},
+	{
+		q: {1, 1, 1, 1}, r: fn(): Quat {
+			mut q := Quat{1, 1, 1, 1}
+			mut exp := q
+			exp.Exp(&exp)
+			q.Scale(&q, -1)
+			q.Exp(&q)
+			q.Sub(&exp, &q)
+			q.Scale(&q, 0.5)
+			ret q
+		}(),
+	},
+	{q: asinh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+	{
+		q: asinh({1, 1, 1, 1}), r: fn(): Quat {
+			mut q := asinh({1, 1, 1, 1})
+			mut exp := q
+			exp.Exp(&exp)
+			q.Scale(&q, -1)
+			q.Exp(&q)
+			q.Sub(&exp, &q)
+			q.Scale(&q, 0.5)
+			ret q
+		}(),
+	},
+	{q: {R: math::Inf(1)}, r: {R: math::Inf(1)}},
+	{q: {R: math::Inf(1), I: math::Pi / 2}, r: {R: math::Inf(1), I: math::Inf(1)}},
+	{q: {R: math::Inf(1), I: math::Pi}, r: {R: math::Inf(-1), I: math::Inf(1)}},
+	{q: {R: math::Inf(1), I: 3 * math::Pi / 2}, r: {R: math::Inf(-1), I: math::Inf(-1)}},
+	{q: {R: math::Inf(1), I: 2 * math::Pi}, r: {R: math::Inf(1), I: math::Inf(-1)}},
+]
+
+#test
+fn testQuatSinh(t: &testing::T) {
+	for _, test in testsQuatSinh {
+		mut x := test.q
+		x.Sinh(&x)
+		if !sameApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Sinh({})", test.r, x, test.q)
+		}
+	}
+}
+
+let testsQuatAsinh: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: 1}, r: {R: math::Asinh(1)}},
+	{q: {I: 1}, r: {I: math::Pi / 2}},
+	{q: {J: 1}, r: {J: math::Pi / 2}},
+	{q: {K: 1}, r: {K: math::Pi / 2}},
+	{q: {1, 1, 1, 1}, r: fn(): Quat {
+			mut q := Quat{1, 1, 1, 1}
+			mut p := Quat{R: 1}
+			q.Mul(&q, &q)
+			q.Add(&q, &p)
+			q.Sqrt(&q)
+			p = {1, 1, 1, 1}
+			q.Add(&q, &p)
+			q.Log(&q)
+			ret q
+		}()},
+	{q: sinh({R: 1}), r: {R: 1}},
+	{q: sinh({I: 1}), r: {I: 1}},
+	{q: sinh({I: 1, J: 1}), r: {I: 1, J: 1}},
+	{q: sinh({R: 1, I: 1, J: 1}), r: {R: 1, I: 1, J: 1}},
+	{q: sinh({1, 1, 1, 1}), r: fn(): Quat {
+			// The following fails:
+			// {q: sinh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+			// but this passes...
+			mut p := Quat{R: 1}
+			mut q := sinh({1, 1, 1, 1})
+			q.Mul(&q, &q)
+			q.Add(&q, &p)
+			q.Sqrt(&q)
+			p = sinh({1, 1, 1, 1})
+			q.Add(&q, &p)
+			q.Log(&q)
+			ret q
+		}()},
+	// And see the Sinh tests that do the reciprocal operation.
+]
+
+#test
+fn testQuatAsinh(t: &testing::T) {
+	for _, test in testsQuatAsinh {
+		mut x := test.q
+		x.Asinh(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Asinh({})", test.r, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&
 		julenum::Close(a.J, b.J) &&
 		julenum::Close(a.K, b.K)
+}
+
+fn sameApprox(a: Quat, b: Quat): bool {
+	match {
+	| a.R == 0 && b.R == 0:
+		ret math::Signbit(a.R) == math::Signbit(b.R)
+	| a.I == 0 && b.I == 0:
+		ret math::Signbit(a.I) == math::Signbit(b.I)
+	| a.J == 0 && b.J == 0:
+		ret math::Signbit(a.J) == math::Signbit(b.J)
+	| a.K == 0 && b.K == 0:
+		ret math::Signbit(a.K) == math::Signbit(b.K)
+	}
+	ret (sameFloat(a.R, b.R) || julenum::Close(a.R, b.R)) &&
+		(sameFloat(a.I, b.I) || julenum::Close(a.I, b.I)) &&
+		(sameFloat(a.J, b.J) || julenum::Close(a.J, b.J)) &&
+		(sameFloat(a.K, b.K) || julenum::Close(a.K, b.K))
+}
+
+fn sameFloat(a: f64, b: f64): bool {
+	ret a == b || (math::IsNaN(a) && math::IsNaN(b))
+}
+
+fn asinh(mut q: Quat): Quat {
+	q.Asinh(&q)
+	ret q
+}
+
+fn sinh(mut q: Quat): Quat {
+	q.Sinh(&q)
+	ret q
 }

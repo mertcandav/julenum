@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/fmt"
 use "std/math"
 
 // Quaternion with floating-point precision.
@@ -177,6 +178,31 @@ impl Quat {
 		join(self, s*ch)
 	}
 
+	// Sets self to the hyperbolic sine of q.
+	fn Sinh(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Sinh(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(v)
+		sh, ch := sinhcosh(w)
+		scale(self, &uv, s*ch/v)
+		join(self, c*sh)
+	}
+
+	// Sets self to the inverse hyperbolic sine of q.
+	fn Asinh(mut *self, &q: *Quat) {
+		mut p := Quat{R: 1}
+		mut r := *self // q may be alias for self.
+		r.Mul(q, q)
+		r.Add(&r, &p)
+		r.Sqrt(&r)
+		r.Add(&r, q)
+		self.Log(&r)
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:
@@ -256,4 +282,24 @@ fn sinhcosh(x: f64): (sh: f64, ch: f64) {
 	ei := 0.5 / e
 	e *= 0.5
 	ret e - ei, e + ei
+}
+
+// Sets z to q scaled by f, except that inf×0 is 0.
+fn scale(mut &z: *Quat, &q: *Quat, f: f64) {
+	if f == 0 {
+		lift(z, 0)
+		ret
+	}
+	if q.R != 0 {
+		z.R = q.R * f
+	}
+	if q.I != 0 {
+		z.I = q.I * f
+	}
+	if q.J != 0 {
+		z.J = q.J * f
+	}
+	if q.K != 0 {
+		z.K = q.K * f
+	}
 }
