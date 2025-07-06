@@ -38,6 +38,15 @@ impl Quat {
 	fn Sub(mut *self, &x: *Quat, &y: *Quat) {
 		self.R, self.I, self.J, self.K = x.R-y.R, x.I-y.I, x.J-y.J, x.K-y.K
 	}
+
+	// Sets self to the Hamiltonian product x*y.
+	fn Mul(mut *self, &x: *Quat, &y: *Quat) {
+		r := x.R*y.R - x.I*y.I - x.J*y.J - x.K*y.K
+		i := x.R*y.I + x.I*y.R + x.J*y.K - x.K*y.J
+		j := x.R*y.J - x.I*y.K + x.J*y.R + x.K*y.I
+		k := x.R*y.K + x.I*y.J - x.J*y.I + x.K*y.R
+		self.R, self.I, self.J, self.K = r, i, j, k
+	}
 }
 
 // Returns a quaternion NaN.
