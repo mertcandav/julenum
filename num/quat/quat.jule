@@ -58,6 +58,17 @@ impl Quat {
 		self.R, self.I, self.J, self.K = x.R, -x.I, -x.J, -x.K
 	}
 
+	// Sets self to the quaternion inverse of x.
+	fn Inv(mut *self, &x: *Quat) {
+		if x.Inf() {
+			self.R, self.I, self.J, self.K = 0, 0, 0, 0
+			ret
+		}
+		a := x.Abs()
+		self.Conj(x)
+		self.Scale(self, 1/(a*a))
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:

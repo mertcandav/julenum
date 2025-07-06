@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "julenum"
 use "std/math"
 use "std/testing"
 
@@ -199,6 +200,36 @@ fn testQuatAbs(t: &testing::T) {
 		}
 		if r != test.r {
 			t.Errorf("expected {}, found {}, for Inf({})", test.r, r, test.q)
+		}
+	}
+}
+
+// r = want NaN
+let testsQuatInv: []testQuatBool = [
+	{q: {R: 1, I: 1, J: 1, K: 1}},
+	{q: {R: 3, I: -1, J: 5, K: -40}},
+	{q: {R: 1e6, I: -1e5, J: 4, K: -10}},
+	{q: {R: 0, I: 1, J: 1, K: 1}},
+	{q: {R: 1, I: 0, J: 1, K: 1}},
+	{q: {R: 1, I: 1, J: 0, K: 1}},
+	{q: {R: 1, I: 1, J: 1, K: 0}},
+	{q: {}, r: true},
+]
+
+#test
+fn testQuatInv(t: &testing::T) {
+	for _, test in testsQuatInv {
+		mut r := test.q
+		r.Inv(&r)
+		r.Mul(&r, &test.q)
+		if test.r { // want NaN
+			if !r.NaN() {
+				t.Errorf("expected NaN, found {}, for Inv({})", r, test.q)
+			}
+			continue
+		}
+		if !julenum::Close(r.R, 1) || !julenum::Close(r.Abs(), 1) {
+			t.Errorf("expected R=1, found {}, for Inv({})", r, test.q)
 		}
 	}
 }
