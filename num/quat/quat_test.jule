@@ -644,6 +644,30 @@ fn testQuatSinh(t: &testing::T) {
 	}
 }
 
+// Including example from Real Quaternionic Calculus Handbook doi:10.1007/978-3-0348-0622-0 p108.
+let testsQuatCos: []testQuatQuat = [
+	{q: {}, r: {R: 1}},
+	{q: {R: math::Pi / 2}, r: {R: 0}},
+	{q: {I: math::Pi / 2}, r: {R: cmplx::Cos(cmplx::New(0, math::Pi/2)).Real()}},
+	{q: {J: math::Pi / 2}, r: {R: cmplx::Cos(cmplx::New(0, math::Pi/2)).Real()}},
+	{q: {K: math::Pi / 2}, r: {R: cmplx::Cos(cmplx::New(0, math::Pi/2)).Real()}},
+	{q: {R: 1, I: 1, J: 1, K: 1}, r: fn(): Quat {
+			p := math::Sin(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
+			ret Quat{R: math::Cos(1) * math::Cosh(math::Sqrt(3)), I: -p, J: -p, K: -p}
+		}()},
+]
+
+#test
+fn testQuatCos(t: &testing::T) {
+	for _, test in testsQuatCos {
+		mut x := test.q
+		x.Cos(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Cos({})", test.r, x, test.q)
+		}
+	}
+}
+
 let testsQuatAsinh: []testQuatQuat = [
 	{q: {}, r: {}},
 	{q: {R: 1}, r: {R: math::Asinh(1)}},
