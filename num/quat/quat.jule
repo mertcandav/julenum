@@ -345,6 +345,20 @@ impl Quat {
 		self.Mul(&p, &r)
 	}
 
+	// Atanh returns the inverse hyperbolic tangent of q.
+	fn Atanh(mut *self, &q: *Quat) {
+		w, mut uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Atanh(w))
+			ret
+		}
+		unit(&uv)
+		self.Mul(&uv, q)
+		self.Atan(self)
+		uv.Scale(&uv, -1)
+		self.Mul(&uv, self)
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:

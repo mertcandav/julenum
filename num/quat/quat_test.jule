@@ -903,6 +903,61 @@ fn testQuatAtan(t: &testing::T) {
 	}
 }
 
+let testsQuatAtanh: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: 1}, r: {R: math::Atanh(1)}},
+	{q: {I: 0.5}, r: {R: cmplx::Atanh(cmplx::New(0, 0.5)).Real(), I: cmplx::Atanh(cmplx::New(0, 0.5)).Imag()}},
+	{q: {J: 0.5}, r: {R: cmplx::Atanh(cmplx::New(0, 0.5)).Real(), J: cmplx::Atanh(cmplx::New(0, 0.5)).Imag()}},
+	{q: {K: 0.5}, r: {R: cmplx::Atanh(cmplx::New(0, 0.5)).Real(), K: cmplx::Atanh(cmplx::New(0, 0.5)).Imag()}},
+	{
+		q: {1, 1, 1, 1}, r: fn(): Quat {
+			mut q := Quat{1, 1, 1, 1}
+			mut p := Quat{R: 1}
+			p.Sub(&p, &q)
+			p.Log(&p)
+			r1 := Quat{R: 1}
+			q.Add(&r1, &q)
+			q.Log(&q)
+			q.Sub(&q, &p)
+			q.Scale(&q, 0.5)
+			ret q
+		}(),
+	},
+	{q: tanh({R: 1}), r: {R: 1}},
+	{q: tanh({I: 1}), r: {I: 1}},
+	{q: tanh({I: 1, J: 1}), r: {I: 1, J: 1}},
+	{q: tanh({R: 1, I: 1, J: 1}), r: {R: 1, I: 1, J: 1}},
+	{
+		q: tanh({1, 1, 1, 1}), r: fn(): Quat {
+			// The following fails
+			// {q: tanh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+			// but...
+
+			mut q := tanh({1, 1, 1, 1})
+			mut p := Quat{R: 1}
+			p.Sub(&p, &q)
+			p.Log(&p)
+			r1 := Quat{R: 1}
+			q.Add(&r1, &q)
+			q.Log(&q)
+			q.Sub(&q, &p)
+			q.Scale(&q, 0.5)
+			ret q
+		}(),
+	},
+]
+
+#test
+fn testQuatAtanh(t: &testing::T) {
+	for _, test in testsQuatAtanh {
+		mut x := test.q
+		x.Atanh(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Atanh({})", test.r, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&
@@ -958,6 +1013,11 @@ fn cosh(mut q: Quat): Quat {
 
 fn tan(mut q: Quat): Quat {
 	q.Tan(&q)
+	ret q
+}
+
+fn tanh(mut q: Quat): Quat {
+	q.Tanh(&q)
 	ret q
 }
 
