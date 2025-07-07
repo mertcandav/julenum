@@ -240,6 +240,23 @@ struct testQuatQuat {
 	r: Quat
 }
 
+let testsQuatNormalize: []testQuatQuat = [
+	{q: {1, 2, 3, 4}, r: {0.18257418583505536, 0.3651483716701107, 0.5477225575051661, 0.7302967433402214}},
+	{q: {2, 3, 4, 1}, r: {0.3651483716701107, 0.5477225575051661, 0.7302967433402214, 0.18257418583505536}},
+	{q: {3, 4, 1, 2}, r: {0.5477225575051661, 0.7302967433402214, 0.18257418583505536, 0.3651483716701107}},
+]
+
+#test
+fn testQuatNormalize(t: &testing::T) {
+	for _, test in testsQuatNormalize {
+		mut x := test.q
+		x.Normalize(&x)
+		if !sameApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Normalize({})", test.r, x, test.q)
+		}
+	}
+}
+
 let testsQuatExp: []testQuatQuat = [
 	{q: {}, r: {W: 1}},
 	// Expected velues below are from pyquaternion.

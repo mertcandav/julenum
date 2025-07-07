@@ -59,6 +59,12 @@ impl Quat {
 		self.W, self.X, self.Y, self.Z = x.W*k, x.X*k, x.Y*k, x.Z*k
 	}
 
+	// Sets self to normalized quaternion q.
+	fn Normalize(mut *self, &q: *Quat) {
+		mag := math::Sqrt(q.W*q.W + q.X*q.X + q.Y*q.Y + q.Z*q.Z)
+		self.W, self.X, self.Y, self.Z = q.W/mag, q.X/mag, q.Y/mag, q.Z/mag
+	}
+
 	// Sets self to the quaternion conjugate of x.
 	fn Conj(mut *self, &x: *Quat) {
 		self.W, self.X, self.Y, self.Z = x.W, -x.X, -x.Y, -x.Z
