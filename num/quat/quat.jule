@@ -59,10 +59,15 @@ impl Quat {
 		self.W, self.X, self.Y, self.Z = x.W*k, x.X*k, x.Y*k, x.Z*k
 	}
 
+	// Returns the norm (magnitude or length) of the quaternion.
+	fn Norm(*self): f64 {
+		ret math::Sqrt(self.W*self.W + self.X*self.X + self.Y*self.Y + self.Z*self.Z)
+	}
+
 	// Sets self to normalized quaternion q.
 	fn Normalize(mut *self, &q: *Quat) {
-		mag := math::Sqrt(q.W*q.W + q.X*q.X + q.Y*q.Y + q.Z*q.Z)
-		self.W, self.X, self.Y, self.Z = q.W/mag, q.X/mag, q.Y/mag, q.Z/mag
+		norm := q.Norm()
+		self.W, self.X, self.Y, self.Z = q.W/norm, q.X/norm, q.Y/norm, q.Z/norm
 	}
 
 	// Sets self to the quaternion conjugate of x.
