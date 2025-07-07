@@ -830,6 +830,26 @@ fn testQuatAsinh(t: &testing::T) {
 	}
 }
 
+let testsQuatAcos: []testQuatQuat = [
+	{q: {}, r: {R: math::Pi / 2}},
+	{q: {R: 1}, r: {R: 0}},
+	{q: {I: 1}, r: {R: cmplx::Acos(cmplx::New(0, 1)).Real(), I: cmplx::Acos(cmplx::New(0, 1)).Imag()}},
+	{q: {J: 1}, r: {R: cmplx::Acos(cmplx::New(0, 1)).Real(), J: cmplx::Acos(cmplx::New(0, 1)).Imag()}},
+	{q: {K: 1}, r: {R: cmplx::Acos(cmplx::New(0, 1)).Real(), K: cmplx::Acos(cmplx::New(0, 1)).Imag()}},
+	{q: cos({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+]
+
+#test
+fn testQuatAcos(t: &testing::T) {
+	for _, test in testsQuatAcos {
+		mut x := test.q
+		x.Acos(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Acos({})", test.r, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&

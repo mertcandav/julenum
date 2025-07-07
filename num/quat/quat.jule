@@ -292,6 +292,15 @@ impl Quat {
 		self.Log(&r)
 	}
 
+	// Sets self to the inverse cosine of q.
+	fn Acos(mut *self, &q: *Quat) {
+		mut uv := *q
+		uv.Asin(&uv)
+		w, uv := split(&uv)
+		self.Scale(&uv, -1)
+		join(self, math::Pi/2-w)
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:
