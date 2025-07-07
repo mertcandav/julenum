@@ -45,29 +45,29 @@ impl Vector3 {
 		self.X, self.Y, self.Z = xterm, yterm, zterm
 	}
 
-	// Returns length of vector.
-	fn Len(*self): f64 {
+	// Returns norm (length) of vector.
+	fn Norm(*self): f64 {
 		ret math::Sqrt(self.X*self.X + self.Y*self.Y + self.Z*self.Z)
 	}
 
-	// Sets self to the unit vector (vector with length 1) in the same direction as x.
-	// If the vector x has zero length, it returns the zero vector (0, 0) to avoid division by zero.
-	fn Norm(mut *self, &x: *Vector3) {
-		len := x.Len()
-		if len == 0 {
+	// Sets self to the unit vector (vector with norm 1) in the same direction as x.
+	// If the vector x has zero norm, it returns the zero vector (0, 0) to avoid division by zero.
+	fn Normalize(mut *self, &x: *Vector3) {
+		norm := x.Norm()
+		if norm == 0 {
 			self.X, self.Y = 0, 0
 		}
-		self.X, self.Y, self.Z = x.X/len, x.Y/len, x.Z/len
+		self.X, self.Y, self.Z = x.X/norm, x.Y/norm, x.Z/norm
 	}
 
 	// Returns the angle in radians between self and y vectors.
 	fn AngleBetween(*self, &y: *Vector3): f64 {
-		lenProduct := self.Len() * y.Len()
-		if lenProduct == 0 {
+		normProduct := self.Norm() * y.Norm()
+		if normProduct == 0 {
 			ret 0
 		}
 		dot := self.Dot(y)
-		mut cosTheta := dot / lenProduct
+		mut cosTheta := dot / normProduct
 		// Clamp to avoid NaN due to floating-point error.
 		if cosTheta > 1 {
 			cosTheta = 1
@@ -78,15 +78,15 @@ impl Vector3 {
 	}
 
 	// Sets self to projection of vector x onto y.
-	// If the vector y has zero length, it returns the zero vector (0, 0) to avoid division by zero.
+	// If the vector y has zero norm, it returns the zero vector (0, 0) to avoid division by zero.
 	fn Proj(mut *self, &x: *Vector3, &y: *Vector3) {
-		yl := y.Len()
-		if yl == 0 {
+		yn := y.Norm()
+		if yn == 0 {
 			self.X, self.Y = 0, 0
 			ret
 		}
 		xy := x.Dot(y)
-		scale := xy / (yl * yl)
+		scale := xy / (yn * yn)
 		self.Mul(y, scale)
 	}
 }
