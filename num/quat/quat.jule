@@ -7,61 +7,61 @@ use "std/math"
 
 // Quaternion with floating-point precision.
 struct Quat {
-	R: f64
-	I: f64
-	J: f64
-	K: f64
+	W: f64
+	X: f64
+	Y: f64
+	Z: f64
 }
 
 impl Quat {
 	// Reports whether any field of quaternion is NaN and none are an infinity.
 	fn NaN(*self): bool {
-		if math::IsInf(self.R, 0) || math::IsInf(self.I, 0) ||
-			math::IsInf(self.J, 0) || math::IsInf(self.K, 0) {
+		if math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
+			math::IsInf(self.Y, 0) || math::IsInf(self.Z, 0) {
 			ret false
 		}
-		ret math::IsNaN(self.R) || math::IsNaN(self.I) ||
-			math::IsNaN(self.J) || math::IsNaN(self.K)
+		ret math::IsNaN(self.W) || math::IsNaN(self.X) ||
+			math::IsNaN(self.Y) || math::IsNaN(self.Z)
 	}
 
 	// Reports whether any of field of quaternion is ±infinity.
 	fn Inf(*self): bool {
-		ret math::IsInf(self.R, 0) || math::IsInf(self.I, 0) ||
-			math::IsInf(self.J, 0) || math::IsInf(self.K, 0)
+		ret math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
+			math::IsInf(self.Y, 0) || math::IsInf(self.Z, 0)
 	}
 
 	// Reports whether all fields of quaternion is zero.
 	fn Zero(*self): bool {
-		ret self.R == 0 && self.I == 0 && self.J == 0 && self.K == 0
+		ret self.W == 0 && self.X == 0 && self.Y == 0 && self.Z == 0
 	}
 
 	// Sets self to the sum of x+y.
 	fn Add(mut *self, &x: *Quat, &y: *Quat) {
-		self.R, self.I, self.J, self.K = x.R+y.R, x.I+y.I, x.J+y.J, x.K+y.K
+		self.W, self.X, self.Y, self.Z = x.W+y.W, x.X+y.X, x.Y+y.Y, x.Z+y.Z
 	}
 
 	// Sets self to the difference x-y.
 	fn Sub(mut *self, &x: *Quat, &y: *Quat) {
-		self.R, self.I, self.J, self.K = x.R-y.R, x.I-y.I, x.J-y.J, x.K-y.K
+		self.W, self.X, self.Y, self.Z = x.W-y.W, x.X-y.X, x.Y-y.Y, x.Z-y.Z
 	}
 
 	// Sets self to the Hamiltonian product x*y.
 	fn Mul(mut *self, &x: *Quat, &y: *Quat) {
-		r := x.R*y.R - x.I*y.I - x.J*y.J - x.K*y.K
-		i := x.R*y.I + x.I*y.R + x.J*y.K - x.K*y.J
-		j := x.R*y.J - x.I*y.K + x.J*y.R + x.K*y.I
-		k := x.R*y.K + x.I*y.J - x.J*y.I + x.K*y.R
-		self.R, self.I, self.J, self.K = r, i, j, k
+		_w := x.W*y.W - x.X*y.X - x.Y*y.Y - x.Z*y.Z
+		_x := x.W*y.X + x.X*y.W + x.Y*y.Z - x.Z*y.Y
+		_y := x.W*y.Y - x.X*y.Z + x.Y*y.W + x.Z*y.X
+		_z := x.W*y.Z + x.X*y.Y - x.Y*y.X + x.Z*y.W
+		self.W, self.X, self.Y, self.Z = _w, _x, _y, _z
 	}
 
 	// Sets self to the product x*k.
 	fn Scale(mut *self, &x: *Quat, k: f64) {
-		self.R, self.I, self.J, self.K = x.R*k, x.I*k, x.J*k, x.K*k
+		self.W, self.X, self.Y, self.Z = x.W*k, x.X*k, x.Y*k, x.Z*k
 	}
 
 	// Sets self to the quaternion conjugate of x.
 	fn Conj(mut *self, &x: *Quat) {
-		self.R, self.I, self.J, self.K = x.R, -x.I, -x.J, -x.K
+		self.W, self.X, self.Y, self.Z = x.W, -x.X, -x.Y, -x.Z
 	}
 
 	// Sets self to the quaternion inverse of x.
@@ -235,12 +235,12 @@ impl Quat {
 
 	// Sets self the hyperbolic tangent of q.
 	fn Tanh(mut *self, &q: *Quat) {
-		if math::IsInf(q.R, 1) {
+		if math::IsInf(q.W, 1) {
 			// Change signs dependent on imaginary parts.
-			self.R = 0
-			self.I *= math::Sin(2 * q.I)
-			self.J *= math::Sin(2 * q.J)
-			self.K *= math::Sin(2 * q.K)
+			self.W = 0
+			self.X *= math::Sin(2 * q.X)
+			self.Y *= math::Sin(2 * q.Y)
+			self.Z *= math::Sin(2 * q.Z)
 			ret
 		}
 		mut d := *q
@@ -258,12 +258,12 @@ impl Quat {
 	fn Asin(mut *self, &q: *Quat) {
 		_, mut uv := split(q)
 		if uv.Zero() {
-			lift(self, math::Asin(q.R))
+			lift(self, math::Asin(q.W))
 			ret
 		}
 
 		unit(&uv)
-		mut p := Quat{R: 1}
+		mut p := Quat{W: 1}
 		mut r := *q // q may be alias for self.
 
 		// self = sqrt(sub(p, mul(q, q)))
@@ -283,7 +283,7 @@ impl Quat {
 
 	// Sets self to the inverse hyperbolic sine of q.
 	fn Asinh(mut *self, &q: *Quat) {
-		mut p := Quat{R: 1}
+		mut p := Quat{W: 1}
 		mut r := *self // q may be alias for self.
 		r.Mul(q, q)
 		r.Add(&r, &p)
@@ -310,7 +310,7 @@ impl Quat {
 		}
 		unit(&uv)
 		self.Mul(self, &uv)
-		if self.R < 0 {
+		if self.W < 0 {
 			self.Scale(self, -1)
 		}
 	}
@@ -373,35 +373,35 @@ impl Quat {
 			ret math::NaN()
 		}
 
-		mut r, mut i, mut j, mut k := self.R, self.I, self.J, self.K
-		if r < 0 {
-			r = -r
+		mut w, mut x, mut y, mut z := self.W, self.X, self.Y, self.Z
+		if w < 0 {
+			w = -w
 		}
-		if i < 0 {
-			i = -i
+		if x < 0 {
+			x = -x
 		}
-		if j < 0 {
-			j = -j
+		if y < 0 {
+			y = -y
 		}
-		if k < 0 {
-			k = -k
+		if z < 0 {
+			z = -z
 		}
-		if r < i {
-			r, i = i, r
+		if w < x {
+			w, x = x, w
 		}
-		if r < j {
-			r, j = j, r
+		if w < y {
+			w, y = y, w
 		}
-		if r < k {
-			r, k = k, r
+		if w < z {
+			w, z = z, w
 		}
-		if r == 0 {
+		if w == 0 {
 			ret 0
 		}
-		i /= r
-		j /= r
-		k /= r
-		ret r * math::Sqrt(1+i*i+j*j+k*k)
+		x /= w
+		y /= w
+		z /= w
+		ret w * math::Sqrt(1+x*x+y*y+z*z)
 	}
 }
 
@@ -418,15 +418,15 @@ fn Inf(sign: int): Quat {
 }
 
 fn lift(mut &q: *Quat, v: f64) {
-	q.R, q.I, q.J, q.K = v, 0, 0, 0
+	q.W, q.X, q.Y, q.Z = v, 0, 0, 0
 }
 
 fn split(&q: *Quat): (f64, Quat) {
-	ret q.R, Quat{0, q.I, q.J, q.K}
+	ret q.W, Quat{0, q.X, q.Y, q.Z}
 }
 
 fn join(mut &uv: *Quat, w: f64) {
-	uv.R = w
+	uv.W = w
 }
 
 // calculate sinh and cosh
@@ -446,17 +446,17 @@ fn scale(mut &z: *Quat, &q: *Quat, f: f64) {
 		lift(z, 0)
 		ret
 	}
-	if q.R != 0 {
-		z.R = q.R * f
+	if q.W != 0 {
+		z.W = q.W * f
 	}
-	if q.I != 0 {
-		z.I = q.I * f
+	if q.X != 0 {
+		z.X = q.X * f
 	}
-	if q.J != 0 {
-		z.J = q.J * f
+	if q.Y != 0 {
+		z.Y = q.Y * f
 	}
-	if q.K != 0 {
-		z.K = q.K * f
+	if q.Z != 0 {
+		z.Z = q.Z * f
 	}
 }
 
