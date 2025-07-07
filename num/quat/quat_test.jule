@@ -712,6 +712,29 @@ fn testQuatCosh(t: &testing::T) {
 	}
 }
 
+let testsQuatTan: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: math::Pi / 4}, r: {R: math::Tan(math::Pi / 4)}},
+	{q: {I: math::Pi / 4}, r: {I: cmplx::Tan(cmplx::New(0, math::Pi/4)).Imag()}},
+	{q: {J: math::Pi / 4}, r: {J: cmplx::Tan(cmplx::New(0, math::Pi/4)).Imag()}},
+	{q: {K: math::Pi / 4}, r: {K: cmplx::Tan(cmplx::New(0, math::Pi/4)).Imag()}},
+
+	// From exercise from Real Numberernionic Calculus Handbook doi:10.1007/978-3-0348-0622-0
+	{q: {I: 1}, r: mul(sin({I: 1}), inv(cos({I: 1})))},
+	{q: {1, 1, 1, 1}, r: mul(sin({1, 1, 1, 1}), inv(cos({1, 1, 1, 1})))},
+]
+
+#test
+fn testQuatTan(t: &testing::T) {
+	for _, test in testsQuatTan {
+		mut x := test.q
+		x.Tan(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Tan({})", test.r, x, test.q)
+		}
+	}
+}
+
 let testsQuatAsinh: []testQuatQuat = [
 	{q: {}, r: {}},
 	{q: {R: 1}, r: {R: math::Asinh(1)}},
@@ -797,4 +820,24 @@ fn asinh(mut q: Quat): Quat {
 fn sinh(mut q: Quat): Quat {
 	q.Sinh(&q)
 	ret q
+}
+
+fn sin(mut q: Quat): Quat {
+	q.Sin(&q)
+	ret q
+}
+
+fn cos(mut q: Quat): Quat {
+	q.Cos(&q)
+	ret q
+}
+
+fn inv(mut q: Quat): Quat {
+	q.Inv(&q)
+	ret q
+}
+
+fn mul(mut x: Quat, y: Quat): Quat {
+	x.Mul(&x, &y)
+	ret x
 }

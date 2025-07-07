@@ -220,6 +220,19 @@ impl Quat {
 		join(self, c*ch)
 	}
 
+	// Sets self to the tangent of q.
+	fn Tan(mut *self, &q: *Quat) {
+		mut d := *q
+		d.Cos(&d)
+		if d.Zero() {
+			*self = Inf(1)
+			ret
+		}
+		d.Inv(&d)
+		self.Sin(q)
+		self.Mul(self, &d)
+	}
+
 	// Sets self to the inverse hyperbolic sine of q.
 	fn Asinh(mut *self, &q: *Quat) {
 		mut p := Quat{R: 1}
