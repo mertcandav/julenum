@@ -206,6 +206,20 @@ impl Quat {
 		join(self, c*ch)
 	}
 
+	// Sets self to the hyperbolic cosine of q.
+	fn Cosh(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Cosh(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(v)
+		sh, ch := sinhcosh(w)
+		scale(self, &uv, s*sh/v)
+		join(self, c*ch)
+	}
+
 	// Sets self to the inverse hyperbolic sine of q.
 	fn Asinh(mut *self, &q: *Quat) {
 		mut p := Quat{R: 1}

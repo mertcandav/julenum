@@ -668,6 +668,50 @@ fn testQuatCos(t: &testing::T) {
 	}
 }
 
+let testsQuatCosh: []testQuatQuat = [
+	{q: {}, r: {R: 1}},
+	{q: {R: math::Pi / 2}, r: {R: math::Cosh(math::Pi / 2)}},
+	{q: {I: math::Pi / 2}, r: {I: cmplx::Cosh(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {J: math::Pi / 2}, r: {J: cmplx::Cosh(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {K: math::Pi / 2}, r: {K: cmplx::Cosh(cmplx::New(0, math::Pi/2)).Imag()}},
+	{q: {R: 1, I: -1, J: -1}, r: fn(): Quat {
+			mut q := Quat{R: 1, I: -1, J: -1}
+			mut t := q
+			q.Scale(&q, -1)
+			q.Exp(&q)
+			t.Exp(&t)
+			q.Add(&q, &t)
+			q.Scale(&q, 0.5)
+			ret q
+		}()},
+	{q: {1, 1, 1, 1}, r: fn(): Quat {
+			mut q := Quat{1, 1, 1, 1}
+			mut t := q
+			q.Scale(&q, -1)
+			q.Exp(&q)
+			t.Exp(&t)
+			q.Add(&q, &t)
+			q.Scale(&q, 0.5)
+			ret q
+		}()},
+	{q: {R: math::Inf(1)}, r: {R: math::Inf(1)}},
+	{q: {R: math::Inf(1), I: math::Pi / 2}, r: {R: math::Inf(1), I: math::Inf(1)}},
+	{q: {R: math::Inf(1), I: math::Pi}, r: {R: math::Inf(-1), I: math::Inf(1)}},
+	{q: {R: math::Inf(1), I: 3 * math::Pi / 2}, r: {R: math::Inf(-1), I: math::Inf(-1)}},
+	{q: {R: math::Inf(1), I: 2 * math::Pi}, r: {R: math::Inf(1), I: math::Inf(-1)}},
+]
+
+#test
+fn testQuatCosh(t: &testing::T) {
+	for _, test in testsQuatCosh {
+		mut x := test.q
+		x.Cosh(&x)
+		if !sameApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Cosh({})", test.r, x, test.q)
+		}
+	}
+}
+
 let testsQuatAsinh: []testQuatQuat = [
 	{q: {}, r: {}},
 	{q: {R: 1}, r: {R: math::Asinh(1)}},
