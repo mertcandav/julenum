@@ -315,6 +315,36 @@ impl Quat {
 		}
 	}
 
+	// Atan returns the inverse tangent of q.
+	fn Atan(mut *self, &q: *Quat) {
+		w, mut uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Atan(w))
+			ret
+		}
+		unit(&uv)
+
+		mut p := Quat{}
+		mut r := *q // q may be alias for self.
+
+		// r = inv(sub(uv, q))
+		r.Sub(&uv, q)
+		r.Inv(&r)
+
+		// p = add(uv, q)
+		p.Add(&uv, q)
+
+		// r = log(mul(p, r))
+		r.Mul(&p, &r)
+		r.Log(&r)
+
+		// p = mul(lift(0.5), uv)
+		lift(&p, 0.5)
+		p.Mul(&p, &uv)
+
+		self.Mul(&p, &r)
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:

@@ -883,6 +883,26 @@ fn testQuatAcosh(t: &testing::T) {
 	}
 }
 
+let testsQuatAtan: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: 1}, r: {R: math::Pi / 4}},
+	{q: {I: 0.5}, r: {R: cmplx::Atan(cmplx::New(0, 0.5)).Real(), I: cmplx::Atan(cmplx::New(0, 0.5)).Imag()}},
+	{q: {J: 0.5}, r: {R: cmplx::Atan(cmplx::New(0, 0.5)).Real(), J: cmplx::Atan(cmplx::New(0, 0.5)).Imag()}},
+	{q: {K: 0.5}, r: {R: cmplx::Atan(cmplx::New(0, 0.5)).Real(), K: cmplx::Atan(cmplx::New(0, 0.5)).Imag()}},
+	{q: tan({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+]
+
+#test
+fn testQuatAtan(t: &testing::T) {
+	for _, test in testsQuatAtan {
+		mut x := test.q
+		x.Atan(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Atan({})", test.r, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&
