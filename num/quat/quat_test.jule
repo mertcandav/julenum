@@ -755,8 +755,28 @@ fn testQuatTanh(t: &testing::T) {
 	for _, test in testsQuatTanh {
 		mut x := test.q
 		x.Tanh(&x)
-		if !equalApprox(x, test.r) {
+		if !sameApprox(x, test.r) {
 			t.Errorf("expected {}, found {}, for Tanh({})", test.r, x, test.q)
+		}
+	}
+}
+
+let testsQuatAsin: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: 1}, r: {R: math::Pi / 2}},
+	{q: {I: 1}, r: {I: cmplx::Asinh(cmplx::New(1, 0)).Real()}},
+	{q: {J: 1}, r: {J: cmplx::Asinh(cmplx::New(1, 0)).Real()}},
+	{q: {K: 1}, r: {K: cmplx::Asinh(cmplx::New(1, 0)).Real()}},
+	{q: sin({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+]
+
+#test
+fn testQuatAsin(t: &testing::T) {
+	for _, test in testsQuatAsin {
+		mut x := test.q
+		x.Asin(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Asin({})", test.r, x, test.q)
 		}
 	}
 }
