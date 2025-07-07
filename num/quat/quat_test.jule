@@ -850,6 +850,39 @@ fn testQuatAcos(t: &testing::T) {
 	}
 }
 
+let testsQuatAcosh: []testQuatQuat = [
+	{q: {}, r: {R: math::Pi / 2}},
+	{q: {R: 1}, r: {R: math::Acosh(1)}},
+	{q: {I: 1}, r: {R: cmplx::Acosh(cmplx::New(0, 1)).Real(), I: cmplx::Acosh(cmplx::New(0, 1)).Imag()}},
+	{q: {J: 1}, r: {R: cmplx::Acosh(cmplx::New(0, 1)).Real(), J: cmplx::Acosh(cmplx::New(0, 1)).Imag()}},
+	{q: {K: 1}, r: {R: cmplx::Acosh(cmplx::New(0, 1)).Real(), K: cmplx::Acosh(cmplx::New(0, 1)).Imag()}},
+	{q: cosh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+	{
+		q: {1, 1, 1, 1}, r: fn(): Quat {
+			mut q := Quat{1, 1, 1, 1}
+			mut p := Quat{R: 1}
+			q.Mul(&q, &q)
+			q.Sub(&q, &p)
+			q.Sqrt(&q)
+			p = Quat{1, 1, 1, 1}
+			p.Add(&p, &q)
+			p.Log(&p)
+			ret p
+		}(),
+	},
+]
+
+#test
+fn testQuatAcosh(t: &testing::T) {
+	for _, test in testsQuatAcosh {
+		mut x := test.q
+		x.Acosh(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Acosh({})", test.r, x, test.q)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.R, b.R) &&
 		julenum::Close(a.I, b.I) &&
@@ -900,6 +933,11 @@ fn cos(mut q: Quat): Quat {
 
 fn cosh(mut q: Quat): Quat {
 	q.Cosh(&q)
+	ret q
+}
+
+fn tan(mut q: Quat): Quat {
+	q.Tan(&q)
 	ret q
 }
 

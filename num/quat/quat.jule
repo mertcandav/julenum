@@ -301,6 +301,20 @@ impl Quat {
 		join(self, math::Pi/2-w)
 	}
 
+	// Sets self to the inverse hyperbolic cosine of q.
+	fn Acosh(mut *self, &q: *Quat) {
+		self.Acos(q)
+		_, mut uv := split(self)
+		if uv.Zero() {
+			ret
+		}
+		unit(&uv)
+		self.Mul(self, &uv)
+		if self.R < 0 {
+			self.Scale(self, -1)
+		}
+	}
+
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
 	// Special cases:
