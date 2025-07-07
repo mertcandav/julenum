@@ -233,6 +233,27 @@ impl Quat {
 		self.Mul(self, &d)
 	}
 
+	// Sets self the hyperbolic tangent of q.
+	fn Tanh(mut *self, &q: *Quat) {
+		if math::IsInf(q.R, 1) {
+			lift(self, 1)
+			// Change signs dependent on imaginary parts.
+			self.I *= math::Sin(2 * q.I)
+			self.J *= math::Sin(2 * q.J)
+			self.K *= math::Sin(2 * q.K)
+			ret
+		}
+		mut d := *q
+		d.Cosh(&d)
+		if d.Zero() {
+			*self = Inf(1)
+			ret
+		}
+		d.Inv(&d)
+		self.Sinh(q)
+		self.Mul(self, &d)
+	}
+
 	// Sets self to the inverse hyperbolic sine of q.
 	fn Asinh(mut *self, &q: *Quat) {
 		mut p := Quat{R: 1}

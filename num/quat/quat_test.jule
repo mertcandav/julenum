@@ -735,6 +735,32 @@ fn testQuatTan(t: &testing::T) {
 	}
 }
 
+let testsQuatTanh: []testQuatQuat = [
+	{q: {}, r: {}},
+	{q: {R: math::Pi / 4}, r: {R: math::Tanh(math::Pi / 4)}},
+	{q: {I: math::Pi / 4}, r: {I: cmplx::Tanh(cmplx::New(0, math::Pi/4)).Imag()}},
+	{q: {J: math::Pi / 4}, r: {J: cmplx::Tanh(cmplx::New(0, math::Pi/4)).Imag()}},
+	{q: {K: math::Pi / 4}, r: {K: cmplx::Tanh(cmplx::New(0, math::Pi/4)).Imag()}},
+	{q: {I: 1}, r: mul(sinh({I: 1}), inv(cosh({I: 1})))},
+	{q: {1, 1, 1, 1}, r: mul(sinh({1, 1, 1, 1}), inv(cosh({1, 1, 1, 1})))},
+	{q: {R: math::Inf(1)}, r: {R: 1}},
+	{q: {R: math::Inf(1), I: math::Pi / 4}, r: {R: 1, I: 0 * math::Sin(math::Pi/2)}},
+	{q: {R: math::Inf(1), I: math::Pi / 2}, r: {R: 1, I: 0 * math::Sin(math::Pi)}},
+	{q: {R: math::Inf(1), I: 3 * math::Pi / 4}, r: {R: 1, I: 0 * math::Sin(3*math::Pi/2)}},
+	{q: {R: math::Inf(1), I: math::Pi}, r: {R: 1, I: 0 * math::Sin(2*math::Pi)}},
+]
+
+#test
+fn testQuatTanh(t: &testing::T) {
+	for _, test in testsQuatTanh {
+		mut x := test.q
+		x.Tanh(&x)
+		if !equalApprox(x, test.r) {
+			t.Errorf("expected {}, found {}, for Tanh({})", test.r, x, test.q)
+		}
+	}
+}
+
 let testsQuatAsinh: []testQuatQuat = [
 	{q: {}, r: {}},
 	{q: {R: 1}, r: {R: math::Asinh(1)}},
@@ -829,6 +855,11 @@ fn sin(mut q: Quat): Quat {
 
 fn cos(mut q: Quat): Quat {
 	q.Cos(&q)
+	ret q
+}
+
+fn cosh(mut q: Quat): Quat {
+	q.Cosh(&q)
 	ret q
 }
 
