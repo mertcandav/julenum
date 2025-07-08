@@ -28,4 +28,9 @@ impl Dual {
 	fn Mul(mut *self, &x: *Dual, &y: *Dual) {
 		self.X, self.Y = x.X*y.X, x.X*y.Y+x.Y*y.X
 	}
+
+	// Sets self to d scaled by k.
+	fn Scale(mut *self, &d: *Dual, k: f64) {
+		self.X, self.Y = d.X*k, d.Y*k
+	}
 }
