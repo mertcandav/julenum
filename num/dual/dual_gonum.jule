@@ -53,6 +53,14 @@ impl Dual {
 		self.X, self.Y = math::Pow(d.X, p), d.Y*deriv
 	}
 
+	// Sets self to the product d**r, the base-d exponential of r.
+	fn Pow(mut *self, &d: *Dual, &p: *Dual) {
+		mut log := *d
+		log.Log(&log)
+		self.Mul(p, &log)
+		self.Exp(self)
+	}
+
 	// Sets self to the square root of d.
 	//
 	// Special cases are:
