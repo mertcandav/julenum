@@ -21,4 +21,10 @@ impl Quat {
 		self.X.Add(&x.X, &y.X)
 		self.Y.Add(&x.Y, &y.Y)
 	}
+
+	// Sets self to the difference x-y.
+	fn Sub(mut *self, &x: *Quat, &y: *Quat) {
+		self.X.Sub(&x.X, &y.X)
+		self.Y.Sub(&x.Y, &y.Y)
+	}
 }
