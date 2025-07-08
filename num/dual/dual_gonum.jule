@@ -295,4 +295,24 @@ impl Dual {
 		}
 		self.X, self.Y = math::Acosh(d.X), (1/math::Sqrt(d.X*d.X-1))*d.Y
 	}
+
+	// Set self to the inverse hyperbolic tangent of d.
+	//
+	// Special cases are:
+	//	Atanh(1) = +Inf
+	//	Atanh(±0) = (±0+Nϵ)
+	//	Atanh(-1) = -Inf
+	//	Atanh(x) = NaN if x < -1 or x > 1
+	//	Atanh(NaN) = NaN
+	fn Atanh(mut *self, &d: *Dual) {
+		if d.X == 0 {
+			self.X, self.Y = d.X, d.Y
+			ret
+		}
+		if math::Abs(d.X) == 1 {
+			self.X, self.Y = math::Inf(int(d.X)), math::NaN()
+			ret
+		}
+		self.X, self.Y = math::Atanh(d.X), (1/(1-d.X*d.X))*d.Y
+	}
 }
