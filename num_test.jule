@@ -15,6 +15,8 @@ let testsEqual: []xybTest = [
 	{1, 0, false},
 	{1, -1, false},
 	{1, 1, true},
+	{0, 0, true},
+	{math::Copysign(0, 1), math::Copysign(0, -1), true},
 	{math::Inf(1), math::Inf(1), true},
 	{math::Inf(1), math::Inf(-1), false},
 	{math::Inf(1), 123, false},
@@ -28,6 +30,33 @@ let testsEqual: []xybTest = [
 fn tesEqual(t: &testing::T) {
 	for _, test in testsEqual {
 		r := Equal(test.x, test.y)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Equal({}, {})", test.r, r, test.x, test.y)
+		}
+	}
+}
+
+let testsSame: []xybTest = [
+	{1, 0, false},
+	{1, -1, false},
+	{1, 1, true},
+	{0, 0, true},
+	{math::Copysign(0, 1), math::Copysign(0, -1), false},
+	{math::Inf(1), math::Inf(1), true},
+	{math::Inf(1), math::Inf(-1), false},
+	{math::Inf(1), 123, false},
+	{math::NaN(), math::NaN(), true},
+	{math::NaN(), 123, false},
+	{NaN(123), math::NaN(), false},
+	{NaN(123), NaN(0), false},
+	{NaN(123), NaN(123), true},
+	{math::Copysign(NaN(123), 1), math::Copysign(NaN(123), -1), true},
+]
+
+#test
+fn tesSame(t: &testing::T) {
+	for _, test in testsSame {
+		r := Same(test.x, test.y)
 		if r != test.r {
 			t.Errorf("expected {}, found {}, for Equal({}, {})", test.r, r, test.x, test.y)
 		}
