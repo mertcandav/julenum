@@ -33,11 +33,6 @@ impl Vector3 {
 		self.X, self.Y, self.Z = x.X*k, x.Y*k, x.Z*k
 	}
 
-	// Sets self to the quotient x/y.
-	fn Div(mut *self, &x: *Vector3, y: f64) {
-		self.X, self.Y, self.Z = x.X/y, x.Y/y, x.Z/y
-	}
-
 	// Sets self to the cross product x*y of two vectors (3D cross product).
 	fn Cross(mut *self, &x: *Vector3, &y: *Vector3) {
 		xterm := x.Y*y.Z - x.Z*y.Y
