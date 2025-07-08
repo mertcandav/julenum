@@ -129,4 +129,13 @@ impl Dual {
 		}
 		self.X, self.Y = math::Sin(d.X), math::Cos(d.X)*d.Y
 	}
+
+	// Sets self to the cosine of d.
+	//
+	// Special cases are:
+	//	Cos(±Inf) = NaN
+	//	Cos(NaN) = NaN
+	fn Cos(mut *self, &d: *Dual) {
+		self.X, self.Y = math::Cos(d.X), -math::Sin(d.X)*d.Y
+	}
 }
