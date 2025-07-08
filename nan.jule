@@ -1,0 +1,23 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the test gonum package.
+//
+// Copyright ©2018 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "std/math"
+
+const (
+	nanBits = 0x7ff8000000000000
+	nanMask = 0xfff8000000000000
+)
+
+// Returns an IEEE 754 "quiet not-a-number" value with the
+// payload specified in the low 51 bits of payload.
+// The NaN returned by math::NaN has a bit pattern equal to NaN(1).
+fn NaN(payload: u64): f64 {
+	ret math::F64frombits(nanBits | (payload & ^nanMask))
+}
