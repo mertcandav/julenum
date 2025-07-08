@@ -18,4 +18,9 @@ impl Dual {
 	fn Add(mut *self, &x: *Dual, &y: *Dual) {
 		self.X, self.Y = x.X+y.X, x.Y+y.Y
 	}
+
+	// Sets self to the difference of x-y.
+	fn Sub(mut *self, &x: *Dual, &y: *Dual) {
+		self.X, self.Y = x.X-y.X, x.Y-y.Y
+	}
 }
