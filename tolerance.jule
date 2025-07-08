@@ -2,6 +2,12 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+// Implementation derived from the test implementation of the Jule's standard math package.
+//
+// Copyright 2025 The Jule Programming Language.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
 use "std/math"
 
 // Reports whether two values a and b are approximately equal,
