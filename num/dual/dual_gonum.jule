@@ -153,4 +153,27 @@ impl Dual {
 		f := math::Tan(d.X)
 		self.X, self.Y = f, (1+f*f)*d.Y
 	}
+
+	// Sets self to the inverse sine of d.
+	//
+	// Special cases are:
+	//	Asin(±0) = (±0+Nϵ)
+	//	Asin(±1) = (±Inf+Infϵ)
+	//	Asin(x) = NaN if x < -1 or x > 1
+	fn Asin(mut *self, &d: *Dual) {
+		if d.X == 0 {
+			self.X, self.Y = d.X, d.Y
+			ret
+		}
+		m := math::Abs(d.X)
+		if m >= 1 {
+			if m == 1 {
+				self.X, self.Y = math::Asin(d.X), math::Inf(1)
+			} else {
+				self.X, self.Y = math::NaN(), math::NaN()
+			}
+			ret
+		}
+		self.X, self.Y = math::Asin(d.X), (1/math::Sqrt(1-d.X*d.X))*d.Y
+	}
 }
