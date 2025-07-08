@@ -262,4 +262,18 @@ impl Dual {
 		f := math::Tanh(d.X)
 		self.X, self.Y = f, (1-f*f)*d.Y
 	}
+
+	// Sets self to the inverse hyperbolic sine of d.
+	//
+	// Special cases are:
+	//	Asinh(±0) = (±0+Nϵ)
+	//	Asinh(±Inf) = ±Inf
+	//	Asinh(NaN) = NaN
+	fn Asinh(mut *self, &d: *Dual) {
+		if d.X == 0 {
+			self.X, self.Y = d.X, d.Y
+			ret
+		}
+		self.X, self.Y = math::Asinh(d.X), (1/math::Sqrt(d.X*d.X+1))*d.Y
+	}
 }

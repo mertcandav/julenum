@@ -102,6 +102,13 @@ let testsDual: []dualTest = [
 		dFn: dTanh,
 	},
 	{
+		name: "asinh",
+		x: [math::NaN(), math::Inf(-1), -3, -2, -1, -0.5, negZero, 0, 0.5, 1, 2, 3, math::Inf(1)],
+		fnDual: fn|mut d| d.Asinh(d),
+		f: math::Asinh,
+		dFn: dAsinh,
+	},
+	{
 		name: "asin",
 		x: [math::NaN(), math::Inf(-1), -3, -2, -1, -0.5, negZero, 0, 0.5, 1, 2, 3, math::Inf(1)],
 		fnDual: fn|mut d| d.Asin(d),
