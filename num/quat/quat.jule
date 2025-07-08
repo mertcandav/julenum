@@ -13,7 +13,7 @@ struct Quat {
 }
 
 impl Quat {
-	// Reports whether all fields of quaternion is zero.
+	// Reports whether all fields of quaternion are zero.
 	fn Zero(*self): bool {
 		ret self.W == 0 && self.X == 0 && self.Y == 0 && self.Z == 0
 	}

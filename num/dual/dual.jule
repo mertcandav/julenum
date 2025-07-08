@@ -7,3 +7,10 @@ struct Dual {
 	X: f64
 	Y: f64
 }
+
+impl Dual {
+	// Reports whether all fields of dual are zero.
+	fn Zero(*self): bool {
+		ret self.X == 0 && self.Y == 0
+	}
+}
