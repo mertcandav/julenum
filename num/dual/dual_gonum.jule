@@ -71,4 +71,17 @@ impl Dual {
 		}
 		self.PowReal(d, 0.5)
 	}
+
+	// Sets self to the product d**q, the base-e exponential of d.
+	//
+	// Special cases are:
+	//	Exp(+Inf) = +Inf
+	//	Exp(NaN) = NaN
+	//
+	// Very large values overflow to 0 or +Inf.
+	// Very small values underflow to 1.
+	fn Exp(mut *self, &d: *Dual) {
+		fnDeriv := math::Exp(d.X)
+		self.X, self.Y = fnDeriv, fnDeriv*d.Y
+	}
 }
