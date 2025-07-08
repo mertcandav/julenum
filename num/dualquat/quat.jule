@@ -37,4 +37,10 @@ impl Quat {
 		self.X.Mul(&x.X, &y.X) // x = x.X * y.Y
 		self.Y.Add(&xy, &yx)   // y = x.X*y.Y + x.Y*y.X
 	}
+
+	// Sets self to q scaled by k.
+	fn Scale(mut *self, &q: *Quat, k: f64) {
+		self.X.Scale(&q.X, k)
+		self.Y.Scale(&q.Y, k)
+	}
 }
