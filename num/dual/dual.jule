@@ -33,4 +33,13 @@ impl Dual {
 	fn Scale(mut *self, &d: *Dual, k: f64) {
 		self.X, self.Y = d.X*k, d.Y*k
 	}
+
+	// Sets self to inverse of d.
+	//
+	// Special cases are:
+	//	Inv(±Inf) = ±0-0ϵ
+	//	Inv(±0) = ±Inf-Infϵ
+	fn Inv(mut *self, &d: *Dual) {
+		self.X, self.Y = 1/d.X, -d.Y/(d.X*d.X)
+	}
 }
