@@ -62,3 +62,26 @@ fn tesSame(t: &testing::T) {
 		}
 	}
 }
+
+let testsInt = [
+	math::NaN(),
+	math::Inf(1),
+	math::Inf(-1),
+	1, 2, 3, 4,
+	1 << 32, 1 << 16, 1 << 8,
+	1.0, 1.1, 1.13, 4.0000000000000005, 1e-18,
+]
+
+#test
+fn tesInt(t: &testing::T) {
+	for _, test in testsInt {
+		r := Int(test)
+		w := test == math::Trunc(test)
+		if r != w {
+			if !r && math::IsInf(test, 0) {
+				continue
+			}
+			t.Errorf("expected {}, found {}, for Int({})", w, r, test)
+		}
+	}
+}

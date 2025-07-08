@@ -36,7 +36,7 @@ impl Matrix {
 
 	// Reports whether the all values of Matrix are zero.
 	//
-	// Special cases:
+	// Special cases are:
 	//	Zero() = true, if Dims() == (0, 0)
 	fn Zero(*self): bool {
 		for _, x in self.data {
@@ -282,7 +282,7 @@ impl Matrix {
 	// Returns trace of matrix.
 	// Panics if matrix is not a square matrix.
 	//
-	// Special cases:
+	// Special cases are:
 	//	Trace() = 0, for (0 x 0) matrices
 	#disable boundary
 	fn Trace(*self): T {
@@ -878,7 +878,7 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 // Uses len(values) for m, len(values[1]) for n.
 // Panics if all rows are not have same amount of values.
 //
-// Special cases:
+// Special cases are:
 //	NewFrom(values) = (0 x 0) Matrix, if len(values) == 0
 //	NewFrom(values) = (0 x 0) Matrix, if len(values) == 1 && len(values[1]) == 0
 //

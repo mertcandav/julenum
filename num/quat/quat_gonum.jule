@@ -324,7 +324,7 @@ impl Quat {
 
 	// Returns the absolute value (also called the modulus) of quaternion.
 	//
-	// Special cases:
+	// Special cases are:
 	//	Abs() = +Inf, if quaternion is ±Inf.
 	//	Abs() = NaN, if quaternion is NaN
 	fn Abs(*self): f64 {

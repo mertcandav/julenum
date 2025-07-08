@@ -13,7 +13,6 @@ use "std/math"
 // Returns the half away from zero rounded value of x with precision.
 //
 // Special cases are:
-//
 //	Round(±0, prec) = +0
 //	Round(±Inf, prec) = ±Inf
 //	Round(NaN, prec) = NaN
@@ -44,7 +43,6 @@ fn Round(mut x: f64, prec: int): f64 {
 // Returns the half even rounded value of x with precision.
 //
 // Special cases are:
-//
 //	RoundEven(±0, prec) = +0
 //	RoundEven(±Inf, prec) = ±Inf
 //	RoundEven(NaN, prec) = NaN
