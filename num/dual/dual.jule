@@ -1,0 +1,9 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Dual with floating-point precision.
+struct Dual {
+	X: f64
+	Y: f64
+}
