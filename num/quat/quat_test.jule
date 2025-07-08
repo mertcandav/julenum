@@ -438,7 +438,7 @@ struct powRealTest {
 	w: Quat
 }
 
-let testsQuatPowX: []powRealTest = [
+let testsQuatPowReal: []powRealTest = [
 	{q: {}, r: 0, w: {W: 1}},
 	{
 		q: {W: 1, X: 1, Y: 1, Z: 1}, r: 2,

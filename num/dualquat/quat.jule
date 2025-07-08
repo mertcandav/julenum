@@ -15,4 +15,10 @@ impl Quat {
 	fn Zero(*self): bool {
 		ret self.X.Zero() && self.Y.Zero()
 	}
+
+	// Sets self to the sum x+y.
+	fn Add(mut *self, &x: *Quat, &y: *Quat) {
+		self.X.Add(&x.X, &y.X)
+		self.Y.Add(&x.Y, &y.Y)
+	}
 }
