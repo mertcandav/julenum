@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "julenum/num/quat"
 use "std/math"
 
 // 3D vector.
@@ -75,6 +76,16 @@ impl Vector3 {
 			cosTheta = -1
 		}
 		ret math::Acos(cosTheta)
+	}
+
+	// Sets self to the x vector rotated by quaternion q.
+	fn RotateQuat(mut *self, &x: *Vector3, mut q: quat::Quat) {
+		// q * x * q^-1
+		mut xq := quat::Quat{0, x.X, x.Y, x.Z}
+		xq.Mul(&q, &xq)
+		q.Conj(&q)
+		xq.Mul(&xq, &q)
+		self.X, self.Y, self.Z = xq.X, xq.Y, xq.Z
 	}
 
 	// Sets self to projection of vector x onto y.
