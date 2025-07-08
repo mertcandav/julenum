@@ -138,4 +138,19 @@ impl Dual {
 	fn Cos(mut *self, &d: *Dual) {
 		self.X, self.Y = math::Cos(d.X), -math::Sin(d.X)*d.Y
 	}
+
+	// Sets self to the tangent of d.
+	//
+	// Special cases are:
+	//	Tan(±0) = (±0+Nϵ)
+	//	Tan(±Inf) = NaN
+	//	Tan(NaN) = NaN
+	fn Tan(mut *self, &d: *Dual) {
+		if d.X == 0 {
+			self.X, self.Y = d.X, d.Y
+			ret
+		}
+		f := math::Tan(d.X)
+		self.X, self.Y = f, (1+f*f)*d.Y
+	}
 }
