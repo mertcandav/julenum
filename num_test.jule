@@ -1,0 +1,35 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math"
+use "std/testing"
+
+struct xybTest {
+	x: f64
+	y: f64
+	r: bool
+}
+
+let testsEqual: []xybTest = [
+	{1, 0, false},
+	{1, -1, false},
+	{1, 1, true},
+	{math::Inf(1), math::Inf(1), true},
+	{math::Inf(1), math::Inf(-1), false},
+	{math::Inf(1), 123, false},
+	{math::NaN(), math::NaN(), true},
+	{math::NaN(), 123, false},
+	{NaN(123), math::NaN(), true},
+	{NaN(123), NaN(0), true},
+]
+
+#test
+fn tesEqual(t: &testing::T) {
+	for _, test in testsEqual {
+		r := Equal(test.x, test.y)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Equal({}, {})", test.r, r, test.x, test.y)
+		}
+	}
+}
