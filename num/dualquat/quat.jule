@@ -1,0 +1,11 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum/num/quat"
+
+// Dual quaternion with floating-point precision.
+struct Quat {
+	X: quat::Quat
+	Y: quat::Quat
+}
