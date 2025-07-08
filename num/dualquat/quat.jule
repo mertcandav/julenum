@@ -69,4 +69,10 @@ impl Quat {
 		self.Y.Conj(&q.Y)
 		self.Y.Scale(&self.Y, -1)
 	}
+
+	// Sets self to the dual conjugate of q₁+q₂ϵ, q₁-q₂ϵ.
+	fn ConjY(mut *self, &q: *Quat) {
+		self.X = q.X
+		self.Y.Scale(&q.Y, -1)
+	}
 }
