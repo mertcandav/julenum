@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "julenum/num/dual"
 use "julenum/num/quat"
 
 // Dual quaternion with floating-point precision.
@@ -52,5 +53,13 @@ impl Quat {
 		xx.Mul(&q.Y, &xx)     // xx = q.Y * xx
 		self.X.Inv(&q.X)      // x = inv(q.X)
 		self.Y.Scale(&xx, -1) // y = scale(xx, -1)
+	}
+
+	// Returns absolute value of dual quaternion.
+	fn Abs(mut *self): dual::Dual {
+		ret dual::Dual{
+			X: self.X.Abs(),
+			Y: self.Y.Abs(),
+		}
 	}
 }
