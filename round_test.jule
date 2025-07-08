@@ -1,0 +1,32 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct roundTest {
+	x:    f64
+	prec: int
+	r:    f64
+}
+
+let testsRound: []roundTest = [
+	{1, 1, 1},
+	{0.6, 1, 0.6},
+	{0.6, 0, 1},
+	{0.5, 0, 1},
+	{0.3, 0, 0},
+	{0.634, 2, 0.63},
+	{0.636, 2, 0.64},
+	{0.6389, 3, 0.639},
+]
+
+#test
+fn testRound(t: &testing::T) {
+	for _, test in testsRound {
+		r := Round(test.x, test.prec)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Round({}, {})", test.r, r, test.x, test.prec)
+		}
+	}
+}
