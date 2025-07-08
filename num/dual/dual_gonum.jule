@@ -240,4 +240,26 @@ impl Dual {
 		}
 		self.X, self.Y = math::Cosh(d.X), math::Sinh(d.X)*d.Y
 	}
+
+	// Sets self to the hyperbolic tangent of d.
+	//
+	// Special cases are:
+	//	Tanh(±0) = (±0+Nϵ)
+	//	Tanh(±Inf) = (±1+0ϵ)
+	//	Tanh(NaN) = NaN
+	fn Tanh(mut *self, &d: *Dual) {
+		match d.X {
+		| 0:
+			self.X, self.Y = d.X, d.Y
+			ret
+		| math::Inf(1):
+			self.X, self.Y = 1, 0
+			ret
+		| math::Inf(-1):
+			self.X, self.Y = -1, 0
+			ret
+		}
+		f := math::Tanh(d.X)
+		self.X, self.Y = f, (1-f*f)*d.Y
+	}
 }
