@@ -93,4 +93,18 @@ impl Quat {
 	fn Sqrt(mut *self, &q: *Quat) {
 		self.PowReal(q, 0.5)
 	}
+
+	// Sets self to q**d, the base-q exponential of q.
+	//
+	// Special cases are:
+	//
+	//	Exp(+Inf) = +Inf
+	//	Exp(NaN) = NaN
+	//
+	// Very large values overflow to 0 or +Inf.
+	// Very small values underflow to 1.
+	fn Exp(mut *self, &q: *Quat) {
+		self.X.Exp(&q.X)
+		self.Y.Mul(&self.X, &q.Y)
+	}
 }
