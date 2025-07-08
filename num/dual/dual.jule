@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // Dual with floating-point precision.
 struct Dual {
 	X: f64
@@ -41,5 +43,14 @@ impl Dual {
 	//	Inv(±0) = ±Inf-Infϵ
 	fn Inv(mut *self, &d: *Dual) {
 		self.X, self.Y = 1/d.X, -d.Y/(d.X*d.X)
+	}
+
+	// Sets self to absolute value of d.
+	fn Abs(mut *self, &d: *Dual) {
+		if math::Signbit(d.X) {
+			self.Scale(d, -1)
+		} else {
+			*self = *d
+		}
 	}
 }
