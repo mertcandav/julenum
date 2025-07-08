@@ -13,4 +13,9 @@ impl Dual {
 	fn Zero(*self): bool {
 		ret self.X == 0 && self.Y == 0
 	}
+
+	// Sets self to the sum of x+y.
+	fn Add(mut *self, &x: *Dual, &y: *Dual) {
+		self.X, self.Y = x.X+y.X, x.Y+y.Y
+	}
 }
