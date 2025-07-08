@@ -77,6 +77,13 @@ let testsDual: []dualTest = [
 		dFn: dExp,
 	},
 	{
+		name: "log",
+		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		fnDual: fn|mut q| q.Log(q),
+		f: fn|mut q| q.Log(q),
+		dFn: dLog,
+	},
+	{
 		name: "sqrt",
 		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
 		fnDual: fn|mut q| q.Sqrt(q),

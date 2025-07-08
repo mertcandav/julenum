@@ -97,7 +97,6 @@ impl Quat {
 	// Sets self to q**d, the base-q exponential of q.
 	//
 	// Special cases are:
-	//
 	//	Exp(+Inf) = +Inf
 	//	Exp(NaN) = NaN
 	//
@@ -106,5 +105,30 @@ impl Quat {
 	fn Exp(mut *self, &q: *Quat) {
 		self.X.Exp(&q.X)
 		self.Y.Mul(&self.X, &q.Y)
+	}
+
+	// Sets self to the natural logarithm of q.
+	//
+	// Special cases are:
+	//	Log(+Inf) = (+Inf+0ϵ)
+	//	Log(0) = (-Inf±Infϵ)
+	//	Log(x < 0) = NaN
+	//	Log(NaN) = NaN
+	fn Log(mut *self, &q: *Quat) {
+		match {
+		| q.X.Zero():
+			self.X.Log(&q.X)
+			self.Y = quat::Inf(1)
+			ret
+		| q.X.Inf():
+			self.X.Log(&q.X)
+			self.Y = quat::Quat{}
+			ret
+		}
+		mut xlog := q.X // q may be alias for self.
+		xlog.Log(&q.X)
+		self.X.Inv(&q.X)
+		self.Y.Mul(&q.Y, &self.X)
+		self.X = xlog
 	}
 }
