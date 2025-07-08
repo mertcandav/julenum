@@ -54,9 +54,9 @@ impl Quat {
 		self.W, self.X, self.Y, self.Z = _w, _x, _y, _z
 	}
 
-	// Sets self to the product x*k.
-	fn Scale(mut *self, &x: *Quat, k: f64) {
-		self.W, self.X, self.Y, self.Z = x.W*k, x.X*k, x.Y*k, x.Z*k
+	// Sets self to q scaled by k.
+	fn Scale(mut *self, &q: *Quat, k: f64) {
+		self.W, self.X, self.Y, self.Z = q.W*k, q.X*k, q.Y*k, q.Z*k
 	}
 
 	// Returns the norm (magnitude or length) of the quaternion.

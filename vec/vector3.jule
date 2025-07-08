@@ -27,9 +27,9 @@ impl Vector3 {
 		ret self.X*y.X + self.Y*y.Y + self.Z*y.Z
 	}
 
-	// Sets self to the product x*y.
-	fn Mul(mut *self, &x: *Vector3, y: f64) {
-		self.X, self.Y, self.Z = x.X*y, x.Y*y, x.Z*y
+	// Sets self to to x scaled by k.
+	fn Scale(mut *self, &x: *Vector3, k: f64) {
+		self.X, self.Y, self.Z = x.X*k, x.Y*k, x.Z*k
 	}
 
 	// Sets self to the quotient x/y.
@@ -87,6 +87,6 @@ impl Vector3 {
 		}
 		xy := x.Dot(y)
 		scale := xy / (yn * yn)
-		self.Mul(y, scale)
+		self.Scale(y, scale)
 	}
 }

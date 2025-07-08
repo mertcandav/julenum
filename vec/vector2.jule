@@ -26,14 +26,9 @@ impl Vector2 {
 		ret self.X*y.X + self.Y*y.Y
 	}
 
-	// Sets self to the product x*y.
-	fn Mul(mut *self, &x: *Vector2, y: f64) {
-		self.X, self.Y = x.X*y, x.Y*y
-	}
-
-	// Sets self to the quotient x/y.
-	fn Div(mut *self, &x: *Vector2, y: f64) {
-		self.X, self.Y = x.X/y, x.Y/y
+	// Sets self to to x scaled by k.
+	fn Scale(mut *self, &x: *Vector2, k: f64) {
+		self.X, self.Y = x.X*k, x.Y*k
 	}
 
 	// Returns the scalar cross product of two vectors (2D cross product).
@@ -89,6 +84,6 @@ impl Vector2 {
 		}
 		xy := x.Dot(y)
 		scale := xy / (yn * yn)
-		self.Mul(y, scale)
+		self.Scale(y, scale)
 	}
 }
