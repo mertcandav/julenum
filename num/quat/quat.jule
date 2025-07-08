@@ -428,6 +428,24 @@ fn Inf(sign: int): Quat {
 	ret Quat{inf, inf, inf, inf}
 }
 
+// Returns a unit quaternion representing a rotation
+// around the given axis (x, y, z) by the specified angle in radians.
+//
+// Components of the rotation axis vector. Rotation vector is assumed
+// (but not enforced) that this is a unit vector.
+fn AxisAngle(x: f64, y: f64, z: f64, radians: f64): Quat {
+	half := radians / 2
+	sinHalf := math::Sin(half)
+	mut q := Quat{
+		W: math::Cos(half),
+		X: x * sinHalf,
+		Y: y * sinHalf,
+		Z: z * sinHalf,
+	}
+	q.Normalize(&q)
+	ret q
+}
+
 fn lift(mut &q: *Quat, v: f64) {
 	q.W, q.X, q.Y, q.Z = v, 0, 0, 0
 }

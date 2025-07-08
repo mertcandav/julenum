@@ -975,6 +975,55 @@ fn testQuatAtanh(t: &testing::T) {
 	}
 }
 
+struct axisAngleTest {
+	x:   f64
+	y:   f64
+	z:   f64
+	rad: f64
+	r:   Quat
+}
+
+let testsAxisAngle: []axisAngleTest = [
+	{
+		x: 0, y: 1, z: 0, rad: 0,
+		r: {1, 0, 0, 0},
+	},
+	{
+		x: 0, y: 1, z: 0, rad: math::Pi,
+		r: {0, 0, 1, 0},
+	},
+	{
+		x: 1, y: 0, z: 0, rad: math::Pi / 2,
+		r: {math::Sqrt2 / 2, math::Sqrt2 / 2, 0, 0},
+	},
+	{
+		x: 0, y: 0, z: 1, rad: math::Pi / 2,
+		r: {math::Sqrt2 / 2, 0, 0, math::Sqrt2 / 2},
+	},
+	{
+		x: 1 / math::Sqrt(3), y: 1 / math::Sqrt(3), z: 1 / math::Sqrt(3), rad: math::Pi / 4,
+		r: {math::Cos(math::Pi / 8), math::Sin(math::Pi/8) / math::Sqrt(3), math::Sin(math::Pi/8) / math::Sqrt(3), math::Sin(math::Pi/8) / math::Sqrt(3)},
+	},
+	{
+		x: 1, y: 0, z: 0, rad: math::Pi * 2,
+		r: {1, 0, 0, 0},
+	},
+	{
+		x: 0, y: -1, z: 0, rad: math::Pi / 2,
+		r: {math::Sqrt2 / 2, 0, -math::Sqrt2 / 2, 0},
+	},
+]
+
+#test
+fn testAxisAngle(t: &testing::T) {
+	for _, test in testsAxisAngle {
+		q := AxisAngle(test.x, test.y, test.z, test.rad)
+		if !sameApprox(q, test.r) {
+			t.Errorf("expected {}, found {}, for AxisAngle({}, {}, {}, {})", test.r, q, test.x, test.y, test.z, test.rad)
+		}
+	}
+}
+
 fn equalApprox(a: Quat, b: Quat): bool {
 	ret julenum::Close(a.W, b.W) &&
 		julenum::Close(a.X, b.X) &&
