@@ -176,4 +176,23 @@ impl Dual {
 		}
 		self.X, self.Y = math::Asin(d.X), (1/math::Sqrt(1-d.X*d.X))*d.Y
 	}
+
+	// Sets self to the inverse cosine of d.
+	//
+	// Special cases are:
+	//	Acos(-1) = (Pi-Infϵ)
+	//	Acos(1) = (0-Infϵ)
+	//	Acos(x) = NaN if x < -1 or x > 1
+	fn Acos(mut *self, &d: *Dual) {
+		m := math::Abs(d.X)
+		if m >= 1 {
+			if m == 1 {
+				self.X, self.Y = math::Acos(d.X), math::Inf(-1)
+			} else {
+				self.X, self.Y = math::NaN(), math::NaN()
+			}
+			ret
+		}
+		self.X, self.Y = math::Acos(d.X), (-1/math::Sqrt(1-d.X*d.X))*d.Y
+	}
 }

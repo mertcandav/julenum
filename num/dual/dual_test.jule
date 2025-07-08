@@ -88,6 +88,13 @@ let testsDual: []dualTest = [
 		dFn: dAsin,
 	},
 	{
+		name: "acos",
+		x: [math::NaN(), math::Inf(-1), -3, -2, -1, -0.5, negZero, 0, 0.5, 1, 2, 3, math::Inf(1)],
+		fnDual: fn|mut d| d.Acos(d),
+		f: math::Acos,
+		dFn: dAcos,
+	},
+	{
 		name: "exp",
 		x: [math::NaN(), math::Inf(-1), -3, -2, -1, -0.5, negZero, 0, 0.5, 1, 2, 3, math::Inf(1)],
 		fnDual: fn|mut d| d.Exp(d),
