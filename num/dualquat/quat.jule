@@ -56,7 +56,7 @@ impl Quat {
 	}
 
 	// Returns absolute value of dual quaternion.
-	fn Abs(mut *self): dual::Dual {
+	fn Abs(*self): dual::Dual {
 		ret dual::Dual{
 			X: self.X.Abs(),
 			Y: self.Y.Abs(),

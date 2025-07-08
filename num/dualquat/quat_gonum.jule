@@ -1,0 +1,85 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2018 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "julenum/num/quat"
+use "std/math"
+
+impl Quat {
+	// Sets self to q**p, the base-q exponential of p.
+	//
+	// Special cases are (in order):
+	//	PowReal(NaN+xϵ, ±0) = 1+NaNϵ for any x
+	//	PowReal(x, ±0) = 1 for any x
+	//	PowReal(1+xϵ, y) = 1+xyϵ for any y
+	//	PowReal(x, 1) = x for any x
+	//	PowReal(NaN+xϵ, y) = NaN+NaNϵ
+	//	PowReal(x, NaN) = NaN+NaNϵ
+	//	PowReal(±0, y) = ±Inf for y an odd integer < 0
+	//	PowReal(±0, -Inf) = +Inf
+	//	PowReal(±0, +Inf) = +0
+	//	PowReal(±0, y) = +Inf for finite y < 0 and not an odd integer
+	//	PowReal(±0, y) = ±0 for y an odd integer > 0
+	//	PowReal(±0, y) = +0 for finite y > 0 and not an odd integer
+	//	PowReal(-1, ±Inf) = 1
+	//	PowReal(x+0ϵ, +Inf) = +Inf+NaNϵ for |x| > 1
+	//	PowReal(x+yϵ, +Inf) = +Inf for |x| > 1
+	//	PowReal(x, -Inf) = +0+NaNϵ for |x| > 1
+	//	PowReal(x, +Inf) = +0+NaNϵ for |x| < 1
+	//	PowReal(x+0ϵ, -Inf) = +Inf+NaNϵ for |x| < 1
+	//	PowReal(x, -Inf) = +Inf-Infϵ for |x| < 1
+	//	PowReal(+Inf, y) = +Inf for y > 0
+	//	PowReal(+Inf, y) = +0 for y < 0
+	//	PowReal(-Inf, y) = Pow(-0, -y)
+	fn PowReal(mut *self, &q: *Quat, p: f64) {
+		match {
+		| p == 0:
+			match {
+			| q.X.NaN():
+				self.X, self.Y = quat::Quat{W: 1}, quat::NaN()
+				ret
+			| q.X.Zero() | q.X.Inf():
+				self.X, self.Y = quat::Quat{W: 1}, quat::Quat{}
+				ret
+			}
+		| p == 1:
+			*self = *q
+			ret
+		| math::IsInf(p, 1):
+			if q.Abs().X > 1 {
+				if q.Y.Zero() {
+					self.X, self.Y = quat::Inf(1), quat::NaN()
+				} else {
+					self.X, self.Y = quat::Inf(1), quat::Inf(1)
+				}
+				ret
+			}
+			self.X, self.Y = quat::Quat{}, quat::NaN()
+			ret
+		| math::IsInf(p, -1):
+			if q.Abs().X > 1 {
+				self.X, self.Y = quat::Quat{}, quat::NaN()
+				ret
+			}
+			if q.Y.Zero() {
+				self.X, self.Y = quat::Inf(1), quat::NaN()
+			} else {
+				self.X, self.Y = quat::Inf(1), quat::Inf(1)
+			}
+			ret
+		}
+		mut z := quat::Quat{W: p - 1}
+		mut r := q.X
+		r.Pow(&r, &z)
+		z.W = p
+		r.Mul(&z, &r)
+		self.X.Pow(&self.X, &z)
+		self.Y.Mul(&self.Y, &r)
+	}
+}

@@ -11,7 +11,7 @@
 use "std/math"
 
 impl Dual {
-	// Sets self to the product d**p, the base-x exponential of p.
+	// Sets self to the product d**p, the base-d exponential of p.
 	//
 	// Special cases are (in order):
 	//	PowReal(NaN+xϵ, ±0) = 1+NaNϵ for any x
