@@ -82,4 +82,15 @@ impl Quat {
 		self.X.Pow(&self.X, &z)
 		self.Y.Mul(&self.Y, &r)
 	}
+
+	// Sets self to the square root of q
+	//
+	// Special cases are:
+	//	Sqrt(+Inf) = +Inf
+	//	Sqrt(±0) = (±0+Infϵ)
+	//	Sqrt(x < 0) = NaN
+	//	Sqrt(NaN) = NaN
+	fn Sqrt(mut *self, &q: *Quat) {
+		self.PowReal(q, 0.5)
+	}
 }

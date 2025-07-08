@@ -69,6 +69,13 @@ let testsDual: []dualTest = [
 		f: fn|mut q| q.Inv(q),
 		dFn: dInv,
 	},
+	{
+		name: "sqrt",
+		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		fnDual: fn|mut q| q.Sqrt(q),
+		f: fn|mut q| q.Sqrt(q),
+		dFn: dSqrt,
+	},
 ]
 
 #test
