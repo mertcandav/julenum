@@ -151,6 +151,19 @@ impl Matrix {
 		ret make([]T, n)
 	}
 
+	// Returns the sum of the elements of the matrix.
+	// Matrix should be (M x N), where M and N > 0.
+	fn Sum(*self): T {
+		if self.m < 1 || self.n < 1 {
+			panic("mat: Matrix.Sum: M < 1 || N < 1")
+		}
+		let mut sum: T
+		for _, x in self.data {
+			sum += x
+		}
+		ret sum
+	}
+
 	// Sets self to z, filled with k.
 	// If self have enough capacity, Fill will use it to avoid making allocation.
 	#disable boundary
