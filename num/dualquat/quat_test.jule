@@ -91,6 +91,33 @@ fn testNumber(t: &testing::T) {
 	}
 }
 
+let invTests: []Quat = [
+	{X: quat::Quat{W: 1}},
+	{X: quat::Quat{W: 1}, Y: quat::Quat{W: 1}},
+	{X: quat::Quat{X: 1}, Y: quat::Quat{W: 1}},
+	{X: quat::Quat{W: 1}, Y: quat::Quat{W: 1, X: 1}},
+	{X: quat::Quat{W: 1, X: 1}, Y: quat::Quat{W: 1, X: 1}},
+	{X: quat::Quat{W: 1, X: 10}, Y: quat::Quat{W: 1, X: 5}},
+	{X: quat::Quat{W: 10, X: 1}, Y: quat::Quat{W: 5, X: 1}},
+	{X: quat::Quat{W: 1}, Y: quat::Quat{W: 1, X: 1, Z: 1}},
+	{X: quat::Quat{W: 12, X: 1}, Y: quat::Quat{W: 1, X: 1}},
+	{X: quat::Quat{W: 12, X: 1, Y: 3}},
+]
+
+#test
+fn testInv(t: &testing::T) {
+	const tol = 1e-15
+	for _, x in invTests {
+		mut inv := x
+		inv.Inv(&x)
+		inv.Mul(&x, &inv)
+		want := Quat{X: quat::Quat{W: 1}}
+		if !sameDual(inv, want, tol) {
+			t.Errorf("unexpected Mul({}, Inv({})): got:{} want:{}", x, x, inv, want)
+		}
+	}
+}
+
 struct powRealTest {
 	d: Quat
 	p: f64
