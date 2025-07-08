@@ -62,4 +62,11 @@ impl Quat {
 			Y: self.Y.Abs(),
 		}
 	}
+
+	// Sets self to the dual quaternion conjugate of q₁+q₂ϵ, q̅₁-q̅₂ϵ.
+	fn Conj(mut *self, &q: *Quat) {
+		self.X.Conj(&q.X)
+		self.Y.Conj(&q.Y)
+		self.Y.Scale(&self.Y, -1)
+	}
 }
