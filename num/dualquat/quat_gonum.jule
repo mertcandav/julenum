@@ -83,6 +83,14 @@ impl Quat {
 		self.Y.Mul(&self.Y, &r)
 	}
 
+	// Sets self to the product q**p, the base-q exponential of p.
+	fn Pow(mut *self, &q: *Quat, &p: *Quat) {
+		// exp(p * log(q))
+		self.Log(q)
+		self.Mul(p, self)
+		self.Exp(self)
+	}
+
 	// Sets self to the square root of q
 	//
 	// Special cases are:
