@@ -115,4 +115,18 @@ impl Dual {
 		}
 		self.X, self.Y = math::Log(d.X), d.Y/d.X
 	}
+
+	// Sets self to the sine of d.
+	//
+	// Special cases are:
+	//	Sin(±0) = (±0+Nϵ)
+	//	Sin(±Inf) = NaN
+	//	Sin(NaN) = NaN
+	fn Sin(mut *self, &d: *Dual) {
+		if d.X == 0 {
+			self.X, self.Y = d.X, d.Y
+			ret
+		}
+		self.X, self.Y = math::Sin(d.X), math::Cos(d.X)*d.Y
+	}
 }
