@@ -226,4 +226,18 @@ impl Dual {
 		}
 		self.X, self.Y = math::Sinh(d.X), math::Cosh(d.X)*d.Y
 	}
+
+	// Sets self to the hyperbolic cosine of d.
+	//
+	// Special cases are:
+	//	Cosh(±0) = 1
+	//	Cosh(±Inf) = +Inf
+	//	Cosh(NaN) = NaN
+	fn Cosh(mut *self, &d: *Dual) {
+		if math::IsInf(d.X, 0) {
+			self.X, self.Y = math::Inf(1), d.X
+			ret
+		}
+		self.X, self.Y = math::Cosh(d.X), math::Sinh(d.X)*d.Y
+	}
 }
