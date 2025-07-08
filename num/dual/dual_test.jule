@@ -81,6 +81,13 @@ let testsDual: []dualTest = [
 		dFn: dLog,
 	},
 	{
+		name: "inv",
+		x: [math::NaN(), math::Inf(-1), -3, -2, -1, -0.5, negZero, 0, 0.5, 1, 2, 3, math::Inf(1)],
+		fnDual: fn|mut d| d.Inv(d),
+		f: fn|x| 1 / x,
+		dFn: dInv,
+	},
+	{
 		name: "sqrt",
 		x: [math::NaN(), math::Inf(-1), -3, -2, -1, -0.5, negZero, 0, 0.5, 1, 2, 3, math::Inf(1)],
 		fnDual: fn|mut d| d.Sqrt(d),
