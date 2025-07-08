@@ -195,4 +195,17 @@ impl Dual {
 		}
 		self.X, self.Y = math::Acos(d.X), (-1/math::Sqrt(1-d.X*d.X))*d.Y
 	}
+
+	// Sets self to the inverse tangent of d.
+	//
+	// Special cases are:
+	//	Atan(±0) = (±0+Nϵ)
+	//	Atan(±Inf) = (±Pi/2+0ϵ)
+	fn Atan(mut *self, &d: *Dual) {
+		if d.X == 0 {
+			self.X, self.Y = d.X, d.Y
+			ret
+		}
+		self.X, self.Y = math::Atan(d.X), (1/(1+d.X*d.X))*d.Y
+	}
 }
