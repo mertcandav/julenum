@@ -84,4 +84,27 @@ impl Dual {
 		fnDeriv := math::Exp(d.X)
 		self.X, self.Y = fnDeriv, fnDeriv*d.Y
 	}
+
+	// Sets self to the natural logarithm of d.
+	//
+	// Special cases are:
+	//	Log(+Inf) = (+Inf+0ϵ)
+	//	Log(0) = (-Inf±Infϵ)
+	//	Log(x < 0) = NaN
+	//	Log(NaN) = NaN
+	fn Log(mut *self, &d: *Dual) {
+		match d.X {
+		| 0:
+			self.X, self.Y = math::Log(d.X), math::Copysign(math::Inf(1), d.X)
+			ret
+		| math::Inf(1):
+			self.X, self.Y = math::Log(d.X), 0
+			ret
+		}
+		if d.X < 0 {
+			self.X, self.Y = math::NaN(), math::NaN()
+			ret
+		}
+		self.X, self.Y = math::Log(d.X), d.Y/d.X
+	}
 }
