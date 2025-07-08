@@ -52,4 +52,23 @@ impl Dual {
 		deriv := p * math::Pow(x, p-1)
 		self.X, self.Y = math::Pow(d.X, p), d.Y*deriv
 	}
+
+	// Sets self to the square root of d.
+	//
+	// Special cases are:
+	//	Sqrt(+Inf) = +Inf
+	//	Sqrt(±0) = (±0+Infϵ)
+	//	Sqrt(x < 0) = NaN
+	//	Sqrt(NaN) = NaN
+	fn Sqrt(mut *self, &d: *Dual) {
+		if d.X <= 0 {
+			if d.X == 0 {
+				self.X, self.Y = d.X, math::Inf(1)
+			} else {
+				self.X, self.Y = math::NaN(), math::NaN()
+			}
+			ret
+		}
+		self.PowReal(d, 0.5)
+	}
 }
