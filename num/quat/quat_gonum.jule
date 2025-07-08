@@ -1,0 +1,417 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2018 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "std/math"
+
+impl Quat {
+	// Reports whether any field of quaternion is NaN and none are an infinity.
+	fn NaN(*self): bool {
+		if math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
+			math::IsInf(self.Y, 0) || math::IsInf(self.Z, 0) {
+			ret false
+		}
+		ret math::IsNaN(self.W) || math::IsNaN(self.X) ||
+			math::IsNaN(self.Y) || math::IsNaN(self.Z)
+	}
+
+	// Reports whether any of field of quaternion is ±infinity.
+	fn Inf(*self): bool {
+		ret math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
+			math::IsInf(self.Y, 0) || math::IsInf(self.Z, 0)
+	}
+
+	// Sets self to the quaternion inverse of q.
+	fn Inv(mut *self, &q: *Quat) {
+		if q.Inf() {
+			lift(self, 0)
+			ret
+		}
+		a := q.Abs()
+		self.Conj(q)
+		self.Scale(self, 1/(a*a))
+	}
+
+	// Sets self to the product e**q, the base-e exponential of q.
+	fn Exp(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Exp(w))
+			ret
+		}
+		v := uv.Abs()
+		e := math::Exp(w)
+		s, c := math::Sincos(v)
+		self.Scale(&uv, e*s/v)
+		self.W = e * c
+	}
+
+	// Sets self to the natural logarithm of q.
+	fn Log(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Log(w))
+			ret
+		}
+		a := q.Abs()
+		v := uv.Abs()
+		self.Scale(&uv, math::Atan2(v, w)/v)
+		self.W = math::Log(a)
+	}
+
+	// Sets self to the product q**r, the base-q exponential of r.
+	// For generalized compatibility with math::Pow:
+	//
+	//	Pow(0, ±0) returns 1+0i+0j+0k
+	//	Pow(0, c) for R(c)<0 returns Inf+0i+0j+0k if X(c), Y(c), Z(c) are zero,
+	//	    otherwise Inf+Inf i+Inf j+Inf k.
+	fn Pow(mut *self, &q: *Quat, &r: *Quat) {
+		if q.Zero() {
+			w, uv := split(r)
+			match {
+			| w == 0:
+				lift(self, 1)
+				ret
+			| w < 0:
+				if uv.Zero() {
+					lift(self, math::Inf(1))
+				} else {
+					*self = Inf(1)
+				}
+			| w > 0:
+				lift(self, 0)
+				ret
+			}
+		}
+		// exp(log(q) * r)
+		self.Log(q)
+		self.Mul(self, r)
+		self.Exp(self)
+	}
+
+	// Sets self to the product q**r, the base-q exponential of r.
+	// For generalized compatibility with math::Pow:
+	//
+	//	PowReal(0, ±0) returns 1+0i+0j+0k
+	//	PowReal(0, c) for c<0 returns Inf+0i+0j+0k.
+	fn PowReal(mut *self, &q: *Quat, r: f64) {
+		if q.Zero() {
+			match {
+			| r == 0:
+				lift(self, 1)
+			| r < 0:
+				*self = Inf(1)
+			| r > 0:
+				lift(self, 0)
+				ret
+			}
+		}
+		// exp(scale(r, log(q)))
+		self.Log(q)
+		self.Scale(self, r)
+		self.Exp(self)
+	}
+
+	// Sets self to the √q.
+	fn Sqrt(mut *self, &q: *Quat) {
+		if q.Zero() {
+			lift(self, 0)
+			ret
+		}
+		self.PowReal(q, 0.5)
+	}
+
+	// Sets self to the sine of q.
+	fn Sin(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Sin(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(w)
+		sh, ch := sinhcosh(v)
+		self.Scale(&uv, c*sh/v)
+		self.W = s * ch
+	}
+
+	// Sets self to the hyperbolic sine of q.
+	fn Sinh(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Sinh(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(v)
+		sh, ch := sinhcosh(w)
+		scale(self, &uv, s*ch/v)
+		self.W = c * sh
+	}
+
+	// Sets self to the cosine of q.
+	fn Cos(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Cos(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(w)
+		sh, ch := sinhcosh(v)
+		self.Scale(&uv, -s*sh/v)
+		self.W = c * ch
+	}
+
+	// Sets self to the hyperbolic cosine of q.
+	fn Cosh(mut *self, &q: *Quat) {
+		w, uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Cosh(w))
+			ret
+		}
+		v := uv.Abs()
+		s, c := math::Sincos(v)
+		sh, ch := sinhcosh(w)
+		scale(self, &uv, s*sh/v)
+		self.W = c * ch
+	}
+
+	// Sets self to the tangent of q.
+	fn Tan(mut *self, &q: *Quat) {
+		mut d := *q
+		d.Cos(&d)
+		if d.Zero() {
+			*self = Inf(1)
+			ret
+		}
+		d.Inv(&d)
+		self.Sin(q)
+		self.Mul(self, &d)
+	}
+
+	// Sets self the hyperbolic tangent of q.
+	fn Tanh(mut *self, &q: *Quat) {
+		if math::IsInf(q.W, 1) {
+			// Change signs dependent on imaginary parts.
+			self.W = 0
+			self.X *= math::Sin(2 * q.X)
+			self.Y *= math::Sin(2 * q.Y)
+			self.Z *= math::Sin(2 * q.Z)
+			ret
+		}
+		mut d := *q
+		d.Cosh(&d)
+		if d.Zero() {
+			*self = Inf(1)
+			ret
+		}
+		d.Inv(&d)
+		self.Sinh(q)
+		self.Mul(self, &d)
+	}
+
+	// Sets self to the inverse sine of q.
+	fn Asin(mut *self, &q: *Quat) {
+		_, mut uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Asin(q.W))
+			ret
+		}
+
+		unit(&uv)
+		mut p := Quat{W: 1}
+		mut r := *q // q may be alias for self.
+
+		// self = sqrt(sub(p, mul(q, q)))
+		r.Mul(q, q)
+		r.Sub(&p, &r)
+		r.Sqrt(&r)
+
+		// p = log(add(mul(uv, q), self)
+		p.Mul(&uv, q)
+		p.Add(&p, &r)
+		p.Log(&p)
+
+		// self = mul(scale(-1, uv), p)
+		r.Scale(&uv, -1)
+		self.Mul(&r, &p)
+	}
+
+	// Sets self to the inverse hyperbolic sine of q.
+	fn Asinh(mut *self, &q: *Quat) {
+		mut p := Quat{W: 1}
+		mut r := *self // q may be alias for self.
+		r.Mul(q, q)
+		r.Add(&r, &p)
+		r.Sqrt(&r)
+		r.Add(&r, q)
+		self.Log(&r)
+	}
+
+	// Sets self to the inverse cosine of q.
+	fn Acos(mut *self, &q: *Quat) {
+		mut uv := *q
+		uv.Asin(&uv)
+		w, uv := split(&uv)
+		self.Scale(&uv, -1)
+		self.W = math::Pi/2 - w
+	}
+
+	// Sets self to the inverse hyperbolic cosine of q.
+	fn Acosh(mut *self, &q: *Quat) {
+		self.Acos(q)
+		_, mut uv := split(self)
+		if uv.Zero() {
+			ret
+		}
+		unit(&uv)
+		self.Mul(self, &uv)
+		if self.W < 0 {
+			self.Scale(self, -1)
+		}
+	}
+
+	// Atan returns the inverse tangent of q.
+	fn Atan(mut *self, &q: *Quat) {
+		w, mut uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Atan(w))
+			ret
+		}
+		unit(&uv)
+
+		mut p := Quat{}
+		mut r := *q // q may be alias for self.
+
+		// r = inv(sub(uv, q))
+		r.Sub(&uv, q)
+		r.Inv(&r)
+
+		// p = add(uv, q)
+		p.Add(&uv, q)
+
+		// r = log(mul(p, r))
+		r.Mul(&p, &r)
+		r.Log(&r)
+
+		// p = mul(lift(0.5), uv)
+		lift(&p, 0.5)
+		p.Mul(&p, &uv)
+
+		self.Mul(&p, &r)
+	}
+
+	// Atanh returns the inverse hyperbolic tangent of q.
+	fn Atanh(mut *self, &q: *Quat) {
+		w, mut uv := split(q)
+		if uv.Zero() {
+			lift(self, math::Atanh(w))
+			ret
+		}
+		unit(&uv)
+		self.Mul(&uv, q)
+		self.Atan(self)
+		uv.Scale(&uv, -1)
+		self.Mul(&uv, self)
+	}
+
+	// Returns the absolute value (also called the modulus) of quaternion.
+	//
+	// Special cases:
+	//	Abs() = +Inf, if quaternion is ±Inf.
+	//	Abs() = NaN, if quaternion is NaN
+	fn Abs(*self): f64 {
+		// Special cases.
+		match {
+		| self.Inf():
+			ret math::Inf(1)
+		| self.NaN():
+			ret math::NaN()
+		}
+
+		mut w, mut x, mut y, mut z := self.W, self.X, self.Y, self.Z
+		if w < 0 {
+			w = -w
+		}
+		if x < 0 {
+			x = -x
+		}
+		if y < 0 {
+			y = -y
+		}
+		if z < 0 {
+			z = -z
+		}
+		if w < x {
+			w, x = x, w
+		}
+		if w < y {
+			w, y = y, w
+		}
+		if w < z {
+			w, z = z, w
+		}
+		if w == 0 {
+			ret 0
+		}
+		x /= w
+		y /= w
+		z /= w
+		ret w * math::Sqrt(1+x*x+y*y+z*z)
+	}
+}
+
+fn lift(mut &q: *Quat, w: f64) {
+	q.W, q.X, q.Y, q.Z = w, 0, 0, 0
+}
+
+fn split(&q: *Quat): (f64, Quat) {
+	ret q.W, Quat{0, q.X, q.Y, q.Z}
+}
+
+fn join(mut &uv: *Quat, w: f64) {
+	uv.W = w
+}
+
+// calculate sinh and cosh
+fn sinhcosh(x: f64): (sh: f64, ch: f64) {
+	if math::Abs(x) <= 0.5 {
+		ret math::Sinh(x), math::Cosh(x)
+	}
+	mut e := math::Exp(x)
+	ei := 0.5 / e
+	e *= 0.5
+	ret e - ei, e + ei
+}
+
+// Sets z to q scaled by f, except that inf×0 is 0.
+fn scale(mut &z: *Quat, &q: *Quat, f: f64) {
+	if f == 0 {
+		lift(z, 0)
+		ret
+	}
+	if q.W != 0 {
+		z.W = q.W * f
+	}
+	if q.X != 0 {
+		z.X = q.X * f
+	}
+	if q.Y != 0 {
+		z.Y = q.Y * f
+	}
+	if q.Z != 0 {
+		z.Z = q.Z * f
+	}
+}
+
+fn unit(mut &q: *Quat) {
+	a := q.Abs()
+	q.Scale(q, 1/a)
+}
