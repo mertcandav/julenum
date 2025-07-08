@@ -1,0 +1,157 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum"
+use "std/math"
+use "std/testing"
+
+let negZero = math::F64frombits(1 << 63)
+
+struct dfTest {
+	d: Dual
+	f: f64
+	r: Dual
+}
+
+let testsPowReal: []dfTest = [
+	// PowReal(NaN+xϵ, ±0) = 1+NaNϵ for any x
+	{d: {X: math::NaN(), Y: 0}, f: 0, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 0}, f: negZero, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 1}, f: 0, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 2}, f: negZero, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 3}, f: 0, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 1}, f: negZero, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 2}, f: 0, r: {X: 1, Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 3}, f: negZero, r: {X: 1, Y: math::NaN()}},
+
+	// PowReal(x, ±0) = 1 for any x
+	{d: {X: 0, Y: 0}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: negZero, Y: 0}, f: negZero, r: {X: 1, Y: 0}},
+	{d: {X: math::Inf(1), Y: 0}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: math::Inf(-1), Y: 0}, f: negZero, r: {X: 1, Y: 0}},
+	{d: {X: 0, Y: 1}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: negZero, Y: 1}, f: negZero, r: {X: 1, Y: 0}},
+	{d: {X: math::Inf(1), Y: 1}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: math::Inf(-1), Y: 1}, f: negZero, r: {X: 1, Y: 0}},
+
+	// PowReal(1+xϵ, y) = (1+xyϵ) for any y
+	{d: {X: 1, Y: 0}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: 1, Y: 0}, f: 1, r: {X: 1, Y: 0}},
+	{d: {X: 1, Y: 0}, f: 2, r: {X: 1, Y: 0}},
+	{d: {X: 1, Y: 0}, f: 3, r: {X: 1, Y: 0}},
+	{d: {X: 1, Y: 1}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: 1, Y: 1}, f: 1, r: {X: 1, Y: 1}},
+	{d: {X: 1, Y: 1}, f: 2, r: {X: 1, Y: 2}},
+	{d: {X: 1, Y: 1}, f: 3, r: {X: 1, Y: 3}},
+	{d: {X: 1, Y: 2}, f: 0, r: {X: 1, Y: 0}},
+	{d: {X: 1, Y: 2}, f: 1, r: {X: 1, Y: 2}},
+	{d: {X: 1, Y: 2}, f: 2, r: {X: 1, Y: 4}},
+	{d: {X: 1, Y: 2}, f: 3, r: {X: 1, Y: 6}},
+
+	// PowReal(x, 1) = x for any x
+	{d: {X: 0, Y: 0}, f: 1, r: {X: 0, Y: 0}},
+	{d: {X: negZero, Y: 0}, f: 1, r: {X: negZero, Y: 0}},
+	{d: {X: 0, Y: 1}, f: 1, r: {X: 0, Y: 1}},
+	{d: {X: negZero, Y: 1}, f: 1, r: {X: negZero, Y: 1}},
+	{d: {X: math::NaN(), Y: 0}, f: 1, r: {X: math::NaN(), Y: 0}},
+	{d: {X: math::NaN(), Y: 1}, f: 1, r: {X: math::NaN(), Y: 1}},
+	{d: {X: math::NaN(), Y: 2}, f: 1, r: {X: math::NaN(), Y: 2}},
+
+	// PowReal(NaN+xϵ, y) = NaN+NaNϵ
+	{d: {X: math::NaN(), Y: 0}, f: 2, r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 0}, f: 3, r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 1}, f: 2, r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 1}, f: 3, r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 2}, f: 2, r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: math::NaN(), Y: 2}, f: 3, r: {X: math::NaN(), Y: math::NaN()}},
+
+	// PowReal(x, NaN) = NaN+NaNϵ
+	{d: {X: 0, Y: 0}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 2, Y: 0}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 3, Y: 0}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 0, Y: 1}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 2, Y: 1}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 3, Y: 1}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 0, Y: 2}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 2, Y: 2}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: 3, Y: 2}, f: math::NaN(), r: {X: math::NaN(), Y: math::NaN()}},
+
+	// Handled by math.Pow tests:
+	//
+	// Pow(±0, y) = ±Inf for y an odd integer < 0
+	// Pow(±0, -Inf) = +Inf
+	// Pow(±0, +Inf) = +0
+	// Pow(±0, y) = +Inf for finite y < 0 and not an odd integer
+	// Pow(±0, y) = ±0 for y an odd integer > 0
+	// Pow(±0, y) = +0 for finite y > 0 and not an odd integer
+	// Pow(-1, ±Inf) = 1
+
+	// PowReal(x+0ϵ, +Inf) = +Inf+NaNϵ for |x| > 1
+	{d: {X: 2, Y: 0}, f: math::Inf(1), r: {X: math::Inf(1), Y: math::NaN()}},
+	{d: {X: 3, Y: 0}, f: math::Inf(1), r: {X: math::Inf(1), Y: math::NaN()}},
+
+	// PowReal(x+yϵ, +Inf) = +Inf for |x| > 1
+	{d: {X: 2, Y: 1}, f: math::Inf(1), r: {X: math::Inf(1), Y: math::Inf(1)}},
+	{d: {X: 3, Y: 1}, f: math::Inf(1), r: {X: math::Inf(1), Y: math::Inf(1)}},
+	{d: {X: 2, Y: 2}, f: math::Inf(1), r: {X: math::Inf(1), Y: math::Inf(1)}},
+	{d: {X: 3, Y: 2}, f: math::Inf(1), r: {X: math::Inf(1), Y: math::Inf(1)}},
+
+	// PowReal(x, -Inf) = +0+NaNϵ for |x| > 1
+	{d: {X: 2, Y: 0}, f: math::Inf(-1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 3, Y: 0}, f: math::Inf(-1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 2, Y: 1}, f: math::Inf(-1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 3, Y: 1}, f: math::Inf(-1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 2, Y: 2}, f: math::Inf(-1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 3, Y: 2}, f: math::Inf(-1), r: {X: 0, Y: math::NaN()}},
+
+	// PowReal(x+yϵ, +Inf) = +0+NaNϵ for |x| < 1
+	{d: {X: 0.1, Y: 0}, f: math::Inf(1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 0.1, Y: 0.1}, f: math::Inf(1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 0.2, Y: 0.2}, f: math::Inf(1), r: {X: 0, Y: math::NaN()}},
+	{d: {X: 0.5, Y: 0.5}, f: math::Inf(1), r: {X: 0, Y: math::NaN()}},
+
+	// PowReal(x+0ϵ, -Inf) = +Inf+NaNϵ for |x| < 1
+	{d: {X: 0.1, Y: 0}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::NaN()}},
+	{d: {X: 0.2, Y: 0}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::NaN()}},
+
+	// PowReal(x, -Inf) = +Inf-Infϵ for |x| < 1
+	{d: {X: 0.1, Y: 0.1}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.2, Y: 0.1}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.1, Y: 0.2}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.2, Y: 0.2}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.1, Y: 1}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.2, Y: 1}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.1, Y: 2}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+	{d: {X: 0.2, Y: 2}, f: math::Inf(-1), r: {X: math::Inf(1), Y: math::Inf(-1)}},
+
+	// Handled by math.Pow tests:
+	//
+	// Pow(+Inf, y) = +Inf for y > 0
+	// Pow(+Inf, y) = +0 for y < 0
+	// Pow(-Inf, y) = Pow(-0, -y)
+
+	// PowReal(x, y) = NaN+NaNϵ for finite x < 0 and finite non-integer y
+	{d: {X: -1, Y: -1}, f: 0.5, r: {X: math::NaN(), Y: math::NaN()}},
+	{d: {X: -1, Y: 2}, f: 0.5, r: {X: math::NaN(), Y: math::NaN()}},
+]
+
+#test
+fn testPowReal(t: &testing::T) {
+	const tol = 1e-15
+	for _, test in testsPowReal {
+		mut r := test.d
+		r.PowReal(&test.d, test.f)
+		if !sameDual(r, test.r, tol) {
+			t.Errorf("unexpected PowReal({}, {}): got:{} want:{}", test.d, test.f, r, test.r)
+		}
+	}
+}
+
+fn sameDual(a: Dual, b: Dual, tol: f64): bool {
+	ret same(a.X, b.X, tol) && same(a.Y, b.Y, tol)
+}
+
+fn same(a: f64, b: f64, tol: f64): bool {
+	ret math::IsNaN(a) && math::IsNaN(b) || julenum::Tolerance(a, b, tol)
+}
