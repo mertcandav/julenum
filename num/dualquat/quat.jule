@@ -9,3 +9,10 @@ struct Quat {
 	X: quat::Quat
 	Y: quat::Quat
 }
+
+impl Quat {
+	// Reports whether all fields of dual quaternion are zero.
+	fn Zero(*self): bool {
+		ret self.X.Zero() && self.Y.Zero()
+	}
+}
