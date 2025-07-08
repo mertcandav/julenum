@@ -1,0 +1,107 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum"
+use "julenum/num/quat"
+use "std/math"
+use "std/testing"
+
+fn dExp(mut x: quat::Quat): quat::Quat {
+	x.Exp(&x)
+	ret x
+}
+fn dLog(mut x: quat::Quat): quat::Quat {
+	match {
+	| x.Zero():
+		ret quat::Inf(1)
+	| x.Inf():
+		ret quat::Quat{}
+	}
+	x.Inv(&x)
+	ret x
+}
+fn dSqrt(mut x: quat::Quat): quat::Quat {
+	x.Sqrt(&x)
+	x.Inv(&x)
+	x.Scale(&x, 0.5)
+	ret x
+}
+fn dInv(mut x: quat::Quat): quat::Quat {
+	x.Mul(&x, &x)
+	x.Inv(&x)
+	x.Scale(&x, -1)
+	ret x
+}
+fn scale(mut x: quat::Quat, k: f64): quat::Quat {
+	x.Scale(&x, k)
+	ret x
+}
+
+let zeroQuat = quat::Quat{}
+let negZero = math::Copysign(0, -1)
+let oneReal = quat::Quat{W: 1}
+let negZeroQuat = scale(zeroQuat, -1)
+let one = quat::Quat{W: 1, X: 1, Y: 1, Z: 1}
+let negOne = scale(one, -1)
+let half = scale(one, 0.5)
+let negHalf = scale(half, -1)
+let two = scale(one, 2)
+let negTwo = scale(two, -1)
+let three = scale(one, 3)
+let negThree = scale(three, -1)
+let four = scale(one, 4)
+let six = scale(one, 6)
+
+struct dualTest {
+	name:   str
+	x:      []quat::Quat
+	fnDual: fn(mut &x: *Quat)
+	f:      fn(mut &x: *quat::Quat)
+	dFn:    fn(mut x: quat::Quat): quat::Quat
+}
+
+let testsDual: []dualTest = [
+	{
+		name: "inv",
+		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		fnDual: fn|mut q| q.Inv(q),
+		f: fn|mut q| q.Inv(q),
+		dFn: dInv,
+	},
+]
+
+#test
+fn testNumber(t: &testing::T) {
+	const tol = 1e-15
+	for _, test in testsDual {
+		for (_, mut x) in test.x {
+			mut fxDual := Quat{x, oneReal}
+			test.fnDual(&fxDual)
+			mut fx := x
+			test.f(&fx)
+			dFx := test.dFn(x)
+			if !same(fxDual.X, fx, tol) {
+				t.Errorf("unexpected {}({}): got:{} want:{}", test.name, x, fxDual.X, fx)
+			}
+			if !same(fxDual.Y, dFx, tol) {
+				t.Errorf("unexpected {}'({}): got:{} want:{}", test.name, x, fxDual.Y, dFx)
+			}
+		}
+	}
+}
+
+fn sameDual(a: Quat, b: Quat, tol: f64): bool {
+	ret same(a.X, b.X, tol) && same(a.Y, b.Y, tol)
+}
+
+fn same(a: quat::Quat, b: quat::Quat, tol: f64): bool {
+	ret a.NaN() && b.NaN() || a.Inf() && b.Inf() || equalApprox(a, b, tol)
+}
+
+fn equalApprox(a: quat::Quat, b: quat::Quat, tol: f64): bool {
+	ret julenum::Tolerance(a.W, b.W, tol) &&
+		julenum::Tolerance(a.X, b.X, tol) &&
+		julenum::Tolerance(a.Y, b.Y, tol) &&
+		julenum::Tolerance(a.Z, b.Z, tol)
+}
