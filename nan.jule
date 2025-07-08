@@ -21,3 +21,13 @@ const (
 fn NaN(payload: u64): f64 {
 	ret math::F64frombits(nanBits | (payload & ^nanMask))
 }
+
+// Returns the lowest 51 bits payload of an IEEE 754 "quiet not-a-number".
+// Returns zero and false, if f is not a "quiet not-a-number".
+fn NaNPayload(f: f64): (payload: u64, ok: bool) {
+	b := math::F64bits(f)
+	if b&nanBits != nanBits {
+		ret 0, false
+	}
+	ret b & ^nanMask, true
+}
