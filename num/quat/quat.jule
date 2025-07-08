@@ -70,25 +70,25 @@ impl Quat {
 		self.W, self.X, self.Y, self.Z = q.W/norm, q.X/norm, q.Y/norm, q.Z/norm
 	}
 
-	// Sets self to the quaternion conjugate of x.
-	fn Conj(mut *self, &x: *Quat) {
-		self.W, self.X, self.Y, self.Z = x.W, -x.X, -x.Y, -x.Z
+	// Sets self to the quaternion conjugate of q.
+	fn Conj(mut *self, &q: *Quat) {
+		self.W, self.X, self.Y, self.Z = q.W, -q.X, -q.Y, -q.Z
 	}
 
-	// Sets self to the quaternion inverse of x.
-	fn Inv(mut *self, &x: *Quat) {
-		if x.Inf() {
+	// Sets self to the quaternion inverse of q.
+	fn Inv(mut *self, &q: *Quat) {
+		if q.Inf() {
 			lift(self, 0)
 			ret
 		}
-		a := x.Abs()
-		self.Conj(x)
+		a := q.Abs()
+		self.Conj(q)
 		self.Scale(self, 1/(a*a))
 	}
 
-	// Sets self to the product e**x, the base-e exponential of x.
-	fn Exp(mut *self, &x: *Quat) {
-		w, uv := split(x)
+	// Sets self to the product e**q, the base-e exponential of q.
+	fn Exp(mut *self, &q: *Quat) {
+		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Exp(w))
 			ret
@@ -97,27 +97,27 @@ impl Quat {
 		e := math::Exp(w)
 		s, c := math::Sincos(v)
 		self.Scale(&uv, e*s/v)
-		join(self, e*c)
+		self.W = e * c
 	}
 
-	// Sets self to the natural logarithm of x.
-	fn Log(mut *self, &x: *Quat) {
-		w, uv := split(x)
+	// Sets self to the natural logarithm of q.
+	fn Log(mut *self, &q: *Quat) {
+		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Log(w))
 			ret
 		}
-		a := x.Abs()
+		a := q.Abs()
 		v := uv.Abs()
 		self.Scale(&uv, math::Atan2(v, w)/v)
-		join(self, math::Log(a))
+		self.W = math::Log(a)
 	}
 
 	// Sets self to the product q**r, the base-q exponential of r.
 	// For generalized compatibility with math::Pow:
 	//
 	//	Pow(0, ±0) returns 1+0i+0j+0k
-	//	Pow(0, c) for real(c)<0 returns Inf+0i+0j+0k if imag(c), jmag(c), kmag(c) are zero,
+	//	Pow(0, c) for R(c)<0 returns Inf+0i+0j+0k if X(c), Y(c), Z(c) are zero,
 	//	    otherwise Inf+Inf i+Inf j+Inf k.
 	fn Pow(mut *self, &q: *Quat, &r: *Quat) {
 		if q.Zero() {
@@ -186,7 +186,7 @@ impl Quat {
 		s, c := math::Sincos(w)
 		sh, ch := sinhcosh(v)
 		self.Scale(&uv, c*sh/v)
-		join(self, s*ch)
+		self.W = s * ch
 	}
 
 	// Sets self to the hyperbolic sine of q.
@@ -200,7 +200,7 @@ impl Quat {
 		s, c := math::Sincos(v)
 		sh, ch := sinhcosh(w)
 		scale(self, &uv, s*ch/v)
-		join(self, c*sh)
+		self.W = c * sh
 	}
 
 	// Sets self to the cosine of q.
@@ -214,7 +214,7 @@ impl Quat {
 		s, c := math::Sincos(w)
 		sh, ch := sinhcosh(v)
 		self.Scale(&uv, -s*sh/v)
-		join(self, c*ch)
+		self.W = c * ch
 	}
 
 	// Sets self to the hyperbolic cosine of q.
@@ -228,7 +228,7 @@ impl Quat {
 		s, c := math::Sincos(v)
 		sh, ch := sinhcosh(w)
 		scale(self, &uv, s*sh/v)
-		join(self, c*ch)
+		self.W = c * ch
 	}
 
 	// Sets self to the tangent of q.
@@ -309,7 +309,7 @@ impl Quat {
 		uv.Asin(&uv)
 		w, uv := split(&uv)
 		self.Scale(&uv, -1)
-		join(self, math::Pi/2-w)
+		self.W = math::Pi/2 - w
 	}
 
 	// Sets self to the inverse hyperbolic cosine of q.
@@ -446,8 +446,8 @@ fn AxisAngle(x: f64, y: f64, z: f64, radians: f64): Quat {
 	ret q
 }
 
-fn lift(mut &q: *Quat, v: f64) {
-	q.W, q.X, q.Y, q.Z = v, 0, 0, 0
+fn lift(mut &q: *Quat, w: f64) {
+	q.W, q.X, q.Y, q.Z = w, 0, 0, 0
 }
 
 fn split(&q: *Quat): (f64, Quat) {
