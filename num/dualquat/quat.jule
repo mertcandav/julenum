@@ -27,4 +27,14 @@ impl Quat {
 		self.X.Sub(&x.X, &y.X)
 		self.Y.Sub(&x.Y, &y.Y)
 	}
+
+	// Sets self to the product x*y.
+	fn Mul(mut *self, &x: *Quat, &y: *Quat) {
+		let mut xy: quat::Quat // xy = x.X * y.Y
+		xy.Mul(&x.X, &y.Y)
+		let mut yx: quat::Quat // yx = x.Y * y.X
+		yx.Mul(&x.Y, &y.X)
+		self.X.Mul(&x.X, &y.X) // x = x.X * y.Y
+		self.Y.Add(&xy, &yx)   // y = x.X*y.Y + x.Y*y.X
+	}
 }
