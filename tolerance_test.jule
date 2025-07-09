@@ -87,3 +87,22 @@ fn testAlike(t: &testing::T) {
 		}
 	}
 }
+
+#test
+fn testCmplxAlike(t: &testing::T) {
+	for _, test in testsAlike {
+		mut a := cmplx(test.a, 0)
+		mut b := cmplx(test.b, 0)
+		mut r := CmplxAlike(a, b)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Alike({}, {})", test.r, r, a, b)
+		}
+
+		a = cmplx(test.a, test.a)
+		b = cmplx(test.b, test.b)
+		r = CmplxAlike(a, b)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for Alike({}, {})", test.r, r, a, b)
+		}
+	}
+}

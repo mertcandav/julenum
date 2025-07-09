@@ -87,3 +87,30 @@ fn CmplxClose(a: cmplx128, b: cmplx128): bool { ret CmplxTolerance(a, b, 1e-14) 
 // Reports whether two values a and b are approximately equal
 // within an extremely tight default relative tolerance of 4e-16.
 fn CmplxVeryClose(a: cmplx128, b: cmplx128): bool { ret CmplxTolerance(a, b, 4e-16) }
+
+// Reports whether two values a and b are considered alike.
+// It returns true if both are NaN (Not a Number), or if they are exactly equal
+// including matching their sign bits (distinguishing +0 and -0).
+fn CmplxAlike(a: cmplx128, b: cmplx128): bool {
+	let mut realAlike: bool
+	let mut imagAlike: bool
+	if isExact(real(b)) {
+		realAlike = Alike(real(a), real(b))
+	} else {
+		// Allow non-exact special cases to have errors in ULP.
+		realAlike = VeryClose(real(a), real(b))
+	}
+	if isExact(imag(b)) {
+		imagAlike = Alike(imag(a), imag(b))
+	} else {
+		// Allow non-exact special cases to have errors in ULP.
+		imagAlike = VeryClose(imag(a), imag(b))
+	}
+	ret realAlike && imagAlike
+}
+
+fn isExact(x: f64): bool {
+	// Special cases that should match exactly. Other cases are multiples
+	// of Pi that may not be last bit identical on all platforms.
+	ret math::IsNaN(x) || math::IsInf(x, 0) || x == 0 || x == 1 || x == -1
+}
