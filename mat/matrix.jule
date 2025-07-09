@@ -151,55 +151,6 @@ impl Matrix {
 		ret make([]T, n)
 	}
 
-	// Returns the sum of the elements of the matrix.
-	// Matrix should be (M x N), where M and N > 0.
-	fn Sum(*self): T {
-		if self.m < 1 || self.n < 1 {
-			panic("mat: Matrix.Sum: M < 1 || N < 1")
-		}
-		let mut sum: T
-		for _, x in self.data {
-			sum += x
-		}
-		ret sum
-	}
-
-	// Returns the smallest element value of the matrix.
-	// Matrix should be (M x N), where M and N > 0.
-	#disable boundary
-	fn Min(*self): T {
-		if self.m < 1 || self.n < 1 {
-			panic("mat: Matrix.Min: M < 1 || N < 1")
-		}
-		mut min := self.data[0]
-		mut i := 1
-		for i < len(self.data); i++ {
-			x := self.data[i]
-			if min > x {
-				min = x
-			}
-		}
-		ret min
-	}
-
-	// Returns the largest element value of the matrix.
-	// Matrix should be (M x N), where M and N > 0.
-	#disable boundary
-	fn Max(*self): T {
-		if self.m < 1 || self.n < 1 {
-			panic("mat: Matrix.Max: M < 1 || N < 1")
-		}
-		mut max := self.data[0]
-		mut i := 1
-		for i < len(self.data); i++ {
-			x := self.data[i]
-			if max < x {
-				max = x
-			}
-		}
-		ret max
-	}
-
 	// Sets self to z, filled with k.
 	// If self have enough capacity, Fill will use it to avoid making allocation.
 	#disable boundary
