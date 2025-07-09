@@ -9,6 +9,7 @@
 // license that can be found in the LICENSE file.
 
 use "std/math"
+use "std/math/cmplx"
 
 // Reports whether two values a and b are approximately equal,
 // within a relative tolerance e. This is useful for comparing floating-point values
@@ -59,4 +60,22 @@ fn Alike(a: f64, b: f64): bool {
 		ret math::Signbit(a) == math::Signbit(b)
 	}
 	ret false
+}
+
+// Reports whether two values a and b are approximately equal,
+// within a relative tolerance e. This is useful for comparing floating-point values
+// where exact equality is unreliable due to rounding errors.
+//
+// It returns true if the absolute difference between a and b
+// is less than the tolerance threshold scaled by the expected value b,
+// or if a and b are exactly equal.
+fn CmplxTolerance(a: cmplx128, b: cmplx128, mut e: f64): bool {
+	d := cmplx::Abs(a - b)
+	if b != 0 {
+		e = e * cmplx::Abs(b)
+		if e < 0 {
+			e = -e
+		}
+	}
+	ret d < e
 }

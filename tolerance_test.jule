@@ -42,6 +42,18 @@ fn testTolerance(t: &testing::T) {
 	}
 }
 
+#test
+fn testCmplxTolerance(t: &testing::T) {
+	for _, test in testsTolerance {
+		a := cmplx(test.a, 0)
+		b := cmplx(test.b, 0)
+		r := Tolerance(test.a, test.b, test.e)
+		if r != test.r {
+			t.Errorf("expected {}, found {}, for CmplxTolerance({}, {}, {})", test.r, r, a, b, test.e)
+		}
+	}
+}
+
 struct abrTest {
 	a: f64
 	b: f64
