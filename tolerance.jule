@@ -79,3 +79,7 @@ fn CmplxTolerance(a: cmplx128, b: cmplx128, mut e: f64): bool {
 	}
 	ret d < e
 }
+
+// Reports whether two values a and b are approximately equal
+// within a very tight default relative tolerance of 1e-14.
+fn CmplxClose(a: cmplx128, b: cmplx128): bool { ret CmplxTolerance(a, b, 1e-14) }
