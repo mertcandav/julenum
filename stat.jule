@@ -1,0 +1,30 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Computes the chi-square statistic between two vectors: observed and expected.
+// The lengths of obs and exp must be equal, otherwise it panics.
+//
+// Mathematically, the chi-square statistic is defined as:
+//    χ² = Σ_i [ (O_i - E_i)² / E_i ]
+// where:
+//    O_i = observed value at index i,
+//    E_i = expected value at index i,
+//    and the summation is over all elements.
+#disable boundary
+fn ChiSquare[T: float](obs: []T, exp: []T): T {
+	if len(obs) != len(exp) {
+		panic("julenum: ChiSquare: different vector lengths")
+	}
+	let mut r: T
+	mut i := 0
+	for i < len(obs); i++ {
+		x, y := obs[i], exp[i]
+		if x == 0 && y == 0 {
+			continue
+		}
+		diff := x - y
+		r += (diff * diff) / y
+	}
+	ret r
+}

@@ -1,0 +1,39 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct chiSquareTest {
+	obs:  []f64
+	exp:  []f64
+	want: f64
+}
+
+let testsChiSquare: []chiSquareTest = [
+	{
+		obs: [10, 12, 8],
+		exp: [10, 10, 10],
+		want: 0.8,
+	},
+	{
+		obs: [3, 4, 5],
+		exp: [3, 4, 5],
+		want: 0,
+	},
+	{
+		obs: [0, 3, 0],
+		exp: [0, 3, 1],
+		want: 1,
+	},
+]
+
+#test
+fn testChiSquare(t: &testing::T) {
+	for _, test in testsChiSquare {
+		got := ChiSquare(test.obs, test.exp)
+		if got != test.want {
+			t.Errorf("ChiSquare({}, {}) = {}, expected {}", test.obs, test.exp, got, test.want)
+		}
+	}
+}
