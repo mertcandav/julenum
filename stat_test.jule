@@ -124,3 +124,21 @@ fn testMeanGeom(t: &testing::T) {
 		}
 	}
 }
+
+let testsMeanHarmo: []meanTest = [
+	{x: [], want: 0},
+	{x: [2, 4, 6, 8, 10], want: 4.37956204379562},
+	{x: [60, 90, 120], want: 83.076923076923087},
+	{x: [0.5, 1.5, 2.5, 3.5], want: 1.1931818181818183},
+	{x: [5, 5, 5, 10], want: 5.7142857142857135},
+]
+
+#test
+fn testMeanHarmo(t: &testing::T) {
+	for _, test in testsMeanHarmo {
+		got := MeanHarmo(test.x)
+		if !VeryClose(got, test.want) {
+			t.Errorf("MeanHarmo({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
