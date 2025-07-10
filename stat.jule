@@ -28,3 +28,26 @@ fn ChiSquare[T: float](obs: []T, exp: []T): T {
 	}
 	ret r
 }
+
+// Computes the chi-square distance between two vectors: x and y.
+// The lengths of x and y must be equal, otherwise it panics.
+//
+// Mathematically, the chi-square distance is defined as:
+//    χ² = 1/2 * Σ_i [ (x_i - y_i)² / (x_i + y_i) ]
+#disable boundary
+fn ChiSquareDistance[T: float](x: []T, y: []T): T {
+	if len(x) != len(y) {
+		panic("julenum: ChiSquareDistance: different vector lengths")
+	}
+	let mut r: T
+	mut i := 0
+	for i < len(x); i++ {
+		xi, yi := x[i], y[i]
+		if xi == 0 && yi == 0 {
+			continue
+		}
+		diff := xi - yi
+		r += (diff * diff) / (xi + yi)
+	}
+	ret 0.5 * r
+}
