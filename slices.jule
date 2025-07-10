@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // Returns the maximum value of the slice.
 // If len(s) == 0, it panics.
 //
@@ -67,10 +69,11 @@ fn Sum[T: numeric](s: ...T): T {
 // Special cases are:
 //	Linspace(start, NaN, n) = [start, NaN, NaN, NaN, ...]
 //	Linspace(NaN, stop, n) = [NaN, NaN, NaN, NaN, ...]
-//	Linspace(+Inf, -Inf, n) = [+Inf, NaN, NaN, NaN, ...]
-//	Linspace(-Inf, +Inf, n) = [-Inf, NaN, NaN, NaN, ...]
+//	Linspace(NaN, NaN, n) = [NaN, NaN, NaN, NaN, ...]
+//	Linspace(±Inf, stop, n) = [±Inf, NaN, NaN, NaN, ...]
+//	Linspace(start, ±Inf, n) = [start, ±Inf, ±Inf, ±Inf, ...]
 #disable boundary
-fn Linspace[T: numeric](mut start: T, stop: T, n: int): []T {
+fn Linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
 	if n == 0 {
 		ret make([]T, 0)
 	}
@@ -79,7 +82,7 @@ fn Linspace[T: numeric](mut start: T, stop: T, n: int): []T {
 	}
 
 	mut r := make([]T, n)
-	if start < stop {
+	if start <= stop {
 		step := (stop - start) / T(n-1)
 		for i in r {
 			r[i] = start
@@ -93,4 +96,49 @@ fn Linspace[T: numeric](mut start: T, stop: T, n: int): []T {
 		}
 	}
 	ret r
+}
+
+// Returns a slice of evenly spaced values within a given interval.
+// The sequence starts at start, increments by step, and stops before stop.
+// If step is zero, the function will panic to prevent an infinite loop.
+// When using a non-integer step, such as 0.1, it is often better to use Linspace.
+//
+// Special cases are:
+//	Range(NaN, stop, step) = []
+//	Range(start, NaN, step) = []
+//	Range(start, stop, NaN) = []
+//	Range(±Inf, stop, step) = undefined, may cause panic
+//	Range(start, ±Inf, step) = undefined, may cause panic
+//	Range(start, stop, ±Inf) = undefined, may cause panic
+#disable boundary
+fn Range[T: integer | float](mut start: T, stop: T, step: T): []T {
+	if step == 0 {
+		panic("Range: step == 0")
+	}
+
+	let mut r: []T
+	if start < stop {
+		if step < 0 {
+			ret make([]T, 0)
+		}
+		r = make([]T, nor1(int(math::Ceil(f64((stop-start)/step)))))
+	} else {
+		if step > 0 {
+			ret make([]T, 0)
+		}
+		r = make([]T, nor1(int(math::Ceil(f64((start-stop)/-step)))))
+	}
+	for i in r {
+		r[i] = start
+		start += step
+	}
+	ret r
+}
+
+// Makes n guaranteed to be n > 0.
+fn nor1(n: int): int {
+	if n > 0 {
+		ret n
+	}
+	ret 1
 }

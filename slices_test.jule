@@ -102,8 +102,36 @@ let testsLinspace: []linspaceTest = [
 		want: [1, 0.33333333333333337, -0.33333333333333326, -1],
 	},
 	{
+		start: math::NaN(), stop: math::NaN(), n: 4,
+		want: [math::NaN(), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
 		start: math::NaN(), stop: 2, n: 4,
 		want: [math::NaN(), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::Inf(+1), stop: 2, n: 4,
+		want: [math::Inf(+1), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::Inf(+1), stop: -2, n: 4,
+		want: [math::Inf(+1), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::Inf(-1), stop: 2, n: 4,
+		want: [math::Inf(-1), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::Inf(-1), stop: -2, n: 4,
+		want: [math::Inf(-1), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: 10, stop: math::Inf(+1), n: 4,
+		want: [10, math::Inf(+1), math::Inf(+1), math::Inf(+1)],
+	},
+	{
+		start: 10, stop: math::Inf(-1), n: 4,
+		want: [10, math::Inf(-1), math::Inf(-1), math::Inf(-1)],
 	},
 	{
 		start: 1, stop: math::NaN(), n: 4,
@@ -131,6 +159,142 @@ fn testLinspace(t: &testing::T) {
 			if !Equal(got[i], test.want[i]) && !VeryClose(got[i], test.want[i]) {
 				t.Errorf("Linspace({}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, got, test.want)
 				break
+			}
+		}
+	}
+}
+
+struct rangeTest {
+	start: f64
+	stop:  f64
+	step:  f64
+	want:  []f64
+}
+
+let testsRange: []rangeTest = [
+	{
+		start: 1, stop: 1, step: 1,
+		want: [],
+	},
+	{
+		start: math::NaN(), stop: 2, step: 1,
+		want: [],
+	},
+	{
+		start: 1, stop: math::NaN(), step: 10,
+		want: [],
+	},
+	{
+		start: 1, stop: 10, step: math::NaN(),
+		want: [1],
+	},
+	{
+		start: -1, stop: 1, step: 1,
+		want: [-1, 0],
+	},
+	{
+		start: -1, stop: 1, step: 1,
+		want: [-1, 0],
+	},
+	{
+		start: -1, stop: 10, step: 1,
+		want: [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+	},
+	{
+		start: 1, stop: -10, step: 1,
+		want: [],
+	},
+	{
+		start: 10, stop: 1, step: 1,
+		want: [],
+	},
+	{
+		start: 10, stop: 1, step: -1,
+		want: [10, 9, 8, 7, 6, 5, 4, 3, 2],
+	},
+	{
+		start: -10, stop: 1, step: 1,
+		want: [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0],
+	},
+	{
+		start: 10, stop: 5, step: -1,
+		want: [10, 9, 8, 7, 6],
+	},
+	{
+		start: -10, stop: -5, step: 1,
+		want: [-10, -9, -8, -7, -6],
+	},
+	{
+		start: -10, stop: -5, step: -1,
+		want: [],
+	},
+	{
+		start: 10, stop: 5, step: 1,
+		want: [],
+	},
+	{
+		start: 10, stop: 5, step: -1,
+		want: [10, 9, 8, 7, 6],
+	},
+	{
+		start: 10, stop: 9, step: -0.1,
+		want: [10, 9.9, 9.8, 9.7, 9.6, 9.5, 9.4, 9.3, 9.2, 9.1],
+	},
+	{
+		start: 9, stop: 1, step: 0.1,
+		want: [],
+	},
+	{
+		start: 9, stop: 10, step: 0.1,
+		want: [9, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9],
+	},
+	{
+		start: 9, stop: 10.1, step: 0.5,
+		want: [9, 9.5, 10],
+	},
+	{
+		start: 9, stop: 10, step: 0.3,
+		want: [9, 9.3, 9.6, 9.9],
+	},
+	{
+		start: 5, stop: 6, step: 2,
+		want: [5],
+	},
+	{
+		start: -5, stop: -6, step: -2,
+		want: [-5],
+	},
+]
+
+#test
+fn testRange(t: &testing::T) {
+	for _, test in testsRange {
+		got := Range(test.start, test.stop, test.step)
+		if len(got) != len(test.want) {
+			t.Errorf("Range({}, {}, {}) = {}, expected {}", test.start, test.stop, test.step, got, test.want)
+			continue
+		}
+		for i in got {
+			if !Equal(got[i], test.want[i]) && !VeryClose(got[i], test.want[i]) {
+				t.Errorf("Range({}, {}, {}) = {}, expected {}", test.start, test.stop, test.step, got, test.want)
+				break
+			}
+		}
+
+		// Check for integer cases.
+		if math::Trunc(test.start) == test.start &&
+			math::Trunc(test.stop) == test.stop &&
+			math::Trunc(test.step) == test.step {
+			gotint := Range(int(test.start), int(test.stop), int(test.step))
+			if len(gotint) != len(test.want) {
+				t.Errorf("Range({}, {}, {}) = {}, expected {}", test.start, test.stop, test.step, got, test.want)
+				continue
+			}
+			for i in gotint {
+				if gotint[i] != int(test.want[i]) {
+					t.Errorf("Range({}, {}, {}) = {}, expected {}", test.start, test.stop, test.step, got, test.want)
+					break
+				}
 			}
 		}
 	}
