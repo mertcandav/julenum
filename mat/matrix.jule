@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use "std/comptime"
+use "std/fmt"
 use "std/math"
 use "std/math/cmplx"
 
@@ -17,7 +18,7 @@ const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
 // If you need to share same Matrix instance, use smart pointers.
 // If you need to have guaranteed independent copy, use Copy with empty Matrix.
 struct Matrix[T: numeric] {
-	// Dimensions (M x N).
+	// Dimensions (M×N).
 	m: int
 	n: int
 
@@ -26,12 +27,12 @@ struct Matrix[T: numeric] {
 }
 
 impl Matrix {
-	// Returns dimensions of the Matrix (M x N).
+	// Returns dimensions of the Matrix (M×N).
 	fn Dims(*self): (m: int, n: int) {
 		ret self.m, self.n
 	}
 
-	// Returns total element count of matrix (M x N).
+	// Returns total element count of matrix (M×N).
 	fn Size(*self): int {
 		ret self.m * self.n
 	}
@@ -54,7 +55,7 @@ impl Matrix {
 		ret self.m == self.n
 	}
 
-	// Reports whether the matrice (M X N) is scalar matrice of c.
+	// Reports whether the matrice (M×N) is scalar matrice of c.
 	// This function only supports square matrices (M == N && N > 0).
 	#disable boundary
 	fn Scalar(*self, c: T): bool {
@@ -80,13 +81,13 @@ impl Matrix {
 		ret true
 	}
 
-	// Reports whether the matrice (M X N) is an identity matrice.
+	// Reports whether the matrice (M×N) is an identity matrice.
 	// This function only supports square matrices (M == N && N > 0).
 	fn Identity(*self): bool {
 		ret self.Scalar(1)
 	}
 
-	// Reports whether the matrice (M X N) is a diagonal matrice.
+	// Reports whether the matrice (M×N) is a diagonal matrice.
 	// This function only supports square matrices (M == N && N > 0).
 	fn Diagonal(*self): bool {
 		if self.m != self.n || self.n <= 0 {
@@ -111,20 +112,20 @@ impl Matrix {
 		ret true
 	}
 
-	// Returns value of the specified (i x j) position.
+	// Returns value of the specified (i×j) position.
 	// Position index starts from zero for column and row.
 	//
 	// Implementation will not check for boundaries, invalid position may cause panic.
-	// To provide fast computation, it will not check whether the (i x j) is valid (M x N).
+	// To provide fast computation, it will not check whether the (i×j) is valid (M×N).
 	fn Get(*self, i: int, j: int): T {
 		ret self.data[i+j*self.m]
 	}
 
-	// Sets value of the specified (i x j) position.
+	// Sets value of the specified (i×j) position.
 	// Position index starts from zero for column and row.
 	//
 	// Implementation will not check for boundaries, invalid position may cause panic.
-	// To provide fast computation, it will not check whether the (i x j) is valid (M x N).
+	// To provide fast computation, it will not check whether the (i×j) is valid (M×N).
 	fn Set(mut *self, i: int, j: int, value: T) {
 		self.data[i+j*self.m] = value
 	}
@@ -183,12 +184,12 @@ impl Matrix {
 		copy(self.data, z.data)
 	}
 
-	// Copies matrice z to self with custom (M x N) size.
+	// Copies matrice z to self with custom (M×N) size.
 	// If new size is larger, it will add padding with zeros.
 	// If new size is smaller, it will cut rows and columns.
 	//
 	// If self have enough capacity, Resize will use it to avoid making allocation.
-	// If M == 0 or N == 0, self will be (0 x 0). But keeps internal allocation.
+	// If M == 0 or N == 0, self will be (0×0). But keeps internal allocation.
 	fn Resize(mut *self, &z: *Matrix[T], m: int, n: int) {
 		if m == 0 || n == 0 {
 			self.data = self.data[:0]
@@ -209,7 +210,7 @@ impl Matrix {
 		let mut copySpace: []T
 		if alias(self.data, z.data) {
 			// Matrix self and matrix z have shared data.
-			// We have to allocate new (M x N) Matrix to copy properly.
+			// We have to allocate new (M×N) Matrix to copy properly.
 			copySpace = make([]T, m*n)
 		} else {
 			copySpace = self.make(m * n)
@@ -236,13 +237,13 @@ impl Matrix {
 	// Panics if matrix is not a square matrix.
 	//
 	// Special cases are:
-	//	Trace() = 0, for (0 x 0) matrices
+	//	Trace() = 0, for (0×0) matrices
 	#disable boundary
 	fn Trace(*self): T {
 		if self.m != self.n {
 			panic("mat: Matrix.Trace: trace computation on non-square matrix")
 		}
-		// Special case: trace of (0 x 0) matrix.
+		// Special case: trace of (0×0) matrix.
 		if self.m == 0 {
 			ret 0
 		}
@@ -259,22 +260,22 @@ impl Matrix {
 
 	// Sets self to the transpose of the matrix z.
 	// If self have enough capacity, Transpose will use it to avoid making allocation.
-	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	// If z is a (0×0) matrix, self will be (0×0). But keeps internal allocation.
 	#disable boundary
 	fn Transpose(mut *self, &z: *Matrix[T]) {
-		// Special case: (0 x 0) matrix.
-		// Set self to (0 x 0), do not deallocate slice.
+		// Special case: (0×0) matrix.
+		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
 			ret
 		}
 
-		// (M x N) matrix will become (N x M).
+		// (M×N) matrix will become (N×M).
 		// So size will not be changed.
 		// Make sure the self data have enough space.
 		if self == z || alias(self.data, z.data) {
 			// Matrix self and matrix z have shared data.
-			// We have to allocate new (N x M) Matrix to compute properly.
+			// We have to allocate new (N×M) Matrix to compute properly.
 			mut r := uncheckedNew[T](z.n, z.m)
 			r.Transpose(z)
 			*self = r
@@ -298,11 +299,11 @@ impl Matrix {
 
 	// Sets self to the sum z+k.
 	// If self have enough capacity, AddScalar will use it to avoid making allocation.
-	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	// If z is a (0×0) matrix, self will be (0×0). But keeps internal allocation.
 	#disable boundary
 	fn AddScalar(mut *self, &z: *Matrix[T], k: T) {
-		// Special case: (0 x 0) matrix.
-		// Set self to (0 x 0), do not deallocate slice.
+		// Special case: (0×0) matrix.
+		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
 			ret
@@ -328,7 +329,7 @@ impl Matrix {
 
 	// Sets self to the difference z-k.
 	// If self have enough capacity, SubScalar will use it to avoid making allocation.
-	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	// If z is a (0×0) matrix, self will be (0×0). But keeps internal allocation.
 	#disable boundary
 	fn SubScalar(mut *self, &z: *Matrix[T], k: T) {
 		self.AddScalar(z, -k)
@@ -336,11 +337,11 @@ impl Matrix {
 
 	// Sets self to the product z*k.
 	// If self have enough capacity, MulScalar will use it to avoid making allocation.
-	// If z is a (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	// If z is a (0×0) matrix, self will be (0×0). But keeps internal allocation.
 	#disable boundary
 	fn MulScalar(mut *self, &z: *Matrix[T], k: T) {
-		// Special case: (0 x 0) matrix.
-		// Set self to (0 x 0), do not deallocate slice.
+		// Special case: (0×0) matrix.
+		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
 			ret
@@ -373,15 +374,15 @@ impl Matrix {
 
 	// Sets self to the sum x+y.
 	// If self have enough capacity, Add will use it to avoid making allocation.
-	// If matrices are (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	// If matrices are (0×0) matrix, self will be (0×0). But keeps internal allocation.
 	#disable boundary
 	fn Add(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
 		if x.m != y.m || x.n != y.n {
 			panic("mat: Matrix.Add: matrices have different size")
 		}
 
-		// Special case: (0 x 0) matrix.
-		// Set self to (0 x 0), do not deallocate slice.
+		// Special case: (0×0) matrix.
+		// Set self to (0×0), do not deallocate slice.
 		if x.m == 0 && x.n == 0 {
 			self.m, self.n = 0, 0
 			ret
@@ -396,15 +397,15 @@ impl Matrix {
 
 	// Sets self to the difference x-y.
 	// If self have enough capacity, Sub will use it to avoid making allocation.
-	// If matrices are (0 x 0) matrix, self will be (0 x 0). But keeps internal allocation.
+	// If matrices are (0×0) matrix, self will be (0×0). But keeps internal allocation.
 	#disable boundary
 	fn Sub(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
 		if x.m != y.m || x.n != y.n {
 			panic("mat: Matrix.Sub: matrices have different size")
 		}
 
-		// Special case: (0 x 0) matrix.
-		// Set self to (0 x 0), do not deallocate slice.
+		// Special case: (0×0) matrix.
+		// Set self to (0×0), do not deallocate slice.
 		if x.m == 0 && x.n == 0 {
 			self.m, self.n = 0, 0
 			ret
@@ -423,7 +424,7 @@ impl Matrix {
 	fn Mul(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
 		if x.m < 1 || x.n < 1 ||
 			y.m < 1 || y.n < 1 {
-			panic("mat: Matrix.Mul: matrices must have at least (1 x 1) size")
+			panic("mat: Matrix.Mul: matrices must have at least (1×1) size")
 		}
 		if x.n != y.m {
 			panic("mat: Matrix.Mul: dimensions are not compatible for multiplication")
@@ -577,10 +578,10 @@ impl Matrix {
 		const match comptime::TypeOf(T).Kind() {
 		| comptime::Cmplx64 | comptime::Cmplx128:
 			// complex
-			ret T(det[T, cmplx128](self, cmplx::Abs))
+			ret T(det(self, cmplx::Abs))
 		|:
 			// integer or floating-point
-			ret T(det[T, f64](self, math::Abs))
+			ret T(det(self, math::Abs))
 		}
 	}
 
@@ -622,6 +623,31 @@ impl Matrix {
 			ret T(_sign), logdet
 		}
 	}
+
+	// Sets self to A⁻¹, inverse of the matrix a.
+	// This function only supports square matrices (M == N && N > 0).
+	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// It panics if matrix a is singular.
+	//
+	// For integer and floating-point types, computations are performed using 64-bit floating-point precision.
+	// For complex types, computations use 128-bit complex precision.
+	// The result is handled as type T, which may cause rounding errors or loss of precision.
+	// To preserve exact results, use an f64 or cmplx128 matrix.
+	fn Inv(mut *self, &a: *Matrix[T]) {
+		m, n := self.m, self.n
+		if m != n || n <= 0 {
+			panic("mat: Matrix.Inv: inverse on non-square matrix")
+		}
+
+		const match comptime::TypeOf(T).Kind() {
+		| comptime::Cmplx64 | comptime::Cmplx128:
+			// complex
+			inv(self, a, cmplx::Abs)
+		|:
+			// integer or floating-point
+			inv(self, a, math::Abs)
+		}
+	}
 }
 
 // Same as New, but it does not checks anything.
@@ -632,12 +658,12 @@ fn uncheckedNew[T: numeric](m: int, n: int): Matrix[T] {
 	ret mat
 }
 
-// Returns new empty (0 x 0) Matrix for type T.
+// Returns new empty (0×0) Matrix for type T.
 fn Empty[T: numeric](): Matrix[T] {
 	ret uncheckedNew[T](0, 0)
 }
 
-// Returns new (M x N) zero Matrix for type T.
+// Returns new (M×N) zero Matrix for type T.
 //
 // Constraints:
 //	m >= 0
@@ -649,13 +675,13 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 	ret uncheckedNew[T](m, n)
 }
 
-// Returns new (M x N) Matrix for type T.
+// Returns new (M×N) Matrix for type T.
 // Uses len(values) for m, len(values[1]) for n.
 // Panics if all rows are not have same amount of values.
 //
 // Special cases are:
-//	NewFrom(values) = (0 x 0) Matrix, if len(values) == 0
-//	NewFrom(values) = (0 x 0) Matrix, if len(values) == 1 && len(values[1]) == 0
+//	NewFrom(values) = (0×0) Matrix, if len(values) == 0
+//	NewFrom(values) = (0×0) Matrix, if len(values) == 1 && len(values[1]) == 0
 //
 // Example Use:
 //
@@ -668,7 +694,7 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 //		    ╭       ╮
 //		    │ 1 2 4 │
 //		A = │ 3 4 5 │
-//		    ╰       ╯(2 x 3)
+//		    ╰       ╯(2×3)
 #disable boundary
 fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 	m := len(values)
@@ -1046,6 +1072,176 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 	ret
 }
 
+#disable boundary
+fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs: fn(Prec): f64) {
+	n := a.n
+
+	// Use direct formula for small 1×1 matrice.
+	// For 2×2 or 3×3 matrices, there may be rounding errors, due to formula;
+	//	- 2×2 matrices: A = [a b; c d], A⁻¹ = (1/det(A)) * [d -b; -c a]
+	//	- 3×3 matrices: A⁻¹ = (1/det(A))·adj(A) (adjugate method)
+	// Using LU decomposition for them gives more accurate results.
+	if n == 1 {
+		// 1×1 matrix:
+		// A = [a], A⁻¹ = [1/det]
+		val := a.data[0]
+		if val == 0 {
+			panic("mat: Matrix.Inv: cannot compute the inverse of a singular matrix")
+		}
+		z.m, z.n = 1, 1
+		z.data = z.make(z.Size())
+		z.data[0] = T(Prec(1) / Prec(val))
+		ret
+	}
+
+	// Use LU decomposition with partial pivoting for larger ones.
+	// See: https://en.wikipedia.org/wiki/LU_decomposition
+	//
+	// The LU decomposition factorizes the matrix as A = P·L·U,
+	// where:
+	// - P is a permutation matrix (representing row swaps),
+	// - L is a unit lower triangular matrix (diagonal entries are 1), so det(L) = 1,
+	// - U is an upper triangular matrix, det(U) = product of U's diagonal entries.
+	//
+	// If A = P·L·U, then A⁻¹ = U⁻¹·L⁻¹·P
+	//
+	// To find the inverse, for each column eᵢ of the identity matrix,
+	// we solve A·x = eᵢ by forward and backward substitution:
+	//   1. Solve L·y = P·eᵢ  (forward substitution)
+	//   2. Solve U·x = y     (backward substitution)
+	// The solution vectors x form the columns of A⁻¹.
+	//
+	// This approach is efficient and numerically stable for general n×n matrices.
+
+	// Convert the input matrix to row-major layout for LU decomposition.
+	// LU[i*n + j] stores element at row i, column j.
+	mut LU := make([]Prec, n*n)
+
+	// Copy column-major a matrix to LU in row-major order.
+	mut i := 0          // column
+	mut am := 0 + 0*a.m // j + i*a.m
+	for i < n; i, am = i+1, am+a.m {
+		mut j := 0        // row
+		mut jn := 0*n + 0 // j*n + i
+		for j < n; j, jn = j+1, jn+n {
+			LU[jn+i] = Prec(a.data[j+am])
+		}
+	}
+
+	// Initialize the permutation vector for row swaps.
+	mut piv := make([]int, n)
+	i = 0
+	for i < len(piv); i++ {
+		piv[i] = i
+	}
+
+	// Perform LU decomposition with partial pivoting.
+	// The decomposition is done in-place on the LU matrix in row-major layout.
+	mut k := 0
+	mut kn := 0 * n // k * n
+	for k < n; k, kn = k+1, kn+n {
+		// Pivot selection: find the row with the largest absolute value in column k.
+		mut pivotIndex := k
+		mut maxPivot := abs(Prec(LU[kn+k]))
+		i = k + 1
+		mut ni := i*n + k
+		for i < n; i, ni = i+1, ni+n {
+			val := abs(Prec(LU[ni]))
+			if val > maxPivot {
+				maxPivot = val
+				pivotIndex = i
+			}
+		}
+
+		if maxPivot == 0 {
+			panic("mat: Matrix.Inv: cannot compute the inverse of a singular matrix")
+		}
+
+		// Swap rows k and pivotIndex in LU and update the pivot vector.
+		if pivotIndex != k {
+			i = 0                 // column
+			ni = pivotIndex*n + 0 // pivotIndex*n + i
+			for i < n; i, ni = i+1, ni+1 {
+				LU[kn+i], LU[ni] = LU[ni], LU[kn+i]
+			}
+			piv[k], piv[pivotIndex] = piv[pivotIndex], piv[k]
+		}
+
+		pivot := LU[kn+k]
+
+		// Elimination: update submatrix and store multipliers in the lower triangle.
+		i = k + 1
+		ni = i * n
+		for i < n; i, ni = i+1, ni+n {
+			LU[ni+k] /= pivot
+			factor := LU[ni+k]
+			mut j := k + 1
+			for j < n; j++ {
+				LU[ni+j] -= factor * LU[kn+j]
+			}
+		}
+	}
+
+	// Make sure the z data have enough space.
+	z.m, z.n = n, n
+	z.data = z.make(z.Size())
+
+	// Workspace: b (RHS), y (solution of Ly=b), x (solution of Ux=y)
+	// All allocated in a single slice to avoid repeated allocations.
+	mut tmp := make([]Prec, 3*n)
+	mut b := tmp[:n]
+	mut y := tmp[n : 2*n]
+	mut x := tmp[2*n : 3*n]
+
+	// Solve A·X = I one column at a time.
+	k = 0
+	kn = 0 * n // k * n
+	for k < n; k, kn = k+1, kn+n {
+		// Set b = column col of the permuted identity matrix: P·eᵢ
+		i = 0
+		for i < n; i++ {
+			if piv[i] == k {
+				b[i] = 1
+			} else {
+				b[i] = 0
+			}
+		}
+
+		// Forward substitution: solve L·y = b
+		// L is unit lower triangular (diagonal entries are 1)
+		i = 0
+		mut ni := 0 * n // i * n
+		for i < n; i, ni = i+1, ni+n {
+			mut sum := b[i]
+			mut j := 0
+			for j < i; j++ {
+				sum -= LU[ni+j] * y[j]
+			}
+			y[i] = sum
+		}
+
+		// Backward substitution: solve U·x = y
+		// U is upper triangular.
+		i = n - 1
+		ni = i * n
+		for i >= 0; i, ni = i-1, ni-n {
+			mut sum := y[i]
+			mut j := i + 1
+			for j < n; j++ {
+				sum -= LU[ni+j] * x[j]
+			}
+			x[i] = sum / LU[ni+i]
+		}
+
+		// Store the computed column x into the inverse matrix.
+		// Note: z.data is in column-major layout, so column-major write.
+		i = 0
+		for i < n; i++ {
+			z.data[kn+i] = T(x[i])
+		}
+	}
+}
+
 // Sets z to the sum x+y.
 // z must be have enough space for the sum x+y.
 #disable boundary
@@ -1259,7 +1455,7 @@ fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
 	}
 }
 
-// Returns new (M x N) Matrix for type T from space.
+// Returns new (M×N) Matrix for type T from space.
 // The result matrix will use shared data from space.
 // Space will be trimmed according to size.
 fn getMatrix[T: numeric](m: int, n: int, mut &space: *[]T): Matrix[T] {
