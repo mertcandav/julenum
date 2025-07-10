@@ -65,3 +65,26 @@ fn testChiSquareDistance(t: &testing::T) {
 		}
 	}
 }
+
+struct meanTest {
+	x:    []f64
+	want: f64
+}
+
+let testsMean: []meanTest = [
+	{x: [], want: 0},
+	{x: [0, 0, 0], want: 0},
+	{x: [1, 2, 3], want: 2},
+	{x: [1, 2, 3], want: 2},
+	{x: [-34, 34, 0, 4, 834, -34, 74], want: 125.42857142857143},
+]
+
+#test
+fn testMean(t: &testing::T) {
+	for _, test in testsMean {
+		got := Mean(test.x)
+		if got != test.want {
+			t.Errorf("Mean({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}

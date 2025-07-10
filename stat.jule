@@ -51,3 +51,14 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): T {
 	}
 	ret 0.5 * r
 }
+
+// Computes the mean of the data x.
+//
+// Mathematically, mean is defined as:
+//    Mean = Σ_i [ x_i ] / n
+fn Mean[T: integer | float](x: []T): T {
+	if len(x) == 0 {
+		ret 0
+	}
+	ret Sum(x...) / T(len(x))
+}
