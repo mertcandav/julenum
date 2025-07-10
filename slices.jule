@@ -6,7 +6,7 @@
 // If len(s) == 0, it panics.
 //
 // Special cases are:
-//	- Max(...) = NaN, if any value is NaN
+//	Max(...) = NaN, if any value is NaN
 #disable boundary
 fn Max[T: integer | float](s: ...T): T {
 	if len(s) == 0 {
@@ -27,7 +27,7 @@ fn Max[T: integer | float](s: ...T): T {
 // If len(s) == 0, it panics.
 //
 // Special cases are:
-//	- Min(...) = NaN, if any value is NaN
+//	Min(...) = NaN, if any value is NaN
 #disable boundary
 fn Min[T: integer | float](s: ...T): T {
 	if len(s) == 0 {
@@ -47,13 +47,50 @@ fn Min[T: integer | float](s: ...T): T {
 // Returns the sum of all values of the slice.
 //
 // Special cases are:
-//	- Sum(...) = 0, if len(s) == 0
-//	- Sum(...) = NaN, if any value is NaN
-//	- Sum(...) = NaN, if any (+Inf + -Inf) appears
+//	Sum(...) = 0, if len(s) == 0
+//	Sum(...) = NaN, if any value is NaN
+//	Sum(...) = NaN, if any (+Inf + -Inf) appears
 fn Sum[T: numeric](s: ...T): T {
 	let mut sum: T
 	for _, x in s {
 		sum += x
 	}
 	ret sum
+}
+
+// Returns a slice of n evenly spaced values between start and stop, inclusive.
+//
+// If n is 0, it returns an empty slice. If n is 1, the slice contains only start.
+// Otherwise, it returns n values starting from start and ending at stop, linearly spaced.
+// It panics if n is negative.
+//
+// Special cases are:
+//	Linspace(start, NaN, n) = [start, NaN, NaN, NaN, ...]
+//	Linspace(NaN, stop, n) = [NaN, NaN, NaN, NaN, ...]
+//	Linspace(+Inf, -Inf, n) = [+Inf, NaN, NaN, NaN, ...]
+//	Linspace(-Inf, +Inf, n) = [-Inf, NaN, NaN, NaN, ...]
+#disable boundary
+fn Linspace[T: numeric](mut start: T, stop: T, n: int): []T {
+	if n == 0 {
+		ret make([]T, 0)
+	}
+	if n < 0 {
+		panic("Linspace: n < 0")
+	}
+
+	mut r := make([]T, n)
+	if start < stop {
+		step := (stop - start) / T(n-1)
+		for i in r {
+			r[i] = start
+			start += step
+		}
+	} else {
+		step := (start - stop) / T(n-1)
+		for i in r {
+			r[i] = start
+			start -= step
+		}
+	}
+	ret r
 }

@@ -56,3 +56,82 @@ fn testSum(t: &testing::T) {
 		}
 	}
 }
+
+struct linspaceTest {
+	start: f64
+	stop:  f64
+	n:     int
+	want:  []f64
+}
+
+let testsLinspace: []linspaceTest = [
+	{
+		start: 1, stop: 1, n: 0,
+		want: [],
+	},
+	{
+		start: 1, stop: 2, n: 1,
+		want: [1],
+	},
+	{
+		start: 1, stop: 1, n: 5,
+		want: [1, 1, 1, 1, 1],
+	},
+	{
+		start: 1, stop: 2, n: 5,
+		want: [1, 1.25, 1.5, 1.75, 2],
+	},
+	{
+		start: 2, stop: 1, n: 5,
+		want: [2, 1.75, 1.5, 1.25, 1],
+	},
+	{
+		start: 1, stop: 2, n: 4,
+		want: [1, 1.3333333333333333, 1.6666666666666665, 2],
+	},
+	{
+		start: 2, stop: 1, n: 4,
+		want: [2, 1.6666666666666665, 1.3333333333333333, 1],
+	},
+	{
+		start: -1, stop: 1, n: 4,
+		want: [-1, -0.33333333333333337, 0.33333333333333326, 1],
+	},
+	{
+		start: 1, stop: -1, n: 4,
+		want: [1, 0.33333333333333337, -0.33333333333333326, -1],
+	},
+	{
+		start: math::NaN(), stop: 2, n: 4,
+		want: [math::NaN(), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: 1, stop: math::NaN(), n: 4,
+		want: [1, math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::Inf(+1), stop: math::Inf(+1), n: 4,
+		want: [math::Inf(+1), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::Inf(-1), stop: math::Inf(+1), n: 4,
+		want: [math::Inf(-1), math::NaN(), math::NaN(), math::NaN()],
+	},
+]
+
+#test
+fn testLinspace(t: &testing::T) {
+	for _, test in testsLinspace {
+		got := Linspace(test.start, test.stop, test.n)
+		if len(got) != len(test.want) {
+			t.Errorf("Linspace({}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, got, test.want)
+			continue
+		}
+		for i in got {
+			if !Equal(got[i], test.want[i]) && !VeryClose(got[i], test.want[i]) {
+				t.Errorf("Linspace({}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, got, test.want)
+				break
+			}
+		}
+	}
+}
