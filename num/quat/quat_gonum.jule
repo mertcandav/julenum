@@ -69,7 +69,7 @@ impl Quat {
 	// For generalized compatibility with math::Pow:
 	//
 	//	Pow(0, ±0) returns 1+0i+0j+0k
-	//	Pow(0, c) for R(c)<0 returns Inf+0i+0j+0k if X(c), Y(c), Z(c) are zero,
+	//	Pow(0, r) for W(r)<0 returns Inf+0i+0j+0k if X(r), Y(r), Z(r) are zero,
 	//	    otherwise Inf+Inf i+Inf j+Inf k.
 	fn Pow(mut *self, &q: *Quat, &r: *Quat) {
 		if q.Zero() {

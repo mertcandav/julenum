@@ -15,28 +15,28 @@ impl Quat {
 	// Sets self to q**p, the base-q exponential of p.
 	//
 	// Special cases are (in order):
-	//	PowReal(NaN+xϵ, ±0) = 1+NaNϵ for any x
-	//	PowReal(x, ±0) = 1 for any x
-	//	PowReal(1+xϵ, y) = 1+xyϵ for any y
-	//	PowReal(x, 1) = x for any x
-	//	PowReal(NaN+xϵ, y) = NaN+NaNϵ
-	//	PowReal(x, NaN) = NaN+NaNϵ
-	//	PowReal(±0, y) = ±Inf for y an odd integer < 0
+	//	PowReal(NaN+xϵ, ±0) = 1+NaNϵ for any q
+	//	PowReal(q, ±0) = 1 for any q
+	//	PowReal(1+xϵ, p) = 1+xyϵ for any p
+	//	PowReal(q, 1) = q for any q
+	//	PowReal(NaN+xϵ, p) = NaN+NaNϵ
+	//	PowReal(q, NaN) = NaN+NaNϵ
+	//	PowReal(±0, p) = ±Inf for p an odd integer < 0
 	//	PowReal(±0, -Inf) = +Inf
 	//	PowReal(±0, +Inf) = +0
-	//	PowReal(±0, y) = +Inf for finite y < 0 and not an odd integer
-	//	PowReal(±0, y) = ±0 for y an odd integer > 0
-	//	PowReal(±0, y) = +0 for finite y > 0 and not an odd integer
+	//	PowReal(±0, p) = +Inf for finite p < 0 and not an odd integer
+	//	PowReal(±0, p) = ±0 for p an odd integer > 0
+	//	PowReal(±0, p) = +0 for finite p > 0 and not an odd integer
 	//	PowReal(-1, ±Inf) = 1
-	//	PowReal(x+0ϵ, +Inf) = +Inf+NaNϵ for |x| > 1
-	//	PowReal(x+yϵ, +Inf) = +Inf for |x| > 1
-	//	PowReal(x, -Inf) = +0+NaNϵ for |x| > 1
-	//	PowReal(x, +Inf) = +0+NaNϵ for |x| < 1
-	//	PowReal(x+0ϵ, -Inf) = +Inf+NaNϵ for |x| < 1
-	//	PowReal(x, -Inf) = +Inf-Infϵ for |x| < 1
-	//	PowReal(+Inf, y) = +Inf for y > 0
-	//	PowReal(+Inf, y) = +0 for y < 0
-	//	PowReal(-Inf, y) = Pow(-0, -y)
+	//	PowReal(q+0ϵ, +Inf) = +Inf+NaNϵ for |q| > 1
+	//	PowReal(q+yϵ, +Inf) = +Inf for |q| > 1
+	//	PowReal(q, -Inf) = +0+NaNϵ for |q| > 1
+	//	PowReal(q, +Inf) = +0+NaNϵ for |q| < 1
+	//	PowReal(q+0ϵ, -Inf) = +Inf+NaNϵ for |q| < 1
+	//	PowReal(q, -Inf) = +Inf-Infϵ for |q| < 1
+	//	PowReal(+Inf, p) = +Inf for p > 0
+	//	PowReal(+Inf, p) = +0 for p < 0
+	//	PowReal(-Inf, p) = Pow(-0, -p)
 	fn PowReal(mut *self, &q: *Quat, p: f64) {
 		match {
 		| p == 0:
@@ -102,7 +102,7 @@ impl Quat {
 		self.PowReal(q, 0.5)
 	}
 
-	// Sets self to q**d, the base-q exponential of q.
+	// Sets self to e**q, the base-e exponential of q.
 	//
 	// Special cases are:
 	//	Exp(+Inf) = +Inf
