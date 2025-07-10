@@ -2,15 +2,17 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // Computes the chi-square statistic between two vectors: observed and expected.
 // The lengths of obs and exp must be equal, otherwise it panics.
 //
 // Mathematically, the chi-square statistic is defined as:
-//    χ² = Σ_i [ (O_i - E_i)² / E_i ]
-// where:
-//    O_i = observed value at index i,
-//    E_i = expected value at index i,
-//    and the summation is over all elements.
+//	χ² = Σ_i [ (O_i - E_i)² / E_i ]
+//	where:
+//		O_i = observed value at index i,
+//		E_i = expected value at index i,
+//		and the summation is over all elements.
 #disable boundary
 fn ChiSquare[T: float](obs: []T, exp: []T): T {
 	if len(obs) != len(exp) {
@@ -33,7 +35,7 @@ fn ChiSquare[T: float](obs: []T, exp: []T): T {
 // The lengths of x and y must be equal, otherwise it panics.
 //
 // Mathematically, the chi-square distance is defined as:
-//    χ² = 1/2 * Σ_i [ (x_i - y_i)² / (x_i + y_i) ]
+//	χ² = 1/2 * Σ_i [ (x_i - y_i)² / (x_i + y_i) ]
 #disable boundary
 fn ChiSquareDistance[T: float](x: []T, y: []T): T {
 	if len(x) != len(y) {
@@ -52,10 +54,10 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): T {
 	ret 0.5 * r
 }
 
-// Computes the mean of the data x.
+// Computes the mean of the data set x.
 //
-// Mathematically, mean is defined as:
-//    Mean = Σ_i [ x_i ] / n
+// Mathematically, the mean is defined as:
+//	Mean = Σ_i [ x_i ] / n
 fn Mean[T: integer | float](x: []T): T {
 	if len(x) == 0 {
 		ret 0
@@ -63,10 +65,10 @@ fn Mean[T: integer | float](x: []T): T {
 	ret Sum(x...) / T(len(x))
 }
 
-// Computes the weighted mean of the data x.
+// Computes the weighted mean of the data set x.
 //
-// Mathematically, weighted mean is defined as:
-//    Mean = Σ_i [ w_i * x_i ] / Σ_i [ w_i ]
+// Mathematically, the weighted mean is defined as:
+//	Mean = Σ_i [ w_i * x_i ] / Σ_i [ w_i ]
 //
 // If len(weights) = 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
@@ -87,4 +89,21 @@ fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
 		sumW += w
 	}
 	ret sumX / sumW
+}
+
+// Computes the geometric mean of the data set x.
+//
+// Mathematically, the geometric mean is defined as:
+//	G = (x₁ * x₂ * ... * xₙ)^(1/n)
+#disable boundary
+fn MeanGeom[T: integer | float](x: []T): T {
+	if len(x) == 0 {
+		ret 0
+	}
+	mut z := x[0]
+	mut i := 1
+	for i < len(x); i++ {
+		z *= x[i]
+	}
+	ret T(math::Pow(f64(z), 1/f64(len(x))))
 }

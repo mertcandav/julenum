@@ -106,3 +106,21 @@ fn testMeanWeight(t: &testing::T) {
 		}
 	}
 }
+
+let testsMeanGeom: []meanTest = [
+	{x: [], want: 0},
+	{x: [2, 4, 6, 8, 10], want: 5.210342169394704},
+	{x: [60, 90, 120], want: 86.53497421844448},
+	{x: [0.5, 1.5, 2.5, 3.5], want: 1.6005429364718398},
+	{x: [5, 5, 5, 10], want: 5.946035575013605},
+]
+
+#test
+fn testMeanGeom(t: &testing::T) {
+	for _, test in testsMeanGeom {
+		got := MeanGeom(test.x)
+		if !VeryClose(got, test.want) {
+			t.Errorf("MeanGeom({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
