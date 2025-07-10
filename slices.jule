@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-// Returns the maximum value in the slice.
+// Returns the maximum value of the slice.
 // If len(s) == 0, it panics.
 //
 // Special cases are:
@@ -21,4 +21,25 @@ fn Max[T: integer | float](s: ...T): T {
 		}
 	}
 	ret max
+}
+
+// Returns the minimum value of the slice.
+// If len(s) == 0, it panics.
+//
+// Special cases are:
+//	- Min(...) = NaN, if any value is NaN
+#disable boundary
+fn Min[T: integer | float](s: ...T): T {
+	if len(s) == 0 {
+		panic("Min: len(s) == 0")
+	}
+	mut min := s[0]
+	mut i := 0
+	for i < len(s); i++ {
+		x := s[i]
+		if min > x {
+			min = x
+		}
+	}
+	ret min
 }

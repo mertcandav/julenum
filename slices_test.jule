@@ -5,29 +5,40 @@
 use "std/math"
 use "std/testing"
 
-struct maxTest {
-	s:    []f64
-	want: f64
+struct csTest {
+	s:   []f64
+	max: f64
+	min: f64
 }
 
-let testsMax: []maxTest = [
-	{s: [1, 2, 3, 4, 5, 6], want: 6},
-	{s: [9, 0], want: 9},
-	{s: [2], want: 2},
-	{s: [-2], want: -2},
-	{s: [math::NaN(), -2], want: math::NaN()},
-	{s: [math::NaN()], want: math::NaN()},
-	{s: [math::NaN(), math::Inf(+1)], want: math::NaN()},
-	{s: [math::Inf(-1), math::Inf(+1)], want: math::Inf(+1)},
-	{s: [9735, f64.Max, math::Inf(+1)], want: math::Inf(+1)},
+let testsCS: []csTest = [
+	{s: [1, 2, 3, 4, 5, 6], max: 6, min: 1},
+	{s: [9, 0], max: 9, min: 0},
+	{s: [2], max: 2, min: 2},
+	{s: [-2], max: -2, min: -2},
+	{s: [math::NaN(), -2], max: math::NaN(), min: math::NaN()},
+	{s: [math::NaN()], max: math::NaN(), min: math::NaN()},
+	{s: [math::NaN(), math::Inf(+1)], max: math::NaN(), min: math::NaN()},
+	{s: [math::Inf(-1), math::Inf(+1)], max: math::Inf(+1), min: math::Inf(-1)},
+	{s: [9735, f64.Max, math::Inf(+1)], max: math::Inf(+1), min: 9735},
 ]
 
 #test
 fn testMax(t: &testing::T) {
-	for _, test in testsMax {
+	for _, test in testsCS {
 		max := Max(test.s...)
-		if !Equal(max, test.want) {
-			t.Errorf("Max({}) = {}, expected {}", test.s, max, test.want)
+		if !Equal(max, test.max) {
+			t.Errorf("Max({}) = {}, expected {}", test.s, max, test.max)
+		}
+	}
+}
+
+#test
+fn testMin(t: &testing::T) {
+	for _, test in testsCS {
+		min := Min(test.s...)
+		if !Equal(min, test.min) {
+			t.Errorf("Min({}) = {}, expected {}", test.s, min, test.min)
 		}
 	}
 }
