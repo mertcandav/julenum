@@ -13,7 +13,7 @@ fn Max[T: integer | float](s: ...T): T {
 		panic("Max: len(s) == 0")
 	}
 	mut max := s[0]
-	mut i := 0
+	mut i := 1
 	for i < len(s); i++ {
 		x := s[i]
 		if max < x {
@@ -34,7 +34,7 @@ fn Min[T: integer | float](s: ...T): T {
 		panic("Min: len(s) == 0")
 	}
 	mut min := s[0]
-	mut i := 0
+	mut i := 1
 	for i < len(s); i++ {
 		x := s[i]
 		if min > x {
@@ -42,4 +42,18 @@ fn Min[T: integer | float](s: ...T): T {
 		}
 	}
 	ret min
+}
+
+// Returns the sum of all values of the slice.
+//
+// Special cases are:
+//	- Sum(...) = 0, if len(s) == 0
+//	- Sum(...) = NaN, if any value is NaN
+//	- Sum(...) = NaN, if any (+Inf + -Inf) appears
+fn Sum[T: numeric](s: ...T): T {
+	let mut sum: T
+	for _, x in s {
+		sum += x
+	}
+	ret sum
 }
