@@ -88,3 +88,21 @@ fn testMean(t: &testing::T) {
 		}
 	}
 }
+
+#test
+fn testMeanWeight(t: &testing::T) {
+	for _, test in testsMean {
+		mut got := MeanWeight(test.x, nil)
+		if got != test.want {
+			t.Errorf("MeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+		}
+		mut ones := make([]f64, len(test.x))
+		for i in ones {
+			ones[i] = 1
+		}
+		got = MeanWeight(test.x, ones)
+		if got != test.want {
+			t.Errorf("MeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}

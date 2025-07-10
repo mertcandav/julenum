@@ -62,3 +62,29 @@ fn Mean[T: integer | float](x: []T): T {
 	}
 	ret Sum(x...) / T(len(x))
 }
+
+// Computes the weighted mean of the data x.
+//
+// Mathematically, weighted mean is defined as:
+//    Mean = Σ_i [ w_i * x_i ] / Σ_i [ w_i ]
+//
+// If len(weights) = 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+#disable boundary
+fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
+	if len(weights) == 0 {
+		ret Mean(x)
+	}
+	if len(x) != len(weights) {
+		panic("julenum: MeanWeight: len(x) != len(weights)")
+	}
+	let mut sumX: T
+	let mut sumW: T
+	mut i := 0
+	for i < len(x); i++ {
+		w := weights[i]
+		sumX += w * x[i]
+		sumW += w
+	}
+	ret sumX / sumW
+}
