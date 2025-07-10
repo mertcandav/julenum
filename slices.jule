@@ -1,0 +1,24 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Returns the maximum value in the slice.
+// If len(s) == 0, it panics.
+//
+// Special cases are:
+//	- Max(...) = NaN, if any value is NaN
+#disable boundary
+fn Max[T: integer | float](s: ...T): T {
+	if len(s) == 0 {
+		panic("Max: len(s) == 0")
+	}
+	mut max := s[0]
+	mut i := 0
+	for i < len(s); i++ {
+		x := s[i]
+		if max < x {
+			max = x
+		}
+	}
+	ret max
+}
