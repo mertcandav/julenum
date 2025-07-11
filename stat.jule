@@ -100,7 +100,7 @@ fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use an f64 data set.
 #disable boundary
-fn MeanGeom[T: integer | float](x: []T): T {
+fn GeometricMean[T: integer | float](x: []T): T {
 	if len(x) == 0 {
 		ret 0
 	}
@@ -121,7 +121,7 @@ fn MeanGeom[T: integer | float](x: []T): T {
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use an f64 data set.
 #disable boundary
-fn MeanHarmo[T: integer | float](x: []T): T {
+fn HarmonicMean[T: integer | float](x: []T): T {
 	if len(x) == 0 {
 		ret 0
 	}

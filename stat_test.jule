@@ -107,7 +107,7 @@ fn testMeanWeight(t: &testing::T) {
 	}
 }
 
-let testsMeanGeom: []meanTest = [
+let testsGeometricMean: []meanTest = [
 	{x: [], want: 0},
 	{x: [2, 4, 6, 8, 10], want: 5.210342169394704},
 	{x: [60, 90, 120], want: 86.53497421844448},
@@ -116,16 +116,16 @@ let testsMeanGeom: []meanTest = [
 ]
 
 #test
-fn testMeanGeom(t: &testing::T) {
-	for _, test in testsMeanGeom {
-		got := MeanGeom(test.x)
+fn testGeometricMean(t: &testing::T) {
+	for _, test in testsGeometricMean {
+		got := GeometricMean(test.x)
 		if !VeryClose(got, test.want) {
-			t.Errorf("MeanGeom({}) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("GeometricMean({}) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
 
-let testsMeanHarmo: []meanTest = [
+let testsHarmonicMean: []meanTest = [
 	{x: [], want: 0},
 	{x: [2, 4, 6, 8, 10], want: 4.37956204379562},
 	{x: [60, 90, 120], want: 83.076923076923087},
@@ -134,11 +134,11 @@ let testsMeanHarmo: []meanTest = [
 ]
 
 #test
-fn testMeanHarmo(t: &testing::T) {
-	for _, test in testsMeanHarmo {
-		got := MeanHarmo(test.x)
+fn testHarmonicMean(t: &testing::T) {
+	for _, test in testsHarmonicMean {
+		got := HarmonicMean(test.x)
 		if !VeryClose(got, test.want) {
-			t.Errorf("MeanHarmo({}) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("HarmonicMean({}) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
