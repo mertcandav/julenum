@@ -161,6 +161,24 @@ fn testHarmonicMean(t: &testing::T) {
 	}
 }
 
+#test
+fn testHarmonicMeanWeight(t: &testing::T) {
+	for _, test in testsHarmonicMean {
+		mut got := HarmonicMeanWeight(test.x, nil)
+		if !VeryClose(got, test.want) {
+			t.Errorf("HarmonicMeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+		}
+		mut ones := make([]f64, len(test.x))
+		for i in ones {
+			ones[i] = 1
+		}
+		got = HarmonicMeanWeight(test.x, ones)
+		if !VeryClose(got, test.want) {
+			t.Errorf("HarmonicMeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
+
 let testsRootMeanSquare: []meanTest = [
 	{x: [], want: 0},
 	{x: [3, 4], want: 3.5355339059327378},

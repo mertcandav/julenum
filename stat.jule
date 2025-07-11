@@ -128,7 +128,7 @@ fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): T {
 		ret GeometricMean(x)
 	}
 	if len(x) != len(weights) {
-		panic("julenum: MeanWeight: len(x) != len(weights)")
+		panic("julenum: GeometricMeanWeight: len(x) != len(weights)")
 	}
 	mut logSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -160,6 +160,35 @@ fn HarmonicMean[T: integer | float](x: []T): T {
 		z += 1 / f64(x[i])
 	}
 	ret T(f64(len(x)) / z)
+}
+
+// Computes the weighted harmonic mean of the data set x.
+//
+// Mathematically, the weighted harmonic mean is defined as:
+//	H = Σ_i [ w_i ] / Σ_i [ w_i/x_i ]
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use an f64 data set.
+#disable boundary
+fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): T {
+	if len(weights) == 0 {
+		ret HarmonicMean(x)
+	}
+	if len(x) != len(weights) {
+		panic("julenum: HarmonicMeanWeight: len(x) != len(weights)")
+	}
+	mut weightedSum, mut weightsSum := 0.0, 0.0
+	mut i := 0
+	for i < len(x); i++ {
+		w := f64(weights[i])
+		weightedSum += w / f64(x[i])
+		weightsSum += w
+	}
+	ret T(weightsSum / weightedSum)
 }
 
 // Computes the root mean square of the data set x.
