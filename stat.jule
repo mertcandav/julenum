@@ -132,3 +132,25 @@ fn HarmonicMean[T: integer | float](x: []T): T {
 	}
 	ret T(f64(len(x)) / z)
 }
+
+// Computes the root mean square of the data set x.
+//
+// Mathematically, the root mean square is defined as:
+//	RMS = √ (Σ_i [ x_i² ] / n)
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use an f64 data set.
+#disable boundary
+fn RootMeanSquare[T: integer | float](x: []T): T {
+	if len(x) == 0 {
+		ret 0
+	}
+	let mut z: T
+	mut i := 0
+	for i < len(x); i++ {
+		z += x[i] * x[i]
+	}
+	z = z / T(len(x))
+	ret T(math::Sqrt(f64(z)))
+}

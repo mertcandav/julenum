@@ -142,3 +142,25 @@ fn testHarmonicMean(t: &testing::T) {
 		}
 	}
 }
+
+let testsRootMeanSquare: []meanTest = [
+	{x: [], want: 0},
+	{x: [3, 4], want: 3.5355339059327378},
+	{x: [1, 2, 3, 4, 5], want: 3.3166247903554},
+	{x: [-1, -2, -3, -4, -5], want: 3.3166247903554},
+	{x: [10, 10, 10, 10], want: 10},
+	{x: [0, 10], want: 7.0710678118654755},
+	{x: [0.1, 0.2, 0.3], want: 0.21602468994692867},
+	{x: [-3, 4], want: 3.5355339059327378},
+	{x: [6, 8], want: 7.0710678118654755},
+]
+
+#test
+fn testRootMeanSquare(t: &testing::T) {
+	for _, test in testsRootMeanSquare {
+		got := RootMeanSquare(test.x)
+		if !VeryClose(got, test.want) {
+			t.Errorf("RootMeanSquare({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
