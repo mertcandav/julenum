@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package dual provides the dual numeric type and functions. Dual numbers
-// are an extension of the real numbers in the form a+bϵ where ϵ^2=0, but ϵ≠0.
+// are an extension of the real numbers in the form a+bϵ where ϵ²=0, but ϵ≠0.
 //
 // See https://en.wikipedia.org/wiki/Dual_number for details of their properties
 // and uses.

@@ -461,7 +461,7 @@ impl Matrix {
 		// Total common buffer allocation size estimation for Strassen implementation:
 		// Let n = size
 		// - Padded matrices (worst case): 3n² (A, B, and C)
-		// - Recursive temporary space per level: 17 × (n/2)^2 = (17/4) × n²
+		// - Recursive temporary space per level: 17 × (n/2)² = (17/4) × n²
 		// - Depth of recursion: log₂(n / threshold)
 		// - Recursive workspace total:
 		//   S(n) = (17/4)n² + (17/4)(n/2)² + ... + (17/4)(threshold)²

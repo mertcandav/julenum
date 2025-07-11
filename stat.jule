@@ -8,10 +8,10 @@ use "std/math"
 // The lengths of obs and exp must be equal, otherwise it panics.
 //
 // Mathematically, the chi-square statistic is defined as:
-//	χ² = Σ_i [ (O_i - E_i)² / E_i ]
+//	χ² = Σᵢ [ (Oᵢ - Eᵢ)² / Eᵢ ]
 //	where:
-//		O_i = observed value at index i,
-//		E_i = expected value at index i,
+//		Oᵢ = observed value at index i,
+//		Eᵢ = expected value at index i,
 //		and the summation is over all elements.
 #disable boundary
 fn ChiSquare[T: float](obs: []T, exp: []T): T {
@@ -35,7 +35,7 @@ fn ChiSquare[T: float](obs: []T, exp: []T): T {
 // The lengths of x and y must be equal, otherwise it panics.
 //
 // Mathematically, the chi-square distance is defined as:
-//	χ² = 1/2 * Σ_i [ (x_i - y_i)² / (x_i + y_i) ]
+//	χ² = 1/2 * Σᵢ [ (xᵢ - yᵢ)² / (xᵢ + yᵢ) ]
 #disable boundary
 fn ChiSquareDistance[T: float](x: []T, y: []T): T {
 	if len(x) != len(y) {
@@ -57,7 +57,7 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): T {
 // Computes the mean of the data set x.
 //
 // Mathematically, the mean is defined as:
-//	Mean = Σ_i [ x_i ] / n
+//	Mean = Σᵢ [ xᵢ ] / n
 fn Mean[T: integer | float](x: []T): T {
 	if len(x) == 0 {
 		ret 0
@@ -68,7 +68,7 @@ fn Mean[T: integer | float](x: []T): T {
 // Computes the weighted mean of the data set x.
 //
 // Mathematically, the weighted mean is defined as:
-//	Mean = Σ_i [ w_i * x_i ] / Σ_i [ w_i ]
+//	Mean = Σᵢ [ wᵢ * xᵢ ] / Σᵢ [ wᵢ ]
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
@@ -114,7 +114,7 @@ fn GeometricMean[T: integer | float](x: []T): T {
 // Computes the weighted geometric mean of the data set x.
 //
 // Mathematically, the weighted geometric mean is defined as:
-//	G = (x₁^w₁ * x₂^w₂ * ... * xₙ^wₙ)^(1 / Σ_i [ w_i ])
+//	G = (x₁^w₁ * x₂^w₂ * ... * xₙ^wₙ)^(1 / Σᵢ [ wᵢ ])
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
@@ -144,7 +144,7 @@ fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Computes the harmonic mean of the data set x.
 //
 // Mathematically, the harmonic mean is defined as:
-//	H = n / Σ_i [ 1 / x_i ]
+//	H = n / Σᵢ [ 1 / xᵢ ]
 //
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
@@ -165,7 +165,7 @@ fn HarmonicMean[T: integer | float](x: []T): T {
 // Computes the weighted harmonic mean of the data set x.
 //
 // Mathematically, the weighted harmonic mean is defined as:
-//	H = Σ_i [ w_i ] / Σ_i [ w_i/x_i ]
+//	H = Σᵢ [ wᵢ ] / Σᵢ [ wᵢ/xᵢ ]
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
@@ -194,7 +194,7 @@ fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Computes the root mean square of the data set x.
 //
 // Mathematically, the root mean square is defined as:
-//	RMS = √(Σ_i [ x_i² ] / n)
+//	RMS = √(Σᵢ [ xᵢ² ] / n)
 //
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
@@ -216,7 +216,7 @@ fn RootMeanSquare[T: integer | float](x: []T): T {
 // Computes the weighted root mean square of the data set x.
 //
 // Mathematically, the weighted root mean square is defined as:
-//	RMS = √(Σ_i [ w_i*x_i² ] / Σ_i [ w_i ])
+//	RMS = √(Σᵢ [ wᵢ*xᵢ² ] / Σᵢ [ wᵢ ])
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
@@ -245,7 +245,7 @@ fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): T {
 // Computes the circular mean of the data set x.
 //
 // Mathematically, the circular mean is defined as:
-//	x̄ = atan2(Σ_i [ sin(x_i) ], Σ_i [ cos(x_i) ])
+//	x̄ = atan2(Σᵢ [ sin(xᵢ) ], Σᵢ [ cos(xᵢ) ])
 //
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
@@ -268,7 +268,7 @@ fn CircularMean[T: integer | float](x: []T): T {
 // Computes the weighted circular mean of the data set x.
 //
 // Mathematically, the weighted circular mean is defined as:
-//	x̄ = atan2(Σ_i [ w_i * sin(x_i) ], Σ_i [ w_i * cos(x_i) ])
+//	x̄ = atan2(Σᵢ [ wᵢ * sin(xᵢ) ], Σᵢ [ wᵢ * cos(xᵢ) ])
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).

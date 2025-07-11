@@ -75,7 +75,7 @@ impl Vector3 {
 
 	// Sets self to the x vector rotated by quaternion q.
 	fn RotateQuat(mut *self, &x: *Vector3, mut q: quat::Quat) {
-		// q * x * q^-1
+		// q * x * q⁻¹
 		mut xq := quat::Quat{0, x.X, x.Y, x.Z}
 		xq.Mul(&q, &xq)
 		q.Conj(&q)
