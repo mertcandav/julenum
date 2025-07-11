@@ -164,3 +164,25 @@ fn testRootMeanSquare(t: &testing::T) {
 		}
 	}
 }
+
+let testsCircularMean: []meanTest = [
+	{x: [], want: 0},
+	{x: [3, 4], want: -2.7831853071795867},
+	{x: [1, 2, 3, 4, 5], want: 3},
+	{x: [-1, -2, -3, -4, -5], want: -3},
+	{x: [10, 10, 10, 10], want: -2.566370614359173},
+	{x: [0, 10], want: -1.2831853071795865},
+	{x: [0.1, 0.2, 0.3], want: 0.19999999999999996},
+	{x: [-3, 4], want: -2.641592653589793},
+	{x: [6, 8], want: 0.7168146928204135},
+]
+
+#test
+fn testCircularMean(t: &testing::T) {
+	for _, test in testsCircularMean {
+		got := CircularMean(test.x)
+		if !VeryClose(got, test.want) {
+			t.Errorf("CircularMean({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}

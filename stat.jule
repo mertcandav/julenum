@@ -154,3 +154,26 @@ fn RootMeanSquare[T: integer | float](x: []T): T {
 	z = z / T(len(x))
 	ret T(math::Sqrt(f64(z)))
 }
+
+// Computes the circular mean of the data set x.
+//
+// Mathematically, the circular mean is defined as:
+//	a̅ = atan2(Σ_i [ sin(x_i) ], Σ_i [ cos(x_i) ])
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use an f64 data set.
+#disable boundary
+fn CircularMean[T: integer | float](x: []T): T {
+	if len(x) == 0 {
+		ret 0
+	}
+	mut sumSin, mut sumCos := 0.0, 0.0
+	mut i := 0
+	for i < len(x); i++ {
+		sumSin += math::Sin(f64(x[i]))
+		sumCos += math::Cos(f64(x[i]))
+	}
+
+	ret T(math::Atan2(sumSin, sumCos))
+}
