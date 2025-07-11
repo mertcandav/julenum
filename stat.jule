@@ -194,7 +194,7 @@ fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Computes the root mean square of the data set x.
 //
 // Mathematically, the root mean square is defined as:
-//	RMS = √ (Σ_i [ x_i² ] / n)
+//	RMS = √(Σ_i [ x_i² ] / n)
 //
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
@@ -209,8 +209,37 @@ fn RootMeanSquare[T: integer | float](x: []T): T {
 	for i < len(x); i++ {
 		z += x[i] * x[i]
 	}
-	z = z / T(len(x))
+	z /= T(len(x))
 	ret T(math::Sqrt(f64(z)))
+}
+
+// Computes the weighted root mean square of the data set x.
+//
+// Mathematically, the weighted root mean square is defined as:
+//	RMS = √(Σ_i [ w_i*x_i² ] / Σ_i [ w_i ])
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use an f64 data set.
+#disable boundary
+fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): T {
+	if len(weights) == 0 {
+		ret RootMeanSquare(x)
+	}
+	if len(x) != len(weights) {
+		panic("julenum: RootMeanSquareWeight: len(x) != len(weights)")
+	}
+	mut weightedSum, mut weightsSum := T(0), T(0)
+	mut i := 0
+	for i < len(x); i++ {
+		w_i, x_i := weights[i], x[i]
+		weightedSum += w_i * x_i * x_i
+		weightsSum += w_i
+	}
+	ret T(math::Sqrt(f64(weightedSum / weightsSum)))
 }
 
 // Computes the circular mean of the data set x.

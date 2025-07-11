@@ -201,6 +201,24 @@ fn testRootMeanSquare(t: &testing::T) {
 	}
 }
 
+#test
+fn testRootMeanSquareWeight(t: &testing::T) {
+	for _, test in testsRootMeanSquare {
+		mut got := RootMeanSquareWeight(test.x, nil)
+		if !VeryClose(got, test.want) {
+			t.Errorf("RootMeanSquareWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+		}
+		mut ones := make([]f64, len(test.x))
+		for i in ones {
+			ones[i] = 1
+		}
+		got = RootMeanSquareWeight(test.x, ones)
+		if !VeryClose(got, test.want) {
+			t.Errorf("RootMeanSquareWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
+
 let testsCircularMean: []meanTest = [
 	{x: [], want: 0},
 	{x: [3, 4], want: -2.7831853071795867},
