@@ -240,3 +240,21 @@ fn testCircularMean(t: &testing::T) {
 		}
 	}
 }
+
+#test
+fn testCircularMeanWeight(t: &testing::T) {
+	for _, test in testsCircularMean {
+		mut got := CircularMeanWeight(test.x, nil)
+		if !VeryClose(got, test.want) {
+			t.Errorf("CircularMeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+		}
+		mut ones := make([]f64, len(test.x))
+		for i in ones {
+			ones[i] = 1
+		}
+		got = CircularMeanWeight(test.x, ones)
+		if !VeryClose(got, test.want) {
+			t.Errorf("CircularMeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}

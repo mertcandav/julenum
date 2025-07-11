@@ -245,7 +245,7 @@ fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): T {
 // Computes the circular mean of the data set x.
 //
 // Mathematically, the circular mean is defined as:
-//	a̅ = atan2(Σ_i [ sin(x_i) ], Σ_i [ cos(x_i) ])
+//	x̄ = atan2(Σ_i [ sin(x_i) ], Σ_i [ cos(x_i) ])
 //
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
@@ -258,9 +258,38 @@ fn CircularMean[T: integer | float](x: []T): T {
 	mut sumSin, mut sumCos := 0.0, 0.0
 	mut i := 0
 	for i < len(x); i++ {
-		sumSin += math::Sin(f64(x[i]))
-		sumCos += math::Cos(f64(x[i]))
+		x_i := f64(x[i])
+		sumSin += math::Sin(x_i)
+		sumCos += math::Cos(x_i)
 	}
+	ret T(math::Atan2(sumSin, sumCos))
+}
 
+// Computes the weighted circular mean of the data set x.
+//
+// Mathematically, the weighted circular mean is defined as:
+//	x̄ = atan2(Σ_i [ w_i * sin(x_i) ], Σ_i [ w_i * cos(x_i) ])
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use an f64 data set.
+#disable boundary
+fn CircularMeanWeight[T: integer | float](x: []T, weights: []T): T {
+	if len(weights) == 0 {
+		ret CircularMean(x)
+	}
+	if len(x) != len(weights) {
+		panic("julenum: CircularMeanWeight: len(x) != len(weights)")
+	}
+	mut sumSin, mut sumCos := 0.0, 0.0
+	mut i := 0
+	for i < len(x); i++ {
+		w_i, x_i := f64(weights[i]), f64(x[i])
+		sumSin += w_i * math::Sin(x_i)
+		sumCos += w_i * math::Cos(x_i)
+	}
 	ret T(math::Atan2(sumSin, sumCos))
 }
