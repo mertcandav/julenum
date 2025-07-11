@@ -293,3 +293,40 @@ fn CircularMeanWeight[T: integer | float](x: []T, weights: []T): T {
 	}
 	ret T(math::Atan2(sumSin, sumCos))
 }
+
+fn medianInPlace[T: integer | float](mut x: []T): f64 {
+	n := len(x)
+	mid := n >> 1
+	if n&1 == 1 {
+		ret quickSelect(x, mid)
+	}
+	// For even n, average two middle values.
+	lo := quickSelect(x, mid-1)
+	hi := quickSelect(x, mid)
+	ret (lo + hi) / 2
+}
+
+// Computes the median of the data set x.
+// This function allocates a new copy of x to avoid modifying the original data.
+// If preserving the original data is not necessary or x won't be used afterward,
+// consider using MedianInPlace for better performance and zero allocation.
+#disable boundary
+fn Median[T: integer | float](x: []T): f64 {
+	if len(x) == 0 {
+		panic("julenum: Median: median of empty slice")
+	}
+	mut xc := make([]T, len(x))
+	copy(xc, x)
+	ret medianInPlace(xc)
+}
+
+// Computes the median of the data set x in-place (modifies x).
+// This function mutates the input slice, and its final ordering is undefined.
+// Designed for zero-allocation, memory-efficient use cases.
+// If the original data must be preserved or x will be used afterward, use Median instead.
+fn MedianInPlace[T: integer | float](mut x: []T): f64 {
+	if len(x) == 0 {
+		panic("julenum: MedianInPlace: median of empty slice")
+	}
+	medianInPlace(x)
+}

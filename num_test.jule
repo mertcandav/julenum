@@ -27,7 +27,7 @@ let testsEqual: []xybTest = [
 ]
 
 #test
-fn tesEqual(t: &testing::T) {
+fn testEqual(t: &testing::T) {
 	for _, test in testsEqual {
 		r := Equal(test.x, test.y)
 		if r != test.r {
@@ -54,7 +54,7 @@ let testsSame: []xybTest = [
 ]
 
 #test
-fn tesSame(t: &testing::T) {
+fn testSame(t: &testing::T) {
 	for _, test in testsSame {
 		r := Same(test.x, test.y)
 		if r != test.r {

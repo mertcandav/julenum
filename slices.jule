@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use "std/math"
+use "std/math/rand"
 
 // Returns the maximum value of the slice.
 // If len(s) == 0, it panics.
@@ -141,4 +142,44 @@ fn nor1(n: int): int {
 		ret n
 	}
 	ret 1
+}
+
+#disable boundary
+fn quickSelect[T: comparable](mut x: []T, k: int): T {
+	mut left, mut right := 0, len(x)-1
+	for {
+		if left == right {
+			ret x[left]
+		}
+
+		// Pivot selection (randomized for performance).
+		mut pivotIndex := rand::IntN(right-left+1) + left
+		pivotIndex = partition(x, left, right, pivotIndex)
+
+		if k == pivotIndex {
+			ret x[k]
+		} else if k < pivotIndex {
+			right = pivotIndex - 1
+		} else {
+			left = pivotIndex + 1
+		}
+	}
+}
+
+// Rearranges elements and returns the pivot's final index.
+fn partition[T: comparable](mut x: []T, left: int, right: int, pivotIndex: int): int {
+	pivotValue := x[pivotIndex]
+	// Move pivot to end.
+	x[pivotIndex], x[right] = x[right], x[pivotIndex]
+	mut storeIndex := left
+	mut i := left
+	for i < right; i++ {
+		if x[i] < pivotValue {
+			x[i], x[storeIndex] = x[storeIndex], x[i]
+			storeIndex++
+		}
+	}
+	// Move pivot to its final place.
+	x[storeIndex], x[right] = x[right], x[storeIndex]
+	ret storeIndex
 }

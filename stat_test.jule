@@ -258,3 +258,23 @@ fn testCircularMeanWeight(t: &testing::T) {
 		}
 	}
 }
+
+let testsMedian: []meanTest = [
+	{x: [1, 2, 3.3, 4], want: 2.65},
+	{x: [1, 2, 3, 4], want: 2.5},
+	{x: [1, 2, 3, 4, 5], want: 3},
+	{x: [-2, -1, 0, 1, 2], want: 0},
+	{x: [-2, -1, 1, 2], want: 0},
+	{x: [-2, -1, 2, 2], want: 0.5},
+	{x: [-100, 1], want: -49.5},
+]
+
+#test
+fn testMedian(t: &testing::T) {
+	for _, test in testsMedian {
+		mut got := Median(test.x)
+		if !VeryClose(got, test.want) {
+			t.Errorf("Median({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
