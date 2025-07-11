@@ -125,6 +125,24 @@ fn testGeometricMean(t: &testing::T) {
 	}
 }
 
+#test
+fn testGeometricMeanWeight(t: &testing::T) {
+	for _, test in testsGeometricMean {
+		mut got := GeometricMeanWeight(test.x, nil)
+		if !VeryClose(got, test.want) {
+			t.Errorf("GeometricMeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+		}
+		mut ones := make([]f64, len(test.x))
+		for i in ones {
+			ones[i] = 1
+		}
+		got = GeometricMeanWeight(test.x, ones)
+		if !VeryClose(got, test.want) {
+			t.Errorf("GeometricMeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
+
 let testsHarmonicMean: []meanTest = [
 	{x: [], want: 0},
 	{x: [2, 4, 6, 8, 10], want: 4.37956204379562},

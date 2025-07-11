@@ -70,7 +70,7 @@ fn Mean[T: integer | float](x: []T): T {
 // Mathematically, the weighted mean is defined as:
 //	Mean = Σ_i [ w_i * x_i ] / Σ_i [ w_i ]
 //
-// If len(weights) = 0, then all of the weights are 1.
+// If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
 #disable boundary
 fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
@@ -99,17 +99,46 @@ fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use an f64 data set.
-#disable boundary
 fn GeometricMean[T: integer | float](x: []T): T {
 	if len(x) == 0 {
 		ret 0
 	}
-	mut z := x[0]
-	mut i := 1
-	for i < len(x); i++ {
-		z *= x[i]
+	mut logSum := 0.0
+	for _, x_i in x {
+		logSum += math::Log(f64(x_i))
 	}
-	ret T(math::Pow(f64(z), 1/f64(len(x))))
+	logSum /= f64(len(x))
+	ret T(math::Exp(logSum))
+}
+
+// Computes the weighted geometric mean of the data set x.
+//
+// Mathematically, the weighted geometric mean is defined as:
+//	G = (x₁^w₁ * x₂^w₂ * ... * xₙ^wₙ)^(1 / Σ_i [ w_i ])
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use an f64 data set.
+#disable boundary
+fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): T {
+	if len(weights) == 0 {
+		ret GeometricMean(x)
+	}
+	if len(x) != len(weights) {
+		panic("julenum: MeanWeight: len(x) != len(weights)")
+	}
+	mut logSum, mut weightsSum := 0.0, 0.0
+	mut i := 0
+	for i < len(x); i++ {
+		w := f64(weights[i])
+		logSum += w * math::Log(x[i])
+		weightsSum += w
+	}
+	logSum /= weightsSum
+	ret math::Exp(logSum)
 }
 
 // Computes the harmonic mean of the data set x.
