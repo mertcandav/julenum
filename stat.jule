@@ -532,9 +532,28 @@ fn Variance[T: integer | float](x: []T): f64 {
 	ret varX
 }
 
-// Computes the unbiased sample variance of the data set x.
+// Computes the weighted mean and the weighted unbiased sample variance of the data set x.
+// This is faster than calling MeanWeight and VarianceWeight functions separately.
+// Unlike MeanWeight, it returns mean in 64-bit floating-point precision.
 //
-// Mathematically, the unbiased sample variance is defined as:
+// Mathematically, the weighted mean is defined as:
+//	Mean = Σᵢ [ wᵢ * xᵢ ] / Σᵢ [ wᵢ ]
+//
+// Mathematically, the weighted unbiased sample variance is defined as:
+//	var(x) = Σᵢ [ wᵢ * (xᵢ - x̄)² ] / (Σᵢ [ wᵢ ] - 1)
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+fn MeanVarianceWeight[T: integer | float](x: []T, weights: []T): (f64, f64) {
+	if len(weights) != 0 && len(x) != len(weights) {
+		panic("julenum: MeanVarianceWeight: len(x) != len(weights)")
+	}
+	ret meanVariance(x, weights)
+}
+
+// Computes the weighted unbiased sample variance of the data set x.
+//
+// Mathematically, the weighted unbiased sample variance is defined as:
 //	var(x) = Σᵢ [ wᵢ * (xᵢ - x̄)² ] / (Σᵢ [ wᵢ ] - 1)
 //
 // If len(weights) == 0, then all of the weights are 1.
