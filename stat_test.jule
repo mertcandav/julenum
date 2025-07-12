@@ -369,3 +369,27 @@ fn testCorrelationWeight(t: &testing::T) {
 		}
 	}
 }
+
+let testsVariance: []correlationTest = [
+	{
+		x: [8, -3, 7, 8, -4],
+		want: 37.7,
+	},
+	{
+		x: [1, 2, 3, 4, 5, 6],
+		want: 3.5,
+	},
+]
+
+#test
+fn testVariance(t: &testing::T) {
+	for _, test in testsVariance {
+		if len(test.weights) != 0 {
+			continue
+		}
+		mut got := Variance(test.x)
+		if !VeryClose(got, test.want) {
+			t.Errorf("Variance({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}

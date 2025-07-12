@@ -376,9 +376,10 @@ fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 		compensationY += dy
 	}
 
-	varX -= compensationX * compensationX / f64(len(x))
-	varY -= compensationY * compensationY / f64(len(y))
-	covXY -= compensationX * compensationY / f64(len(x))
+	n := f64(len(x))
+	varX -= compensationX * compensationX / n
+	varY -= compensationY * compensationY / n
+	covXY -= compensationX * compensationY / n
 
 	denominator := math::Sqrt(varX * varY)
 	if denominator == 0 {
@@ -455,4 +456,66 @@ fn CorrelationWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	}
 
 	ret covXY / denominator
+}
+
+fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f64) {
+	// This function computes the variance using
+	// a numerically stable two-pass algorithm as recommended by:
+	// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
+	// “Algorithms for computing the sample variance: Analysis and recommendations”
+	//
+	// The two-pass method first computes the mean, then computes
+	// the variance and covariance using the means, reducing floating-point errors.
+
+	mut n := f64(len(x))
+	mut compensationX := 0.0
+	if len(weights) == 0 {
+		// Manually inlined version of the Mean function for x.
+		mut i := 0
+		for i < len(x); i++ {
+			meanX += f64(x[i])
+		}
+		meanX /= n
+
+		i = 0
+		for i < len(x); i++ {
+			dx := f64(x[i]) - meanX
+			varX += dx * dx
+			compensationX += dx
+		}
+	} else {
+		// Manually inlined version of the MeanWeight function for x.
+		mut sumW := 0.0
+		mut i := 0
+		for i < len(x); i++ {
+			wi := f64(weights[i])
+			meanX += wi * f64(x[i])
+			sumW += wi
+		}
+		n = sumW
+		meanX /= n
+
+		i = 0
+		for i < len(x); i++ {
+			wi := f64(weights[i])
+			dx := f64(x[i]) - meanX
+			widx := wi * dx
+			varX += widx * dx
+			compensationX += widx
+		}
+	}
+
+	varX -= compensationX * compensationX / n
+	varX /= n - 1
+	ret
+}
+
+// Computes the unbiased sample variance of the data set x.
+//
+// Mathematically, the unbiased sample variance is defined as:
+//	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
+#disable boundary
+fn Variance[T: integer | float](x: []T): f64 {
+	_, varX := meanVariance(x, nil)
+	ret varX
 }
