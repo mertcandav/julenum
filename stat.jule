@@ -510,6 +510,19 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 	ret
 }
 
+// Computes the mean and the unbiased sample variance of the data set x.
+// This is faster than calling Mean and Variance functions separately.
+// Unlike Mean, it returns mean in 64-bit floating-point precision.
+//
+// Mathematically, the mean is defined as:
+//	Mean = Σᵢ [ xᵢ ] / n
+//
+// Mathematically, the unbiased sample variance is defined as:
+//	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
+fn MeanVariance[T: integer | float](x: []T): (f64, f64) {
+	ret meanVariance(x, nil)
+}
+
 // Computes the unbiased sample variance of the data set x.
 //
 // Mathematically, the unbiased sample variance is defined as:
