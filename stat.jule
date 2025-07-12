@@ -514,8 +514,22 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 //
 // Mathematically, the unbiased sample variance is defined as:
 //	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
-#disable boundary
 fn Variance[T: integer | float](x: []T): f64 {
 	_, varX := meanVariance(x, nil)
+	ret varX
+}
+
+// Computes the unbiased sample variance of the data set x.
+//
+// Mathematically, the unbiased sample variance is defined as:
+//	var(x) = Σᵢ [ wᵢ * (xᵢ - x̄)² ] / (Σᵢ [ wᵢ ] - 1)
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) != 0 && len(x) != len(weights) {
+		panic("julenum: VarianceWeight: len(x) != len(weights)")
+	}
+	_, varX := meanVariance(x, weights)
 	ret varX
 }
