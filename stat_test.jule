@@ -280,9 +280,10 @@ fn testMedian(t: &testing::T) {
 }
 
 struct correlationTest {
-	x:    []f64
-	y:    []f64
-	want: f64
+	x:       []f64
+	y:       []f64
+	weights: []f64
+	want:    f64
 }
 
 let testsCorrelation: []correlationTest = [
@@ -307,6 +308,12 @@ let testsCorrelation: []correlationTest = [
 		want: -1,
 	},
 	{
+		x: [-1, -2, -3, -4, -5, -6],
+		y: [1, 2, 3, 4, 5, 6],
+		weights: [1, 1, 1, 1, 1, 1],
+		want: -1,
+	},
+	{
 		x: [1, 2, 334, 4, 5, 6],
 		y: [1, 2, 333, 4, 52, 6],
 		want: 0.9897970931668703,
@@ -326,14 +333,39 @@ let testsCorrelation: []correlationTest = [
 		y: [-10, -15, -4, -5, -1],
 		want: -0.3089443513476705,
 	},
+	{
+		x: [8, 3, 7, 8, -4],
+		y: [-10, -15, -4, -5, -1],
+		weights: [1, 4, 5, 10, 4],
+		want: -0.15071708335614534,
+	},
+	{
+		x: [8, -3, 7, 8, -4],
+		y: [10, 15, 4, 5, -1],
+		weights: [1, 3, 1, 2, 2],
+		want: -0.13966633352688942,
+	},
 ]
 
 #test
 fn testCorrelation(t: &testing::T) {
 	for _, test in testsCorrelation {
+		if len(test.weights) != 0 {
+			continue
+		}
 		mut got := Correlation(test.x, test.y)
 		if got != test.want {
 			t.Errorf("Correlation({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
+		}
+	}
+}
+
+#test
+fn testCorrelationWeight(t: &testing::T) {
+	for _, test in testsCorrelation {
+		mut got := CorrelationWeight(test.x, test.y, test.weights)
+		if got != test.want {
+			t.Errorf("CorrelationWeight({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
 		}
 	}
 }

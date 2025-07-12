@@ -387,3 +387,72 @@ fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 
 	ret covXY / denominator
 }
+
+// Computes the weighted Pearson correlation coefficient between two data sets x and y.
+// Length of data sets must be equal. Returns 0 if lenghts are zero.
+//
+// Mathematically, the weighted Pearson correlation coefficient is defined as:
+//	r_w = Σᵢ [ wᵢ * (xᵢ - x̄_w)(yᵢ - ȳ_w) ] / √(Σᵢ [ wᵢ * (xᵢ - x̄_w)² ]) * √(Σᵢ [ wᵢ * (yᵢ - ȳ_w)² ])
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to the data sets lengths.
+#disable boundary
+fn CorrelationWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
+	// This function computes the Pearson correlation coefficient using
+	// a numerically stable two-pass algorithm as recommended by:
+	// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
+	// “Algorithms for computing the sample variance: Analysis and recommendations”
+	//
+	// The two-pass method first computes the mean, then computes
+	// the variance and covariance using the means, reducing floating-point errors.
+
+	if len(weights) == 0 {
+		ret Correlation(x, y)
+	}
+
+	if len(x) != len(y) || len(x) != len(weights) {
+		panic("julenum: CorrelationWeight: len(x) != len(y) != len(weights)")
+	}
+	if len(x) == 0 {
+		ret 0
+	}
+
+	// Manually inlined version of the MeanWeight function for x and y.
+	mut meanX, mut meanY, mut sumW := 0.0, 0.0, 0.0
+	mut i := 0
+	for i < len(x); i++ {
+		wi := f64(weights[i])
+		meanX += wi * f64(x[i])
+		meanY += wi * f64(y[i])
+		sumW += wi
+	}
+	meanX /= sumW
+	meanY /= sumW
+
+	mut varX, mut varY, mut covXY := 0.0, 0.0, 0.0
+	mut compensationX, mut compensationY := 0.0, 0.0
+	i = 0
+	for i < len(x); i++ {
+		dx := f64(x[i]) - meanX
+		dy := f64(y[i]) - meanY
+		wi := f64(weights[i])
+		widx := wi * dx
+		widy := wi * dy
+		varX += widx * dx
+		varY += widy * dy
+		covXY += widx * dy
+		compensationX += widx
+		compensationY += widy
+	}
+
+	varX -= compensationX * compensationX / sumW
+	varY -= compensationY * compensationY / sumW
+	covXY -= compensationX * compensationY / sumW
+
+	denominator := math::Sqrt(varX * varY)
+	if denominator == 0 {
+		ret 0
+	}
+
+	ret covXY / denominator
+}
