@@ -278,3 +278,62 @@ fn testMedian(t: &testing::T) {
 		}
 	}
 }
+
+struct correlationTest {
+	x:    []f64
+	y:    []f64
+	want: f64
+}
+
+let testsCorrelation: []correlationTest = [
+	{
+		x: [],
+		y: [],
+		want: 0,
+	},
+	{
+		x: [1, 2, 3, 4, 5, 6],
+		y: [1, 2, 3, 4, 5, 6],
+		want: 1,
+	},
+	{
+		x: [1.1, 2.2, 3.3, 4.4, 5.5, 6.6],
+		y: [1, 2, 3, 4, 5, 6],
+		want: 1,
+	},
+	{
+		x: [-1, -2, -3, -4, -5, -6],
+		y: [1, 2, 3, 4, 5, 6],
+		want: -1,
+	},
+	{
+		x: [1, 2, 334, 4, 5, 6],
+		y: [1, 2, 333, 4, 52, 6],
+		want: 0.9897970931668703,
+	},
+	{
+		x: [1, 2, 334, 4, 5, 6],
+		y: [1, 2, 333, 4, 52, 6],
+		want: 0.9897970931668703,
+	},
+	{
+		x: [8, -3, 7, 8, -4],
+		y: [10, 15, 4, 5, -1],
+		want: 0.009333466076905933,
+	},
+	{
+		x: [8, 3, 7, 8, -4],
+		y: [-10, -15, -4, -5, -1],
+		want: -0.3089443513476705,
+	},
+]
+
+#test
+fn testCorrelation(t: &testing::T) {
+	for _, test in testsCorrelation {
+		mut got := Correlation(test.x, test.y)
+		if got != test.want {
+			t.Errorf("Correlation({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
+		}
+	}
+}
