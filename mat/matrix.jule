@@ -690,10 +690,8 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 //	])
 //
 //	Equals to:
-//		    ╭       ╮
-//		    │ 1 2 4 │
-//		A = │ 3 4 5 │
-//		    ╰       ╯(2×3)
+//		A = ⎡1 2 4⎤
+//		    ⎣3 4 5⎦(2×3)
 #disable boundary
 fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 	m := len(values)

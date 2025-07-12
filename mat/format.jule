@@ -1,0 +1,163 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/comptime"
+use "std/conv"
+use "std/unsafe"
+
+fn appendNumeric[T: numeric](mut buf: []byte, t: T): []byte {
+	const match comptime::TypeOf(T).Kind() {
+	| comptime::Cmplx64 | comptime::Cmplx128:
+		ret append(buf, conv::FormatCmplx(cmplx128(t), 'g', -1, 128)...)
+	| comptime::F32 | comptime::F64:
+		ret conv::AppendFloat(buf, f64(t), 'g', -1, 64)
+	| comptime::Int | comptime::I8 | comptime::I16 | comptime::I32 | comptime::I64:
+		ret conv::AppendInt(buf, i64(t), 10)
+	| comptime::Uint | comptime::Uintptr | comptime::U8 | comptime::U16 | comptime::U32 | comptime::U64:
+		ret conv::AppendUint(buf, u64(t), 10)
+	}
+	panic("unreachable")
+}
+
+#disable boundary
+fn appendFormatMatrix[T: numeric](&m: *Matrix[T], mut buf: []byte, wsn: int): []byte {
+	// (0×0) matrix.
+	if m.n == 0 || m.m == 0 {
+		ret append(buf, '[', ']') // []
+	}
+
+	fri := m.m - 1 // final row index
+	fci := m.n - 1 // final column index
+
+	// Maximum element lengths of columns, mapped by index.
+	mut colMax := map[int]int{}
+	// Last element length of columns, mapped by index.
+	mut colLen := map[int]int{}
+
+	// Convert all elements to string.
+	mut strMatrix := make([][]byte, len(m.data))
+	for i, v in m.data {
+		// Get string value of the element.
+		mut e := appendNumeric(nil, v)
+
+		// Memoize length of the maximum element of columns.
+		columnIndex := i / m.m
+		max := colMax[columnIndex]
+		if max < len(e) {
+			colMax[columnIndex] = len(e)
+		}
+
+		strMatrix[i] = e
+	}
+
+	mut j := 0 // row
+	for j < m.m; j++ {
+		if j > 0 {
+			buf = append(buf, '\n')
+		}
+		mut i := 0        // column
+		mut im := 0 * m.m // i * m.m
+		for i < m.n; i, im = i+1, im+m.m {
+			// We are in the left border of the matrix.
+			// Write special border runes.
+			if i == 0 {
+				if m.m == 1 {
+					// Single row.
+					buf = append(buf, 91) // [
+				} else {
+					match j {
+					| 0:
+						// Left-top corner of the matrix.
+						buf = append(buf, 226, 140, 136) // ⌈
+					| fri:
+						// Left-bottom corner of the matrix.
+						buf = append(buf, 226, 140, 138) // ⌊
+					|:
+						// Left border body of the matrix.
+						buf = append(buf, 124) // |
+					}
+				}
+			}
+
+			if i > 0 {
+				// We have to write whitespace to separate columns.
+				mut k := 0
+				for k < wsn; k++ {
+					buf = append(buf, ' ')
+				}
+
+				// Lookup for column length and add padding if needed
+				clen, ok := colLen[j]
+				if ok {
+					// Get maximum element length of the previous column.
+					mut max := colMax[i-1]
+
+					// Add whitespace padding for missing characters.
+					mut diff := max - clen
+					for diff > 0; diff-- {
+						buf = append(buf, ' ')
+					}
+				}
+			}
+
+			// Write the element.
+			v := strMatrix[j+im]
+
+			buf = append(buf, v...)
+			colLen[j] = len(v)
+
+			// We are in the right border of the matrix.
+			// Write special border runes.
+			if i == fci {
+				// Lookup for column length and add padding if needed.
+				max := colMax[i]
+				mut diff := max - len(v)
+				for diff > 0; diff-- {
+					buf = append(buf, ' ')
+				}
+
+				if m.m == 1 {
+					// Single row.
+					buf = append(buf, 93) // ]
+				} else {
+					match j {
+					| 0:
+						// Right-top corner of the matrix.
+						buf = append(buf, 226, 140, 137) // ⌉
+					| fri:
+						// Right-bottom corner of the matrix.
+						buf = append(buf, 226, 140, 139) // ⌋
+					|:
+						// Right border body of the matrix.
+						buf = append(buf, 124) // |
+					}
+				}
+			}
+		}
+	}
+	ret buf
+}
+
+impl Matrix {
+	// Returns string form of the matrix.
+	// wsn represents number of whitespaces between matrix elements.
+	// wsn will be considired as zero if wsn < 1.
+	// Default wsn value is 1.
+	fn Format(*self, wsn: int): str {
+		ret unsafe::StrFromBytes(appendFormatMatrix(self, nil, wsn))
+	}
+
+	// Appends string form of the matrix to buf and returns.
+	// wsn represents number of whitespaces between matrix elements.
+	// wsn will be considired as zero if wsn < 1.
+	// Default wsn value is 1.
+	fn AppendFormat(*self, mut buf: []byte, wsn: int): []byte {
+		ret appendFormatMatrix(self, buf, wsn)
+	}
+
+	// Returns string form of the matrix.
+	fn Str(*self): str {
+		ret unsafe::StrFromBytes(appendFormatMatrix(self, nil, 1))
+	}
+}
