@@ -338,11 +338,15 @@ fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 //
 // The two-pass method first computes the mean, then computes
 // the variance and covariance using the means, reducing floating-point errors.
-// The covariance results are unnormalised.
-fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64, meanX: f64, meanY: f64, varX: f64, varY: f64, covXY: f64) {
+//
+// The covariance results are unnormalised and may be used to compute biased and unbiased covariance;
+//	Biased covariance:   covXY / sumW
+//	Unbiased covariance: covXY / (sumW - sumW2/sumW)
+fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64, sumW2: f64, meanX: f64, meanY: f64, varX: f64, varY: f64, covXY: f64) {
 	mut compensationX, mut compensationY := 0.0, 0.0
 	if len(weights) == 0 {
 		sumW = f64(len(x))
+		sumW = sumW
 
 		// Manually inlined version of the Mean function for x and y.
 		mut i := 0
@@ -371,6 +375,7 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 			meanX += wi * f64(x[i])
 			meanY += wi * f64(y[i])
 			sumW += wi
+			sumW2 += wi * wi
 		}
 		meanX /= sumW
 		meanY /= sumW
@@ -410,7 +415,7 @@ fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
-	_, _, _, varX, varY, covXY := meanCovariance(x, y, nil)
+	_, _, _, _, varX, varY, covXY := meanCovariance(x, y, nil)
 	denominator := math::Sqrt(varX * varY)
 	if denominator == 0 {
 		ret 0
@@ -437,7 +442,7 @@ fn CorrelationWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
-	_, _, _, varX, varY, covXY := meanCovariance(x, y, weights)
+	_, _, _, _, varX, varY, covXY := meanCovariance(x, y, weights)
 	denominator := math::Sqrt(varX * varY)
 	if denominator == 0 {
 		ret 0
@@ -527,7 +532,7 @@ fn Covariance[T: integer | float](x: []T, y: []T): f64 {
 	if len(x) != len(y) {
 		panic("julenum: Covariance: len(x) != len(y)")
 	}
-	sumW, _, _, _, _, covXY := meanCovariance(x, y, nil)
+	sumW, _, _, _, _, _, covXY := meanCovariance(x, y, nil)
 	ret covXY / (sumW - 1)
 }
 
@@ -563,4 +568,26 @@ fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
 	}
 	_, varX := meanVariance(x, weights)
 	ret varX
+}
+
+// Computes the weighted unbiased sample covariance of the data sets x and y.
+// Length of data sets must be equal.
+//
+// Mathematically, the weighted unbiased sample covariance is defined as:
+//	var(x) = Σᵢ [ wᵢ * (xᵢ - x̄)(yᵢ - ȳ) ] / (Σᵢ [ wᵢ ] - (Σᵢ [ wᵢ² ] / Σᵢ [ wᵢ ]))
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to the data sets lengths.
+fn CovarianceWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
+	if len(weights) == 0 {
+		ret Covariance(x, y)
+	}
+	if len(weights) != 0 && len(x) != len(weights) {
+		panic("julenum: CovarianceWeight: len(x) != len(y) != len(weights)")
+	}
+	if len(x) != len(y) {
+		panic("julenum: CovarianceWeight: len(x) != len(y)")
+	}
+	sumW, sumW2, _, _, _, _, covXY := meanCovariance(x, y, weights)
+	ret covXY / (sumW - sumW2/sumW)
 }

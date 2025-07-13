@@ -272,7 +272,7 @@ let testsMedian: []meanTest = [
 #test
 fn testMedian(t: &testing::T) {
 	for _, test in testsMedian {
-		mut got := Median(test.x)
+		got := Median(test.x)
 		if !VeryClose(got, test.want) {
 			t.Errorf("Median({}) = {}, expected {}", test.x, got, test.want)
 		}
@@ -353,7 +353,7 @@ fn testCorrelation(t: &testing::T) {
 		if len(test.weights) != 0 {
 			continue
 		}
-		mut got := Correlation(test.x, test.y)
+		got := Correlation(test.x, test.y)
 		if got != test.want {
 			t.Errorf("Correlation({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
 		}
@@ -363,7 +363,7 @@ fn testCorrelation(t: &testing::T) {
 #test
 fn testCorrelationWeight(t: &testing::T) {
 	for _, test in testsCorrelation {
-		mut got := CorrelationWeight(test.x, test.y, test.weights)
+		got := CorrelationWeight(test.x, test.y, test.weights)
 		if got != test.want {
 			t.Errorf("CorrelationWeight({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
 		}
@@ -402,7 +402,7 @@ fn testVariance(t: &testing::T) {
 		if len(test.weights) != 0 {
 			continue
 		}
-		mut got := Variance(test.x)
+		got := Variance(test.x)
 		if !VeryClose(got, test.want) {
 			t.Errorf("Variance({}) = {}, expected {}", test.x, got, test.want)
 		}
@@ -412,7 +412,7 @@ fn testVariance(t: &testing::T) {
 #test
 fn testVarianceWeight(t: &testing::T) {
 	for _, test in testsVariance {
-		mut got := VarianceWeight(test.x, test.weights)
+		got := VarianceWeight(test.x, test.weights)
 		if !VeryClose(got, test.want) {
 			t.Errorf("VarianceWeight({}, {}) = {}, expected {}", test.x, test.weights, got, test.want)
 		}
@@ -523,9 +523,19 @@ fn testCovariance(t: &testing::T) {
 		if len(test.weights) > 0 {
 			continue
 		}
-		mut got := Covariance(test.x, test.y)
+		got := Covariance(test.x, test.y)
 		if !VeryClose(got, test.want) {
 			t.Errorf("Covariance({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
+		}
+	}
+}
+
+#test
+fn testCovarianceWeight(t: &testing::T) {
+	for _, test in testsCovariance {
+		got := CovarianceWeight(test.x, test.y, test.weights)
+		if !VeryClose(got, test.want) {
+			t.Errorf("CovarianceWeight({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
 		}
 	}
 }
