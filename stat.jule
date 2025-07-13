@@ -527,7 +527,7 @@ fn Variance[T: integer | float](x: []T): f64 {
 // Length of data sets must be equal.
 //
 // Mathematically, the unbiased sample covariance is defined as:
-//	var(x) = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / (n - 1)
+//	cov(x, y) = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / (n - 1)
 fn Covariance[T: integer | float](x: []T, y: []T): f64 {
 	if len(x) != len(y) {
 		panic("julenum: Covariance: len(x) != len(y)")
@@ -574,7 +574,7 @@ fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
 // Length of data sets must be equal.
 //
 // Mathematically, the weighted unbiased sample covariance is defined as:
-//	var(x) = Σᵢ [ wᵢ * (xᵢ - x̄)(yᵢ - ȳ) ] / (Σᵢ [ wᵢ ] - (Σᵢ [ wᵢ² ] / Σᵢ [ wᵢ ]))
+//	cov_w(x, y) = Σᵢ [ wᵢ * (xᵢ - x̄)(yᵢ - ȳ) ] / (Σᵢ [ wᵢ ] - (Σᵢ [ wᵢ² ] / Σᵢ [ wᵢ ]))
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to the data sets lengths.
@@ -590,4 +590,21 @@ fn CovarianceWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	}
 	sumW, sumW2, _, _, _, _, covXY := meanCovariance(x, y, weights)
 	ret covXY / (sumW - sumW2/sumW)
+}
+
+// Computes the Shannon entropy of a distribution or the distance between
+// two distributions using natural logarithm. Returns zero for empty slice.
+//
+// Mathematically, the Shannon entropy is defined as:
+//	-Σᵢ [ pᵢ * logₑ(pᵢ) ]
+fn Entropy[T: integer | float](p: []T): f64 {
+	mut e := 0.0
+	for _, x in p {
+		// 0 * logₑ(0) == 0
+		if x != 0 {
+			xf := f64(x)
+			e += xf * math::Log(xf)
+		}
+	}
+	ret -e
 }
