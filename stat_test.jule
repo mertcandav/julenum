@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
 use "std/testing"
 
 struct chiSquareTest {
@@ -554,6 +555,26 @@ fn testEntropy(t: &testing::T) {
 		got := Entropy(test.x)
 		if !VeryClose(got, test.want) {
 			t.Errorf("Entropy({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
+
+let testsCrossEntropy: []correlationTest = [
+	{x: [], y: [], want: 0},
+	{x: [0.5, 0.5], y: [0.5, 0.5], want: 0.6931471805599453},
+	{x: [1, 0], y: [0.1, 0.9], want: 2.302585092994046},
+	{x: [0.2, 0.3, 0.5], y: [0.7, 0.1, 0.2], want: 1.5668294729030103},
+	{x: [0.75, 0.1, 0.05, 0, 0, 0], y: [0.5, 0.25, 0.25, 0, 0, 0], want: 0.7278045395879426},
+	{x: [1], y: [0], want: math::Inf(1)},
+	{x: [1], y: [-0.1], want: math::NaN()},
+]
+
+#test
+fn testCrossEntropy(t: &testing::T) {
+	for _, test in testsCrossEntropy {
+		got := CrossEntropy(test.x, test.y)
+		if !Equal(got, test.want) && !VeryClose(got, test.want) {
+			t.Errorf("CrossEntropy({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
 		}
 	}
 }

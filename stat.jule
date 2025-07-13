@@ -599,11 +599,34 @@ fn CovarianceWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 //	-Σᵢ [ pᵢ * logₑ(pᵢ) ]
 fn Entropy[T: integer | float](p: []T): f64 {
 	mut e := 0.0
-	for _, x in p {
+	for _, p_i in p {
 		// 0 * logₑ(0) == 0
-		if x != 0 {
-			xf := f64(x)
-			e += xf * math::Log(xf)
+		if p_i != 0 {
+			fp_i := f64(p_i)
+			e += fp_i * math::Log(fp_i)
+		}
+	}
+	ret -e
+}
+
+// Computes the cross Shannon entropy between the two distributions specified
+// in p and q using natural logarithm. Returns zero for empty slice.
+// Length of p and q must be equal.
+//
+// Mathematically, the cross Shannon entropy is defined as:
+//	-Σᵢ [ pᵢ * logₑ(qᵢ) ]
+#disable boundary
+fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
+	if len(p) != len(q) {
+		panic("julenum: CrossEntropy: len(p) != len(q)")
+	}
+	mut e := 0.0
+	mut i := 0
+	for i < len(p); i++ {
+		// 0 * logₑ(qᵢ) == 0
+		p_i := f64(p[i])
+		if p_i != 0 {
+			e += p_i * math::Log(f64(q[i]))
 		}
 	}
 	ret -e
