@@ -216,7 +216,7 @@ fn RootMeanSquare[T: integer | float](x: []T): T {
 // Computes the weighted root mean square of the data set x.
 //
 // Mathematically, the weighted root mean square is defined as:
-//	RMS = √(Σᵢ [ wᵢ*xᵢ² ] / Σᵢ [ wᵢ ])
+//	RMS = √(Σᵢ [ wᵢ * xᵢ² ] / Σᵢ [ wᵢ ])
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
@@ -394,7 +394,7 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 	varY -= compensationY * compensationY / sumW
 	covXY -= compensationX * compensationY / sumW
 
-	ret sumW, meanX, meanY, varX, varY, covXY
+	ret
 }
 
 // Computes the Pearson correlation coefficient between two data sets x and y.
@@ -516,6 +516,19 @@ fn MeanVariance[T: integer | float](x: []T): (f64, f64) {
 fn Variance[T: integer | float](x: []T): f64 {
 	_, varX := meanVariance(x, nil)
 	ret varX
+}
+
+// Computes the unbiased sample covariance of the data set x and y.
+// Length of data sets must be equal.
+//
+// Mathematically, the unbiased sample covariance is defined as:
+//	var(x) = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / (n - 1)
+fn Covariance[T: integer | float](x: []T, y: []T): f64 {
+	if len(x) != len(y) {
+		panic("julenum: Covariance: len(x) != len(y)")
+	}
+	sumW, _, _, _, _, covXY := meanCovariance(x, y, nil)
+	ret covXY / (sumW - 1)
 }
 
 // Computes the weighted mean and the weighted unbiased sample variance of the data set x.
