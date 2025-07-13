@@ -331,6 +331,72 @@ fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 	medianInPlace(x)
 }
 
+// This function computes the Pearson correlation coefficient using
+// a numerically stable two-pass algorithm as recommended by:
+// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
+// “Algorithms for computing the sample variance: Analysis and recommendations”
+//
+// The two-pass method first computes the mean, then computes
+// the variance and covariance using the means, reducing floating-point errors.
+// The covariance results are unnormalised.
+fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64, meanX: f64, meanY: f64, varX: f64, varY: f64, covXY: f64) {
+	mut compensationX, mut compensationY := 0.0, 0.0
+	if len(weights) == 0 {
+		sumW = f64(len(x))
+
+		// Manually inlined version of the Mean function for x and y.
+		mut i := 0
+		for i < len(x); i++ {
+			meanX += f64(x[i])
+			meanY += f64(y[i])
+		}
+		meanX /= f64(len(x))
+		meanY /= f64(len(y))
+
+		i = 0
+		for i < len(x); i++ {
+			dx := f64(x[i]) - meanX
+			dy := f64(y[i]) - meanY
+			varX += dx * dx
+			varY += dy * dy
+			covXY += dx * dy
+			compensationX += dx
+			compensationY += dy
+		}
+	} else {
+		// Manually inlined version of the MeanWeight function for x and y.
+		mut i := 0
+		for i < len(x); i++ {
+			wi := f64(weights[i])
+			meanX += wi * f64(x[i])
+			meanY += wi * f64(y[i])
+			sumW += wi
+		}
+		meanX /= sumW
+		meanY /= sumW
+
+		i = 0
+		for i < len(x); i++ {
+			dx := f64(x[i]) - meanX
+			dy := f64(y[i]) - meanY
+			wi := f64(weights[i])
+			widx := wi * dx
+			widy := wi * dy
+			varX += widx * dx
+			varY += widy * dy
+			covXY += widx * dy
+			compensationX += widx
+			compensationY += widy
+		}
+	}
+
+	varX -= compensationX * compensationX / sumW
+	varY -= compensationY * compensationY / sumW
+	covXY -= compensationX * compensationY / sumW
+
+	ret sumW, meanX, meanY, varX, varY, covXY
+}
+
 // Computes the Pearson correlation coefficient between two data sets x and y.
 // Length of data sets must be equal. Returns 0 if lenghts are zero.
 //
@@ -338,54 +404,17 @@ fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 //	r = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / √(Σᵢ [ (xᵢ - x̄)² ]) * √(Σᵢ [ (yᵢ - ȳ)² ])
 #disable boundary
 fn Correlation[T: integer | float](x: []T, y: []T): f64 {
-	// This function computes the Pearson correlation coefficient using
-	// a numerically stable two-pass algorithm as recommended by:
-	// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
-	// “Algorithms for computing the sample variance: Analysis and recommendations”
-	//
-	// The two-pass method first computes the mean, then computes
-	// the variance and covariance using the means, reducing floating-point errors.
-
 	if len(x) != len(y) {
 		panic("julenum: Correlation: len(x) != len(y)")
 	}
 	if len(x) == 0 {
 		ret 0
 	}
-
-	// Manually inlined version of the Mean function for x and y.
-	mut meanX, mut meanY := 0.0, 0.0
-	mut i := 0
-	for i < len(x); i++ {
-		meanX += f64(x[i])
-		meanY += f64(y[i])
-	}
-	meanX /= f64(len(x))
-	meanY /= f64(len(y))
-
-	mut varX, mut varY, mut covXY := 0.0, 0.0, 0.0
-	mut compensationX, mut compensationY := 0.0, 0.0
-	i = 0
-	for i < len(x); i++ {
-		dx := f64(x[i]) - meanX
-		dy := f64(y[i]) - meanY
-		varX += dx * dx
-		varY += dy * dy
-		covXY += dx * dy
-		compensationX += dx
-		compensationY += dy
-	}
-
-	n := f64(len(x))
-	varX -= compensationX * compensationX / n
-	varY -= compensationY * compensationY / n
-	covXY -= compensationX * compensationY / n
-
+	_, _, _, varX, varY, covXY := meanCovariance(x, y, nil)
 	denominator := math::Sqrt(varX * varY)
 	if denominator == 0 {
 		ret 0
 	}
-
 	ret covXY / denominator
 }
 
@@ -399,74 +428,31 @@ fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 // Otherwise len(weights) must be equal to the data sets lengths.
 #disable boundary
 fn CorrelationWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
-	// This function computes the Pearson correlation coefficient using
-	// a numerically stable two-pass algorithm as recommended by:
-	// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
-	// “Algorithms for computing the sample variance: Analysis and recommendations”
-	//
-	// The two-pass method first computes the mean, then computes
-	// the variance and covariance using the means, reducing floating-point errors.
-
 	if len(weights) == 0 {
 		ret Correlation(x, y)
 	}
-
 	if len(x) != len(y) || len(x) != len(weights) {
 		panic("julenum: CorrelationWeight: len(x) != len(y) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
 	}
-
-	// Manually inlined version of the MeanWeight function for x and y.
-	mut meanX, mut meanY, mut sumW := 0.0, 0.0, 0.0
-	mut i := 0
-	for i < len(x); i++ {
-		wi := f64(weights[i])
-		meanX += wi * f64(x[i])
-		meanY += wi * f64(y[i])
-		sumW += wi
-	}
-	meanX /= sumW
-	meanY /= sumW
-
-	mut varX, mut varY, mut covXY := 0.0, 0.0, 0.0
-	mut compensationX, mut compensationY := 0.0, 0.0
-	i = 0
-	for i < len(x); i++ {
-		dx := f64(x[i]) - meanX
-		dy := f64(y[i]) - meanY
-		wi := f64(weights[i])
-		widx := wi * dx
-		widy := wi * dy
-		varX += widx * dx
-		varY += widy * dy
-		covXY += widx * dy
-		compensationX += widx
-		compensationY += widy
-	}
-
-	varX -= compensationX * compensationX / sumW
-	varY -= compensationY * compensationY / sumW
-	covXY -= compensationX * compensationY / sumW
-
+	_, _, _, varX, varY, covXY := meanCovariance(x, y, weights)
 	denominator := math::Sqrt(varX * varY)
 	if denominator == 0 {
 		ret 0
 	}
-
 	ret covXY / denominator
 }
 
+// This function computes the variance using
+// a numerically stable two-pass algorithm as recommended by:
+// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
+// “Algorithms for computing the sample variance: Analysis and recommendations”
+//
+// The two-pass method first computes the mean, then computes
+// the variance using the mean, reducing floating-point errors.
 fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f64) {
-	// This function computes the variance using
-	// a numerically stable two-pass algorithm as recommended by:
-	// Chan, Tony F., Gene H. Golub, and Randall J. LeVeque,
-	// “Algorithms for computing the sample variance: Analysis and recommendations”
-	//
-	// The two-pass method first computes the mean, then computes
-	// the variance and covariance using the means, reducing floating-point errors.
-
 	mut n := f64(len(x))
 	mut compensationX := 0.0
 	if len(weights) == 0 {
