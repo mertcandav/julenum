@@ -13,15 +13,18 @@ use "std/math"
 //		Oᵢ = observed value at index i,
 //		Eᵢ = expected value at index i,
 //		and the summation is over all elements.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn ChiSquare[T: float](obs: []T, exp: []T): T {
+fn ChiSquare[T: float](obs: []T, exp: []T): f64 {
 	if len(obs) != len(exp) {
 		panic("julenum: ChiSquare: different vector lengths")
 	}
-	let mut r: T
+	mut r := 0.0
 	mut i := 0
 	for i < len(obs); i++ {
-		x, y := obs[i], exp[i]
+		x, y := f64(obs[i]), f64(exp[i])
 		if x == 0 && y == 0 {
 			continue
 		}
@@ -36,15 +39,18 @@ fn ChiSquare[T: float](obs: []T, exp: []T): T {
 //
 // Mathematically, the chi-square distance is defined as:
 //	χ² = 1/2 * Σᵢ [ (xᵢ - yᵢ)² / (xᵢ + yᵢ) ]
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn ChiSquareDistance[T: float](x: []T, y: []T): T {
+fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
 	if len(x) != len(y) {
 		panic("julenum: ChiSquareDistance: different vector lengths")
 	}
-	let mut r: T
+	let mut r: f64
 	mut i := 0
 	for i < len(x); i++ {
-		xi, yi := x[i], y[i]
+		xi, yi := f64(x[i]), f64(y[i])
 		if xi == 0 && yi == 0 {
 			continue
 		}
@@ -58,11 +64,14 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): T {
 //
 // Mathematically, the mean is defined as:
 //	Mean = Σᵢ [ xᵢ ] / n
-fn Mean[T: integer | float](x: []T): T {
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+fn Mean[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
-	ret Sum(x...) / T(len(x))
+	ret f64(Sum(x...)) / f64(len(x))
 }
 
 // Computes the weighted mean of the data set x.
@@ -72,20 +81,23 @@ fn Mean[T: integer | float](x: []T): T {
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
+fn MeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) == 0 {
 		ret Mean(x)
 	}
 	if len(x) != len(weights) {
 		panic("julenum: MeanWeight: len(x) != len(weights)")
 	}
-	let mut sumX: T
-	let mut sumW: T
+	let mut sumX: f64
+	let mut sumW: f64
 	mut i := 0
 	for i < len(x); i++ {
-		w := weights[i]
-		sumX += w * x[i]
+		w := f64(weights[i])
+		sumX += w * f64(x[i])
 		sumW += w
 	}
 	ret sumX / sumW
@@ -96,10 +108,9 @@ fn MeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Mathematically, the geometric mean is defined as:
 //	G = (x₁ * x₂ * ... * xₙ)^(1/n)
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
-fn GeometricMean[T: integer | float](x: []T): T {
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+fn GeometricMean[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
@@ -108,7 +119,7 @@ fn GeometricMean[T: integer | float](x: []T): T {
 		logSum += math::Log(f64(x_i))
 	}
 	logSum /= f64(len(x))
-	ret T(math::Exp(logSum))
+	ret math::Exp(logSum)
 }
 
 // Computes the weighted geometric mean of the data set x.
@@ -119,11 +130,10 @@ fn GeometricMean[T: integer | float](x: []T): T {
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): T {
+fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) == 0 {
 		ret GeometricMean(x)
 	}
@@ -146,11 +156,10 @@ fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Mathematically, the harmonic mean is defined as:
 //	H = n / Σᵢ [ 1 / xᵢ ]
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn HarmonicMean[T: integer | float](x: []T): T {
+fn HarmonicMean[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
@@ -159,7 +168,7 @@ fn HarmonicMean[T: integer | float](x: []T): T {
 	for i < len(x); i++ {
 		z += 1 / f64(x[i])
 	}
-	ret T(f64(len(x)) / z)
+	ret f64(len(x)) / z
 }
 
 // Computes the weighted harmonic mean of the data set x.
@@ -170,11 +179,10 @@ fn HarmonicMean[T: integer | float](x: []T): T {
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): T {
+fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) == 0 {
 		ret HarmonicMean(x)
 	}
@@ -188,7 +196,7 @@ fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): T {
 		weightedSum += w / f64(x[i])
 		weightsSum += w
 	}
-	ret T(weightsSum / weightedSum)
+	ret weightsSum / weightedSum
 }
 
 // Computes the root mean square of the data set x.
@@ -196,21 +204,20 @@ fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): T {
 // Mathematically, the root mean square is defined as:
 //	RMS = √(Σᵢ [ xᵢ² ] / n)
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn RootMeanSquare[T: integer | float](x: []T): T {
+fn RootMeanSquare[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
-	let mut z: T
+	let mut z: f64
 	mut i := 0
 	for i < len(x); i++ {
-		z += x[i] * x[i]
+		z += f64(x[i]) * f64(x[i])
 	}
-	z /= T(len(x))
-	ret T(math::Sqrt(f64(z)))
+	z /= f64(len(x))
+	ret math::Sqrt(z)
 }
 
 // Computes the weighted root mean square of the data set x.
@@ -221,25 +228,24 @@ fn RootMeanSquare[T: integer | float](x: []T): T {
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): T {
+fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) == 0 {
 		ret RootMeanSquare(x)
 	}
 	if len(x) != len(weights) {
 		panic("julenum: RootMeanSquareWeight: len(x) != len(weights)")
 	}
-	mut weightedSum, mut weightsSum := T(0), T(0)
+	mut weightedSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
 	for i < len(x); i++ {
-		w_i, x_i := weights[i], x[i]
+		w_i, x_i := f64(weights[i]), f64(x[i])
 		weightedSum += w_i * x_i * x_i
 		weightsSum += w_i
 	}
-	ret T(math::Sqrt(f64(weightedSum / weightsSum)))
+	ret math::Sqrt(weightedSum / weightsSum)
 }
 
 // Computes the circular mean of the data set x.
@@ -247,11 +253,10 @@ fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): T {
 // Mathematically, the circular mean is defined as:
 //	C = atan2(Σᵢ [ sin(xᵢ) ], Σᵢ [ cos(xᵢ) ])
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn CircularMean[T: integer | float](x: []T): T {
+fn CircularMean[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
 		ret 0
 	}
@@ -262,7 +267,7 @@ fn CircularMean[T: integer | float](x: []T): T {
 		sumSin += math::Sin(x_i)
 		sumCos += math::Cos(x_i)
 	}
-	ret T(math::Atan2(sumSin, sumCos))
+	ret math::Atan2(sumSin, sumCos)
 }
 
 // Computes the weighted circular mean of the data set x.
@@ -273,11 +278,10 @@ fn CircularMean[T: integer | float](x: []T): T {
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
 //
-// Computations are performed using 64-bit floating-point precision.
-// The result is returned as type T, which may cause rounding errors or loss of precision.
-// To preserve exact results, use an f64 data set.
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn CircularMeanWeight[T: integer | float](x: []T, weights: []T): T {
+fn CircularMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) == 0 {
 		ret CircularMean(x)
 	}
@@ -291,7 +295,7 @@ fn CircularMeanWeight[T: integer | float](x: []T, weights: []T): T {
 		sumSin += w_i * math::Sin(x_i)
 		sumCos += w_i * math::Cos(x_i)
 	}
-	ret T(math::Atan2(sumSin, sumCos))
+	ret math::Atan2(sumSin, sumCos)
 }
 
 fn medianInPlace[T: integer | float](mut x: []T): f64 {
@@ -310,6 +314,9 @@ fn medianInPlace[T: integer | float](mut x: []T): f64 {
 // This function allocates a new copy of x to avoid modifying the original data.
 // If preserving the original data is not necessary or x won't be used afterward,
 // consider using MedianInPlace for better performance and zero allocation.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
 fn Median[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
@@ -324,6 +331,9 @@ fn Median[T: integer | float](x: []T): f64 {
 // This function mutates the input slice, and its final ordering is undefined.
 // Designed for zero-allocation, memory-efficient use cases.
 // If the original data must be preserved or x will be used afterward, use Median instead.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 	if len(x) == 0 {
 		panic("julenum: MedianInPlace: median of empty slice")
@@ -407,6 +417,9 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 //
 // Mathematically, the Pearson correlation coefficient is defined as:
 //	r = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / √(Σᵢ [ (xᵢ - x̄)² ]) * √(Σᵢ [ (yᵢ - ȳ)² ])
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
 fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 	if len(x) != len(y) {
@@ -431,6 +444,9 @@ fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to the data sets lengths.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
 fn CorrelationWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	if len(weights) == 0 {
@@ -510,6 +526,9 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 //
 // Mathematically, the unbiased sample variance is defined as:
 //	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn MeanVariance[T: integer | float](x: []T): (f64, f64) {
 	ret meanVariance(x, nil)
 }
@@ -518,6 +537,9 @@ fn MeanVariance[T: integer | float](x: []T): (f64, f64) {
 //
 // Mathematically, the unbiased sample variance is defined as:
 //	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn Variance[T: integer | float](x: []T): f64 {
 	_, varX := meanVariance(x, nil)
 	ret varX
@@ -528,6 +550,9 @@ fn Variance[T: integer | float](x: []T): f64 {
 //
 // Mathematically, the unbiased sample covariance is defined as:
 //	cov(x, y) = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / (n - 1)
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn Covariance[T: integer | float](x: []T, y: []T): f64 {
 	if len(x) != len(y) {
 		panic("julenum: Covariance: len(x) != len(y)")
@@ -548,6 +573,9 @@ fn Covariance[T: integer | float](x: []T, y: []T): f64 {
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn MeanVarianceWeight[T: integer | float](x: []T, weights: []T): (f64, f64) {
 	if len(weights) != 0 && len(x) != len(weights) {
 		panic("julenum: MeanVarianceWeight: len(x) != len(weights)")
@@ -562,6 +590,9 @@ fn MeanVarianceWeight[T: integer | float](x: []T, weights: []T): (f64, f64) {
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) != 0 && len(x) != len(weights) {
 		panic("julenum: VarianceWeight: len(x) != len(weights)")
@@ -578,6 +609,9 @@ fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
 //
 // If len(weights) == 0, then all of the weights are 1.
 // Otherwise len(weights) must be equal to the data sets lengths.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn CovarianceWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	if len(weights) == 0 {
 		ret Covariance(x, y)
@@ -597,6 +631,9 @@ fn CovarianceWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 //
 // Mathematically, the Shannon entropy is defined as:
 //	-Σᵢ [ pᵢ * logₑ(pᵢ) ]
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 fn Entropy[T: integer | float](p: []T): f64 {
 	mut e := 0.0
 	for _, p_i in p {
@@ -615,6 +652,9 @@ fn Entropy[T: integer | float](p: []T): f64 {
 //
 // Mathematically, the cross Shannon entropy is defined as:
 //	-Σᵢ [ pᵢ * logₑ(qᵢ) ]
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
 fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
 	if len(p) != len(q) {
