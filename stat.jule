@@ -671,3 +671,29 @@ fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
 	}
 	ret -e
 }
+
+// Computes the Euclidean Distance between two points p1 and p2.
+// Length of p1 and p2 must be equal. Returns zero for empty input.
+//
+// Mathematically, the Euclidean Distance is defined as:
+//	d(p1, p2) = √(Σᵢ [ (p1ᵢ - p2ᵢ)² ])
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+#disable boundary
+fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
+	if len(p1) != len(p2) {
+		panic("julenum: EuclideanDistance: len(p1) != len(p2)")
+	}
+	if len(p1) == 0 {
+		ret 0
+	}
+	mut sumSquare := 0.0
+	mut i := 0
+	for i < len(p1); i++ {
+		diff := f64(p1[i]) - f64(p2[i])
+		sumSquare += diff * diff
+	}
+	distance := math::Sqrt(sumSquare)
+	ret distance
+}

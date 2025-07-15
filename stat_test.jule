@@ -578,3 +578,27 @@ fn testCrossEntropy(t: &testing::T) {
 		}
 	}
 }
+
+let testsEuclideanDistance: []correlationTest = [
+	{x: [], y: [], want: 0},
+	{x: [0, 0], y: [0, 0], want: 0},
+	{x: [1, 1], y: [4, 5], want: 5},
+	{x: [-1, -1], y: [-4, -5], want: 5},
+	{x: [0, 0], y: [3, 4], want: 5},
+	{x: [1, 2, 3], y: [4, 6, 15], want: 13},
+	{x: [5, 5, 5], y: [5, 5, 5], want: 0},
+	{x: [10], y: [20], want: 10},
+	{x: [7], y: [7], want: 0},
+	{x: [1000, 2000], y: [1000, 2000], want: 0},
+	{x: [1e+10, 1e+10], y: [2e+10, 2e+10], want: 1.4142135623730951e+10},
+]
+
+#test
+fn testEuclideanDistance(t: &testing::T) {
+	for _, test in testsEuclideanDistance {
+		got := EuclideanDistance(test.x, test.y)
+		if !Equal(got, test.want) && !VeryClose(got, test.want) {
+			t.Errorf("EuclideanDistance({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
+		}
+	}
+}
