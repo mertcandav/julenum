@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "julenum"
+use jn "julenum"
 use "std/math"
 use "std/math/cmplx"
 use "std/testing"
@@ -229,7 +229,7 @@ fn testQuatInv(t: &testing::T) {
 			}
 			continue
 		}
-		if !julenum::Close(r.W, 1) || !julenum::Close(r.Abs(), 1) {
+		if !jn::Close(r.W, 1) || !jn::Close(r.Abs(), 1) {
 			t.Errorf("expected W=1, found {}, for Inv({})", r, test.q)
 		}
 	}
@@ -372,27 +372,27 @@ let testsQuatPow: []quatPowTest = [
 		w: {W: -1, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: {W: math::Pi},
+		q: {W: 1, X: 1, Y: 1, Z: 1}, r: {W: jn::Pi},
 		w: {W: -8.728144138959564, X: -0.7527136547040768, Y: -0.7527136547040768, Z: -0.7527136547040768},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: {W: math::Pi},
+		q: {W: 1, X: 0, Y: 1, Z: 1}, r: {W: jn::Pi},
 		w: {W: -5.561182514695044, X: 0, Y: 0.5556661490713818, Z: 0.5556661490713818},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: {W: math::Pi},
+		q: {W: 1, X: 0, Y: 0, Z: 1}, r: {W: jn::Pi},
 		w: {W: -2.320735561810013, X: 0, Y: 0, Z: 1.8544983901925216},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: {W: math::Pi},
+		q: {W: 0, X: 1, Y: 1, Z: 1}, r: {W: jn::Pi},
 		w: {W: 1.2388947209955585, X: -3.162774128856231, Y: -3.162774128856231, Z: -3.162774128856231},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: {W: math::Pi},
+		q: {W: 0, X: 0, Y: 1, Z: 1}, r: {W: jn::Pi},
 		w: {W: 0.6552860151073727, X: 0, Y: -2.0488506614051922, Z: -2.0488506614051922},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: {W: math::Pi},
+		q: {W: 0, X: 0, Y: 0, Z: 1}, r: {W: jn::Pi},
 		w: {W: 0.22058404074969779, X: 0, Y: 0, Z: -0.9753679720836315},
 	},
 	{
@@ -465,27 +465,27 @@ let testsQuatPowReal: []powRealTest = [
 		w: {W: -1, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: math::Pi,
+		q: {W: 1, X: 1, Y: 1, Z: 1}, r: jn::Pi,
 		w: {W: -8.728144138959564, X: -0.7527136547040768, Y: -0.7527136547040768, Z: -0.7527136547040768},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: math::Pi,
+		q: {W: 1, X: 0, Y: 1, Z: 1}, r: jn::Pi,
 		w: {W: -5.561182514695044, X: 0, Y: 0.5556661490713818, Z: 0.5556661490713818},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: math::Pi,
+		q: {W: 1, X: 0, Y: 0, Z: 1}, r: jn::Pi,
 		w: {W: -2.320735561810013, X: 0, Y: 0, Z: 1.8544983901925216},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: math::Pi,
+		q: {W: 0, X: 1, Y: 1, Z: 1}, r: jn::Pi,
 		w: {W: 1.2388947209955585, X: -3.162774128856231, Y: -3.162774128856231, Z: -3.162774128856231},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: math::Pi,
+		q: {W: 0, X: 0, Y: 1, Z: 1}, r: jn::Pi,
 		w: {W: 0.6552860151073727, X: 0, Y: -2.0488506614051922, Z: -2.0488506614051922},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: math::Pi,
+		q: {W: 0, X: 0, Y: 0, Z: 1}, r: jn::Pi,
 		w: {W: 0.22058404074969779, X: 0, Y: 0, Z: -0.9753679720836315},
 	},
 	{
@@ -569,10 +569,10 @@ fn testQuatSqrt(t: &testing::T) {
 // Ex 6.159 (a) and (b).
 let testsQuatSin: []testQuatQuat = [
 	{q: {}, r: {}},
-	{q: {W: math::Pi / 2}, r: {W: 1}},
-	{q: {X: math::Pi / 2}, r: {X: imag(cmplx::Sin(cmplx(0, math::Pi/2)))}},
-	{q: {Y: math::Pi / 2}, r: {Y: imag(cmplx::Sin(cmplx(0, math::Pi/2)))}},
-	{q: {Z: math::Pi / 2}, r: {Z: imag(cmplx::Sin(cmplx(0, math::Pi/2)))}},
+	{q: {W: jn::Pi / 2}, r: {W: 1}},
+	{q: {X: jn::Pi / 2}, r: {X: imag(cmplx::Sin(cmplx(0, jn::Pi/2)))}},
+	{q: {Y: jn::Pi / 2}, r: {Y: imag(cmplx::Sin(cmplx(0, jn::Pi/2)))}},
+	{q: {Z: jn::Pi / 2}, r: {Z: imag(cmplx::Sin(cmplx(0, jn::Pi/2)))}},
 	{
 		q: {W: 1, X: 1, Y: 1, Z: 1}, r: fn(): Quat {
 			p := math::Cos(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
@@ -601,10 +601,10 @@ fn testQuatSin(t: &testing::T) {
 
 let testsQuatSinh: []testQuatQuat = [
 	{q: {}, r: {}},
-	{q: {W: math::Pi / 2}, r: {W: math::Sinh(math::Pi / 2)}},
-	{q: {X: math::Pi / 2}, r: {X: imag(cmplx::Sinh(cmplx(0, math::Pi/2)))}},
-	{q: {Y: math::Pi / 2}, r: {Y: imag(cmplx::Sinh(cmplx(0, math::Pi/2)))}},
-	{q: {Z: math::Pi / 2}, r: {Z: imag(cmplx::Sinh(cmplx(0, math::Pi/2)))}},
+	{q: {W: jn::Pi / 2}, r: {W: math::Sinh(jn::Pi / 2)}},
+	{q: {X: jn::Pi / 2}, r: {X: imag(cmplx::Sinh(cmplx(0, jn::Pi/2)))}},
+	{q: {Y: jn::Pi / 2}, r: {Y: imag(cmplx::Sinh(cmplx(0, jn::Pi/2)))}},
+	{q: {Z: jn::Pi / 2}, r: {Z: imag(cmplx::Sinh(cmplx(0, jn::Pi/2)))}},
 	{
 		q: {W: 1, X: -1, Y: -1}, r: fn(): Quat {
 			// This was based on the example on p118, but it too has an error.
@@ -644,10 +644,10 @@ let testsQuatSinh: []testQuatQuat = [
 		}(),
 	},
 	{q: {W: math::Inf(1)}, r: {W: math::Inf(1)}},
-	{q: {W: math::Inf(1), X: math::Pi / 2}, r: {W: math::Inf(1), X: math::Inf(1)}},
-	{q: {W: math::Inf(1), X: math::Pi}, r: {W: math::Inf(-1), X: math::Inf(1)}},
-	{q: {W: math::Inf(1), X: 3 * math::Pi / 2}, r: {W: math::Inf(-1), X: math::Inf(-1)}},
-	{q: {W: math::Inf(1), X: 2 * math::Pi}, r: {W: math::Inf(1), X: math::Inf(-1)}},
+	{q: {W: math::Inf(1), X: jn::Pi / 2}, r: {W: math::Inf(1), X: math::Inf(1)}},
+	{q: {W: math::Inf(1), X: jn::Pi}, r: {W: math::Inf(-1), X: math::Inf(1)}},
+	{q: {W: math::Inf(1), X: 3 * jn::Pi / 2}, r: {W: math::Inf(-1), X: math::Inf(-1)}},
+	{q: {W: math::Inf(1), X: 2 * jn::Pi}, r: {W: math::Inf(1), X: math::Inf(-1)}},
 ]
 
 #test
@@ -664,10 +664,10 @@ fn testQuatSinh(t: &testing::T) {
 // Including example from Real Quaternionic Calculus Handbook doi:10.1007/978-3-0348-0622-0 p108.
 let testsQuatCos: []testQuatQuat = [
 	{q: {}, r: {W: 1}},
-	{q: {W: math::Pi / 2}, r: {W: 0}},
-	{q: {X: math::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, math::Pi/2)))}},
-	{q: {Y: math::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, math::Pi/2)))}},
-	{q: {Z: math::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, math::Pi/2)))}},
+	{q: {W: jn::Pi / 2}, r: {W: 0}},
+	{q: {X: jn::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, jn::Pi/2)))}},
+	{q: {Y: jn::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, jn::Pi/2)))}},
+	{q: {Z: jn::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, jn::Pi/2)))}},
 	{q: {W: 1, X: 1, Y: 1, Z: 1}, r: fn(): Quat {
 			p := math::Sin(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
 			ret Quat{W: math::Cos(1) * math::Cosh(math::Sqrt(3)), X: -p, Y: -p, Z: -p}
@@ -687,10 +687,10 @@ fn testQuatCos(t: &testing::T) {
 
 let testsQuatCosh: []testQuatQuat = [
 	{q: {}, r: {W: 1}},
-	{q: {W: math::Pi / 2}, r: {W: math::Cosh(math::Pi / 2)}},
-	{q: {X: math::Pi / 2}, r: {X: imag(cmplx::Cosh(cmplx(0, math::Pi/2)))}},
-	{q: {Y: math::Pi / 2}, r: {Y: imag(cmplx::Cosh(cmplx(0, math::Pi/2)))}},
-	{q: {Z: math::Pi / 2}, r: {Z: imag(cmplx::Cosh(cmplx(0, math::Pi/2)))}},
+	{q: {W: jn::Pi / 2}, r: {W: math::Cosh(jn::Pi / 2)}},
+	{q: {X: jn::Pi / 2}, r: {X: imag(cmplx::Cosh(cmplx(0, jn::Pi/2)))}},
+	{q: {Y: jn::Pi / 2}, r: {Y: imag(cmplx::Cosh(cmplx(0, jn::Pi/2)))}},
+	{q: {Z: jn::Pi / 2}, r: {Z: imag(cmplx::Cosh(cmplx(0, jn::Pi/2)))}},
 	{q: {W: 1, X: -1, Y: -1}, r: fn(): Quat {
 			mut q := Quat{W: 1, X: -1, Y: -1}
 			mut t := q
@@ -712,10 +712,10 @@ let testsQuatCosh: []testQuatQuat = [
 			ret q
 		}()},
 	{q: {W: math::Inf(1)}, r: {W: math::Inf(1)}},
-	{q: {W: math::Inf(1), X: math::Pi / 2}, r: {W: math::Inf(1), X: math::Inf(1)}},
-	{q: {W: math::Inf(1), X: math::Pi}, r: {W: math::Inf(-1), X: math::Inf(1)}},
-	{q: {W: math::Inf(1), X: 3 * math::Pi / 2}, r: {W: math::Inf(-1), X: math::Inf(-1)}},
-	{q: {W: math::Inf(1), X: 2 * math::Pi}, r: {W: math::Inf(1), X: math::Inf(-1)}},
+	{q: {W: math::Inf(1), X: jn::Pi / 2}, r: {W: math::Inf(1), X: math::Inf(1)}},
+	{q: {W: math::Inf(1), X: jn::Pi}, r: {W: math::Inf(-1), X: math::Inf(1)}},
+	{q: {W: math::Inf(1), X: 3 * jn::Pi / 2}, r: {W: math::Inf(-1), X: math::Inf(-1)}},
+	{q: {W: math::Inf(1), X: 2 * jn::Pi}, r: {W: math::Inf(1), X: math::Inf(-1)}},
 ]
 
 #test
@@ -731,10 +731,10 @@ fn testQuatCosh(t: &testing::T) {
 
 let testsQuatTan: []testQuatQuat = [
 	{q: {}, r: {}},
-	{q: {W: math::Pi / 4}, r: {W: math::Tan(math::Pi / 4)}},
-	{q: {X: math::Pi / 4}, r: {X: imag(cmplx::Tan(cmplx(0, math::Pi/4)))}},
-	{q: {Y: math::Pi / 4}, r: {Y: imag(cmplx::Tan(cmplx(0, math::Pi/4)))}},
-	{q: {Z: math::Pi / 4}, r: {Z: imag(cmplx::Tan(cmplx(0, math::Pi/4)))}},
+	{q: {W: jn::Pi / 4}, r: {W: math::Tan(jn::Pi / 4)}},
+	{q: {X: jn::Pi / 4}, r: {X: imag(cmplx::Tan(cmplx(0, jn::Pi/4)))}},
+	{q: {Y: jn::Pi / 4}, r: {Y: imag(cmplx::Tan(cmplx(0, jn::Pi/4)))}},
+	{q: {Z: jn::Pi / 4}, r: {Z: imag(cmplx::Tan(cmplx(0, jn::Pi/4)))}},
 
 	// From exercise from Real Numberernionic Calculus Handbook doi:10.1007/978-3-0348-0622-0
 	{q: {X: 1}, r: mul(sin({X: 1}), inv(cos({X: 1})))},
@@ -754,17 +754,17 @@ fn testQuatTan(t: &testing::T) {
 
 let testsQuatTanh: []testQuatQuat = [
 	{q: {}, r: {}},
-	{q: {W: math::Pi / 4}, r: {W: math::Tanh(math::Pi / 4)}},
-	{q: {X: math::Pi / 4}, r: {X: imag(cmplx::Tanh(cmplx(0, math::Pi/4)))}},
-	{q: {Y: math::Pi / 4}, r: {Y: imag(cmplx::Tanh(cmplx(0, math::Pi/4)))}},
-	{q: {Z: math::Pi / 4}, r: {Z: imag(cmplx::Tanh(cmplx(0, math::Pi/4)))}},
+	{q: {W: jn::Pi / 4}, r: {W: math::Tanh(jn::Pi / 4)}},
+	{q: {X: jn::Pi / 4}, r: {X: imag(cmplx::Tanh(cmplx(0, jn::Pi/4)))}},
+	{q: {Y: jn::Pi / 4}, r: {Y: imag(cmplx::Tanh(cmplx(0, jn::Pi/4)))}},
+	{q: {Z: jn::Pi / 4}, r: {Z: imag(cmplx::Tanh(cmplx(0, jn::Pi/4)))}},
 	{q: {X: 1}, r: mul(sinh({X: 1}), inv(cosh({X: 1})))},
 	{q: {1, 1, 1, 1}, r: mul(sinh({1, 1, 1, 1}), inv(cosh({1, 1, 1, 1})))},
 	{q: {W: math::Inf(1)}, r: {W: 1}},
-	{q: {W: math::Inf(1), X: math::Pi / 4}, r: {W: 1, X: 0 * math::Sin(math::Pi/2)}},
-	{q: {W: math::Inf(1), X: math::Pi / 2}, r: {W: 1, X: 0 * math::Sin(math::Pi)}},
-	{q: {W: math::Inf(1), X: 3 * math::Pi / 4}, r: {W: 1, X: 0 * math::Sin(3*math::Pi/2)}},
-	{q: {W: math::Inf(1), X: math::Pi}, r: {W: 1, X: 0 * math::Sin(2*math::Pi)}},
+	{q: {W: math::Inf(1), X: jn::Pi / 4}, r: {W: 1, X: 0 * math::Sin(jn::Pi/2)}},
+	{q: {W: math::Inf(1), X: jn::Pi / 2}, r: {W: 1, X: 0 * math::Sin(jn::Pi)}},
+	{q: {W: math::Inf(1), X: 3 * jn::Pi / 4}, r: {W: 1, X: 0 * math::Sin(3*jn::Pi/2)}},
+	{q: {W: math::Inf(1), X: jn::Pi}, r: {W: 1, X: 0 * math::Sin(2*jn::Pi)}},
 ]
 
 #test
@@ -780,7 +780,7 @@ fn testQuatTanh(t: &testing::T) {
 
 let testsQuatAsin: []testQuatQuat = [
 	{q: {}, r: {}},
-	{q: {W: 1}, r: {W: math::Pi / 2}},
+	{q: {W: 1}, r: {W: jn::Pi / 2}},
 	{q: {X: 1}, r: {X: real(cmplx::Asinh(1))}},
 	{q: {Y: 1}, r: {Y: real(cmplx::Asinh(1))}},
 	{q: {Z: 1}, r: {Z: real(cmplx::Asinh(1))}},
@@ -801,9 +801,9 @@ fn testQuatAsin(t: &testing::T) {
 let testsQuatAsinh: []testQuatQuat = [
 	{q: {}, r: {}},
 	{q: {W: 1}, r: {W: math::Asinh(1)}},
-	{q: {X: 1}, r: {X: math::Pi / 2}},
-	{q: {Y: 1}, r: {Y: math::Pi / 2}},
-	{q: {Z: 1}, r: {Z: math::Pi / 2}},
+	{q: {X: 1}, r: {X: jn::Pi / 2}},
+	{q: {Y: 1}, r: {Y: jn::Pi / 2}},
+	{q: {Z: 1}, r: {Z: jn::Pi / 2}},
 	{q: {1, 1, 1, 1}, r: fn(): Quat {
 			mut q := Quat{1, 1, 1, 1}
 			mut p := Quat{W: 1}
@@ -848,7 +848,7 @@ fn testQuatAsinh(t: &testing::T) {
 }
 
 let testsQuatAcos: []testQuatQuat = [
-	{q: {}, r: {W: math::Pi / 2}},
+	{q: {}, r: {W: jn::Pi / 2}},
 	{q: {W: 1}, r: {W: 0}},
 	{q: {X: 1}, r: {W: real(cmplx::Acos(1i)), X: imag(cmplx::Acos(1i))}},
 	{q: {Y: 1}, r: {W: real(cmplx::Acos(1i)), Y: imag(cmplx::Acos(1i))}},
@@ -868,7 +868,7 @@ fn testQuatAcos(t: &testing::T) {
 }
 
 let testsQuatAcosh: []testQuatQuat = [
-	{q: {}, r: {W: math::Pi / 2}},
+	{q: {}, r: {W: jn::Pi / 2}},
 	{q: {W: 1}, r: {W: math::Acosh(1)}},
 	{q: {X: 1}, r: {W: real(cmplx::Acosh(1i)), X: imag(cmplx::Acosh(1i))}},
 	{q: {Y: 1}, r: {W: real(cmplx::Acosh(1i)), Y: imag(cmplx::Acosh(1i))}},
@@ -902,7 +902,7 @@ fn testQuatAcosh(t: &testing::T) {
 
 let testsQuatAtan: []testQuatQuat = [
 	{q: {}, r: {}},
-	{q: {W: 1}, r: {W: math::Pi / 4}},
+	{q: {W: 1}, r: {W: jn::Pi / 4}},
 	{q: {X: 0.5}, r: {W: real(cmplx::Atan(0.5i)), X: imag(cmplx::Atan(0.5i))}},
 	{q: {Y: 0.5}, r: {W: real(cmplx::Atan(0.5i)), Y: imag(cmplx::Atan(0.5i))}},
 	{q: {Z: 0.5}, r: {W: real(cmplx::Atan(0.5i)), Z: imag(cmplx::Atan(0.5i))}},
@@ -989,28 +989,28 @@ let testsAxisAngle: []axisAngleTest = [
 		r: {1, 0, 0, 0},
 	},
 	{
-		x: 0, y: 1, z: 0, rad: math::Pi,
+		x: 0, y: 1, z: 0, rad: jn::Pi,
 		r: {0, 0, 1, 0},
 	},
 	{
-		x: 1, y: 0, z: 0, rad: math::Pi / 2,
-		r: {math::Sqrt2 / 2, math::Sqrt2 / 2, 0, 0},
+		x: 1, y: 0, z: 0, rad: jn::Pi / 2,
+		r: {jn::Sqrt2 / 2, jn::Sqrt2 / 2, 0, 0},
 	},
 	{
-		x: 0, y: 0, z: 1, rad: math::Pi / 2,
-		r: {math::Sqrt2 / 2, 0, 0, math::Sqrt2 / 2},
+		x: 0, y: 0, z: 1, rad: jn::Pi / 2,
+		r: {jn::Sqrt2 / 2, 0, 0, jn::Sqrt2 / 2},
 	},
 	{
-		x: 1 / math::Sqrt(3), y: 1 / math::Sqrt(3), z: 1 / math::Sqrt(3), rad: math::Pi / 4,
-		r: {math::Cos(math::Pi / 8), math::Sin(math::Pi/8) / math::Sqrt(3), math::Sin(math::Pi/8) / math::Sqrt(3), math::Sin(math::Pi/8) / math::Sqrt(3)},
+		x: 1 / math::Sqrt(3), y: 1 / math::Sqrt(3), z: 1 / math::Sqrt(3), rad: jn::Pi / 4,
+		r: {math::Cos(jn::Pi / 8), math::Sin(jn::Pi/8) / math::Sqrt(3), math::Sin(jn::Pi/8) / math::Sqrt(3), math::Sin(jn::Pi/8) / math::Sqrt(3)},
 	},
 	{
-		x: 1, y: 0, z: 0, rad: math::Pi * 2,
+		x: 1, y: 0, z: 0, rad: jn::Pi * 2,
 		r: {1, 0, 0, 0},
 	},
 	{
-		x: 0, y: -1, z: 0, rad: math::Pi / 2,
-		r: {math::Sqrt2 / 2, 0, -math::Sqrt2 / 2, 0},
+		x: 0, y: -1, z: 0, rad: jn::Pi / 2,
+		r: {jn::Sqrt2 / 2, 0, -jn::Sqrt2 / 2, 0},
 	},
 ]
 
@@ -1025,10 +1025,10 @@ fn testAxisAngle(t: &testing::T) {
 }
 
 fn equalApprox(a: Quat, b: Quat): bool {
-	ret julenum::Close(a.W, b.W) &&
-		julenum::Close(a.X, b.X) &&
-		julenum::Close(a.Y, b.Y) &&
-		julenum::Close(a.Z, b.Z)
+	ret jn::Close(a.W, b.W) &&
+		jn::Close(a.X, b.X) &&
+		jn::Close(a.Y, b.Y) &&
+		jn::Close(a.Z, b.Z)
 }
 
 fn sameApprox(a: Quat, b: Quat): bool {
@@ -1042,10 +1042,10 @@ fn sameApprox(a: Quat, b: Quat): bool {
 	| a.Z == 0 && b.Z == 0:
 		ret math::Signbit(a.Z) == math::Signbit(b.Z)
 	}
-	ret (sameFloat(a.W, b.W) || julenum::Close(a.W, b.W)) &&
-		(sameFloat(a.X, b.X) || julenum::Close(a.X, b.X)) &&
-		(sameFloat(a.Y, b.Y) || julenum::Close(a.Y, b.Y)) &&
-		(sameFloat(a.Z, b.Z) || julenum::Close(a.Z, b.Z))
+	ret (sameFloat(a.W, b.W) || jn::Close(a.W, b.W)) &&
+		(sameFloat(a.X, b.X) || jn::Close(a.X, b.X)) &&
+		(sameFloat(a.Y, b.Y) || jn::Close(a.Y, b.Y)) &&
+		(sameFloat(a.Z, b.Z) || jn::Close(a.Z, b.Z))
 }
 
 fn sameFloat(a: f64, b: f64): bool {

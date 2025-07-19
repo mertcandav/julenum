@@ -8,6 +8,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+use jn "julenum"
 use "std/math"
 
 impl Quat {
@@ -261,7 +262,7 @@ impl Quat {
 		uv.Asin(&uv)
 		w, uv := split(&uv)
 		self.Scale(&uv, -1)
-		self.W = math::Pi/2 - w
+		self.W = jn::Pi/2 - w
 	}
 
 	// Sets self to the inverse hyperbolic cosine of q.

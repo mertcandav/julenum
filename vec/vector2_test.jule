@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "julenum"
+use jn "julenum"
 use "std/math"
 use "std/testing"
 
@@ -15,27 +15,27 @@ struct vector2RotateTest {
 let testsVector2Rotate: []vector2RotateTest = [
 	{
 		x: {1, 0},
-		theta: math::Pi / 2,
+		theta: jn::Pi / 2,
 		r: {0, 1},
 	},
 	{
 		x: {0, 1},
-		theta: math::Pi,
+		theta: jn::Pi,
 		r: {0, -1},
 	},
 	{
 		x: {1, 1},
-		theta: math::Pi / 4,
+		theta: jn::Pi / 4,
 		r: {0, math::Sqrt(2)},
 	},
 	{
 		x: {2, 3},
-		theta: math::Pi / 2,
+		theta: jn::Pi / 2,
 		r: {-3, 2},
 	},
 	{
 		x: {5, 0},
-		theta: math::Pi * 2,
+		theta: jn::Pi * 2,
 		r: {5, 0},
 	},
 ]
@@ -45,7 +45,7 @@ fn testVector2Rotate(t: &testing::T) {
 	for _, test in testsVector2Rotate {
 		mut x := test.x
 		x.Rotate(&x, test.theta)
-		if !julenum::Close(x.X, test.r.X) || !julenum::Close(x.Y, test.r.Y) {
+		if !jn::Close(x.X, test.r.X) || !jn::Close(x.Y, test.r.Y) {
 			t.Errorf("expected {}, found {}, for Rotate({}, {})", test.r, x, test.x, test.theta)
 		}
 	}
@@ -95,7 +95,7 @@ fn testVector2Proj(t: &testing::T) {
 	for _, test in testsVector2Proj {
 		mut x, y := test.x, test.y
 		x.Proj(&x, &y)
-		if !julenum::VeryClose(x.X, test.r.X) || !julenum::VeryClose(x.Y, test.r.Y) {
+		if !jn::VeryClose(x.X, test.r.X) || !jn::VeryClose(x.Y, test.r.Y) {
 			t.Errorf("expected {}, found {}, for Proj({}, {})", test.r, x, test.x, test.y)
 		}
 	}

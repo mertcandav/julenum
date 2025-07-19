@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "julenum"
+use jn "julenum"
 use "julenum/num/quat"
 use "std/math"
 use "std/testing"
@@ -16,42 +16,42 @@ struct vector3RotateQuatTest {
 let testsVector3RotateQuat: []vector3RotateQuatTest = [
 	{
 		x: {1, 0, 0},
-		q: quat::AxisAngle(0, 0, 1, math::Pi/2), // θ = π/2 = 90°
+		q: quat::AxisAngle(0, 0, 1, jn::Pi/2), // θ = π/2 = 90°
 		r: {0, 1, 0},
 	},
 	{
 		x: {0, 1, 0},
-		q: quat::AxisAngle(1, 0, 0, math::Pi/2), // θ = π/2 = 90°
+		q: quat::AxisAngle(1, 0, 0, jn::Pi/2), // θ = π/2 = 90°
 		r: {0, 0, 1},
 	},
 	{
 		x: {0, 0, 1},
-		q: quat::AxisAngle(0, 1, 0, math::Pi), // θ = π = 180°
+		q: quat::AxisAngle(0, 1, 0, jn::Pi), // θ = π = 180°
 		r: {0, 0, -1},
 	},
 	{
 		x: {1, 0, 0},
-		q: quat::AxisAngle(0, 1, 0, math::Pi), // θ = π = 180°
+		q: quat::AxisAngle(0, 1, 0, jn::Pi), // θ = π = 180°
 		r: {-1, 0, 0},
 	},
 	{
 		x: {1, 1, 0},
-		q: quat::AxisAngle(0, 0, 1, math::Pi/2), // θ = π/2 = 90°
+		q: quat::AxisAngle(0, 0, 1, jn::Pi/2), // θ = π/2 = 90°
 		r: {-1, 1, 0},
 	},
 	{
 		x: {0, 1, 0},
-		q: quat::AxisAngle(0, 0, 1, -math::Pi/2), // θ = -π/2 = -90°
+		q: quat::AxisAngle(0, 0, 1, -jn::Pi/2), // θ = -π/2 = -90°
 		r: {1, 0, 0},
 	},
 	{
 		x: {1, 0, 0},
-		q: quat::AxisAngle(1, 0, 0, -math::Pi*2), // θ = -π*2 = 360°
+		q: quat::AxisAngle(1, 0, 0, -jn::Pi*2), // θ = -π*2 = 360°
 		r: {1, 0, 0},
 	},
 	{
 		x: {1, 1, 1},
-		q: quat::AxisAngle(1, 1, 1, -math::Pi*2), // θ = -π*2 = 360°
+		q: quat::AxisAngle(1, 1, 1, -jn::Pi*2), // θ = -π*2 = 360°
 		r: {1, 1, 1},
 	},
 ]
@@ -61,7 +61,7 @@ fn testVector3RotateQuat(t: &testing::T) {
 	for _, test in testsVector3RotateQuat {
 		mut x := test.x
 		x.RotateQuat(&x, test.q)
-		if !julenum::VeryClose(x.X, test.r.X) || !julenum::VeryClose(x.Y, test.r.Y) || !julenum::VeryClose(x.Z, test.r.Z) {
+		if !jn::VeryClose(x.X, test.r.X) || !jn::VeryClose(x.Y, test.r.Y) || !jn::VeryClose(x.Z, test.r.Z) {
 			t.Errorf("expected {}, found {}, for RotateQuat({}, {})", test.r, x, test.x, test.q)
 		}
 	}
@@ -106,7 +106,7 @@ fn testVector3Proj(t: &testing::T) {
 	for _, test in testsVector3Proj {
 		mut x, y := test.x, test.y
 		x.Proj(&x, &y)
-		if !julenum::VeryClose(x.X, test.r.X) || !julenum::VeryClose(x.Y, test.r.Y) || !julenum::VeryClose(x.Z, test.r.Z) {
+		if !jn::VeryClose(x.X, test.r.X) || !jn::VeryClose(x.Y, test.r.Y) || !jn::VeryClose(x.Z, test.r.Z) {
 			t.Errorf("expected {}, found {}, for Proj({}, {})", test.r, x, test.x, test.y)
 		}
 	}
