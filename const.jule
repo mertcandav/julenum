@@ -69,4 +69,5 @@ const (
 	MolarMass           = 1.00000000105 * 1e-3                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mu
 	ConductanceQuantum  = 7.748091729 * 1e-5                                                // https://physics.nist.gov/cgi-bin/cuu/Value?conqu2e2sh, https://oeis.org/A081824
 	ThomsonCrossSection = 6.6524587051 * 1e-29                                              // https://physics.nist.gov/cgi-bin/cuu/Value?sigmae, https://oeis.org/A255823
+	HartreeEnergy       = 4.3597447222060 * 1e-18                                           // https://physics.nist.gov/cgi-bin/cuu/Value?hr, https://oeis.org/A229938
 )
