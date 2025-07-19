@@ -50,6 +50,7 @@ const (
 	BohrRadius        = 5.29177210544 * 1e-11                                             // https://physics.nist.gov/cgi-bin/cuu/Value?bohrrada0, https://oeis.org/A003671
 	PlanckLength      = 1.616255 * 1e-35                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?plkl, https://oeis.org/A078300
 	PlanckTemperature = 1.416784 * 1e+32                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?plktmp, https://oeis.org/A210491
+	PlanckTime        = 5.391247 * 1e-44                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?plkt, https://oeis.org/A078302
 	BaselProblem      = 1.64493406684822643647241516664602518921894990120679843773555822  // https://oeis.org/A013661
 	FineStructure     = 7.2973525643 * 1e-3                                               // https://physics.nist.gov/cgi-bin/cuu/Value?alph, https://oeis.org/A003673
 	Gas               = 8.314462618                                                       // https://physics.nist.gov/cgi-bin/cuu/Value?r, https://oeis.org/A070064
