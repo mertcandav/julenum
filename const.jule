@@ -31,6 +31,7 @@ const (
 	Rydberg         = 10973731.568157                                                   // physics.nist.gov/cgi-bin/cuu/Value?ryd|search_for=rydberg, https://oeis.org/A081821
 	Boltzmann       = 1.380649 * 1e-23                                                  // physics.nist.gov/cgi-bin/cuu/Value?k|search_for=boltzmann, https://oeis.org/A070063
 	StefanBoltzmann = 5.670374419 * 1e-8                                                // https://physics.nist.gov/cgi-bin/cuu/Value?sigma, https://oeis.org/A081820
+	Conway          = 1.30357726903429639125709911215255189073070250465940487575486139  // https://oeis.org/A014715
 
 	GelfondSchneider     = 2.66514414269022518865029724987313984827421131371465949283597959 // https://oeis.org/A007507
 	SqrtGelfondSchneider = 1.63252691943815284477349538102471960207910885705311411724778068 // https://oeis.org/A078333
