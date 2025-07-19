@@ -38,6 +38,7 @@ const (
 	FirstFeigenbaum  = 4.66920160910299067185320382046620161725818557747576863274565134 // https://oeis.org/A006890
 	SecondFeigenbaum = 2.50290787509589282228390287321821578638127137672714997733619205 // https://oeis.org/A006891
 
-	InvSqrtPi2            = 0.398942280401432677939946059934381868475858631164934657665925829 // https://oeis.org/A231863
-	GaussianGravitational = 1.720209895 * 1e-2                                                // https://oeis.org/A248363
+	InvSqrtPi2       = 0.398942280401432677939946059934381868475858631164934657665925829 // https://oeis.org/A231863
+	GaussianGravity  = 1.720209895 * 1e-2                                                // https://oeis.org/A248363
+	NewtonianGravity = 6.67430 * 1e-11                                                   // https://physics.nist.gov/cgi-bin/cuu/Value?bg, https://oeis.org/A070058
 )
