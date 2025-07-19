@@ -44,4 +44,5 @@ const (
 	GaussianGravity  = 1.720209895 * 1e-2                                                // https://oeis.org/A248363
 	NewtonianGravity = 6.67430 * 1e-11                                                   // https://physics.nist.gov/cgi-bin/cuu/Value?bg, https://oeis.org/A070058
 	ElectronMass     = 9.1093837139 * 1e-31                                              // https://physics.nist.gov/cgi-bin/cuu/Value?me, https://oeis.org/A081801
+	ProtonMass       = 1.67262192595 * 1e-27                                             // https://physics.nist.gov/cgi-bin/cuu/Value?mp, https://oeis.org/A070059
 )
