@@ -30,7 +30,8 @@ const (
 	Planck   = 6.62607015 * 1e-34                                                // physics.nist.gov/cgi-bin/cuu/Value?h|search_for=planck, https://oeis.org/A003676
 	Rydberg  = 10973731.568157                                                   // physics.nist.gov/cgi-bin/cuu/Value?ryd|search_for=rydberg, https://oeis.org/A081821
 
-	GelfondSchneider = 2.66514414269022518865029724987313984827421131371465949283597959 // https://oeis.org/A007507
+	GelfondSchneider     = 2.66514414269022518865029724987313984827421131371465949283597959 // https://oeis.org/A007507
+	SqrtGelfondSchneider = 1.63252691943815284477349538102471960207910885705311411724778068 // https://oeis.org/A078333
 
 	FirstFeigenbaum  = 4.66920160910299067185320382046620161725818557747576863274565134 // https://oeis.org/A006890
 	SecondFeigenbaum = 2.50290787509589282228390287321821578638127137672714997733619205 // https://oeis.org/A006891
