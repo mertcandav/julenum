@@ -28,6 +28,7 @@ const (
 	Avogadro = 6.02214076 * 1e+23                                                // https://oeis.org/A322578
 	Chaitin  = 0.0078749969978123844                                             // https://oeis.org/A100264
 	Planck   = 6.62607015 * 1e-34                                                // https://oeis.org/A003676
+	Rydberg  = 10973731.568157                                                   // physics.nist.gov/cgi-bin/cuu/Value?ryd|search_for=rydberg
 
 	FirstFeigenbaum  = 4.66920160910299067185320382046620161725818557747576863274565134 // https://oeis.org/A006890
 	SecondFeigenbaum = 2.50290787509589282228390287321821578638127137672714997733619205 // https://oeis.org/A006891
