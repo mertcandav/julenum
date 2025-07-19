@@ -64,4 +64,5 @@ const (
 	Gas               = 8.314462618                                                       // https://physics.nist.gov/cgi-bin/cuu/Value?r, https://oeis.org/A070064
 	Magnetic          = 1.25663706127 * 1e-6                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mu0
 	Electric          = 8.8541878188 * 1e-12                                              // https://physics.nist.gov/cgi-bin/cuu/Value?ep0, https://oeis.org/A081799
+	SpeedOfLight      = 299792458                                                         // https://physics.nist.gov/cgi-bin/cuu/Value?c, https://oeis.org/A003678
 )
