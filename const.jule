@@ -55,6 +55,7 @@ const (
 	ElectronMass        = 9.1093837139 * 1e-31                                              // https://physics.nist.gov/cgi-bin/cuu/Value?me, https://oeis.org/A081801
 	ProtonMass          = 1.67262192595 * 1e-27                                             // https://physics.nist.gov/cgi-bin/cuu/Value?mp, https://oeis.org/A070059
 	BohrRadius          = 5.29177210544 * 1e-11                                             // https://physics.nist.gov/cgi-bin/cuu/Value?bohrrada0, https://oeis.org/A003671
+	BohrMagneton        = 9.2740100657 * 1e-24                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mub, https://oeis.org/A234371
 	PlanckLength        = 1.616255 * 1e-35                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?plkl, https://oeis.org/A078300
 	PlanckTemperature   = 1.416784 * 1e+32                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?plktmp, https://oeis.org/A210491
 	PlanckTime          = 5.391247 * 1e-44                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?plkt, https://oeis.org/A078302
