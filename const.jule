@@ -36,6 +36,7 @@ const (
 	Ramanujan               = 262537412640768743.999999999999250072597198185688879353856337336  // https://oeis.org/A060295
 	VonKlitzing             = 25812.80745                                                       // https://physics.nist.gov/cgi-bin/cuu/Value?rk, https://oeis.org/A248510
 	ConventionalVonKlitzing = 25812.807                                                         // https://physics.nist.gov/cgi-bin/cuu/Value?rk90, https://oeis.org/A362590
+	Josephson               = 483597.8484 * 1e+9                                                // https://physics.nist.gov/cgi-bin/cuu/Value?kjos, https://oeis.org/A248508
 
 	GelfondSchneider     = 2.66514414269022518865029724987313984827421131371465949283597959 // https://oeis.org/A007507
 	SqrtGelfondSchneider = 1.63252691943815284477349538102471960207910885705311411724778068 // https://oeis.org/A078333
