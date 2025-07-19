@@ -52,6 +52,7 @@ const (
 	Erf1                = 0.842700792949714869341220635082609259296066997966302908459937897 // https://oeis.org/A099286
 	GaussianGravity     = 1.720209895 * 1e-2                                                // https://oeis.org/A248363
 	NewtonianGravity    = 6.67430 * 1e-11                                                   // https://physics.nist.gov/cgi-bin/cuu/Value?bg, https://oeis.org/A070058
+	AtomicMass          = 1.66053906892 * 1e-27                                             // https://physics.nist.gov/cgi-bin/cuu/Value?u, https://oeis.org/A081825
 	ElectronMass        = 9.1093837139 * 1e-31                                              // https://physics.nist.gov/cgi-bin/cuu/Value?me, https://oeis.org/A081801
 	ProtonMass          = 1.67262192595 * 1e-27                                             // https://physics.nist.gov/cgi-bin/cuu/Value?mp, https://oeis.org/A070059
 	BohrRadius          = 5.29177210544 * 1e-11                                             // https://physics.nist.gov/cgi-bin/cuu/Value?bohrrada0, https://oeis.org/A003671
