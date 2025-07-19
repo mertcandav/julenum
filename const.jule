@@ -66,4 +66,5 @@ const (
 	Electric          = 8.8541878188 * 1e-12                                              // https://physics.nist.gov/cgi-bin/cuu/Value?ep0, https://oeis.org/A081799
 	SpeedOfLight      = 299792458                                                         // https://physics.nist.gov/cgi-bin/cuu/Value?c, https://oeis.org/A003678
 	ElementaryCharge  = 1.602176634 * 1e-19                                               // https://physics.nist.gov/cgi-bin/cuu/Value?e, https://oeis.org/A081823
+	MolarMass         = 1.00000000105 * 1e-3                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mu
 )
