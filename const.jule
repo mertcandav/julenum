@@ -62,6 +62,7 @@ const (
 	PlanckMass          = 2.176434 * 1e-8                                                   // https://physics.nist.gov/cgi-bin/cuu/Value?plkm, https://oeis.org/A078301
 	BaselProblem        = 1.64493406684822643647241516664602518921894990120679843773555822  // https://oeis.org/A013661
 	FineStructure       = 7.2973525643 * 1e-3                                               // https://physics.nist.gov/cgi-bin/cuu/Value?alph, https://oeis.org/A003673
+	InvFineStructure    = 137.035999177                                                     // https://physics.nist.gov/cgi-bin/cuu/Value?alphinv, https://oeis.org/A005600
 	Gas                 = 8.314462618                                                       // https://physics.nist.gov/cgi-bin/cuu/Value?r, https://oeis.org/A070064
 	Magnetic            = 1.25663706127 * 1e-6                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mu0
 	Electric            = 8.8541878188 * 1e-12                                              // https://physics.nist.gov/cgi-bin/cuu/Value?ep0, https://oeis.org/A081799
