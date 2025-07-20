@@ -75,4 +75,5 @@ const (
 	HartreeEnergy       = 4.3597447222060 * 1e-18                                           // https://physics.nist.gov/cgi-bin/cuu/Value?hr, https://oeis.org/A229938
 	BohrMagneton        = 9.2740100657 * 1e-24                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mub, https://oeis.org/A234371
 	NuclearMagneton     = 5.0507837393 * 1e-27                                              // https://physics.nist.gov/cgi-bin/cuu/Value?mun
+	MagneticFluxQuantum = 2.067833848 * 1e-15                                               // https://physics.nist.gov/cgi-bin/cuu/Value?flxquhs2e, https://oeis.org/A248507
 )
