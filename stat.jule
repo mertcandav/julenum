@@ -836,3 +836,40 @@ fn StdErr(stdDev: f64, sampleSize: f64): f64 {
 fn StdScore(x: f64, mean: f64, stdDev: f64): f64 {
 	ret (x - mean) / stdDev
 }
+
+// Computes the most common value in the data set x and the given weights.
+// Strict equality is used when comparing values, so users should take caution.
+// If several values are the mode, any of them may be returned.
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+#disable boundary
+fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
+	if len(weights) != 0 && len(x) != len(weights) {
+		panic("julenum: Mode: len(x) != len(weights)")
+	}
+	if len(x) == 0 {
+		ret 0, 0
+	}
+	mut m := map[f64]f64{}
+	if len(weights) == 0 {
+		for _, v in x {
+			m[f64(v)]++
+		}
+	} else {
+		for i, v in x {
+			m[f64(v)] += f64(weights[i])
+		}
+	}
+	mut maxCount, mut max := 0.0, 0.0
+	for val, count in m {
+		if count > maxCount {
+			maxCount = count
+			max = val
+		}
+	}
+	ret max, maxCount
+}

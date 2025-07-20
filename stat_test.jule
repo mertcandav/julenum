@@ -773,3 +773,34 @@ fn testLinearRegressionWeight(t: &testing::T) {
 		}
 	}
 }
+
+struct modeTest {
+	x:       []f64
+	weights: []f64
+	val:     f64
+	count:   f64
+}
+
+let testsMode: []modeTest = [
+	{
+		x: [1, 6, 1, 9, -2],
+		val: 1,
+		count: 2,
+	},
+	{
+		x: [1, 6, 1, 9, -2],
+		weights: [1, 7, 3, 5, 0],
+		val: 6,
+		count: 7,
+	},
+]
+
+#test
+fn testMode(t: &testing::T) {
+	for _, test in testsMode {
+		val, count := Mode(test.x, test.weights)
+		if val != test.val || count != test.count {
+			t.Errorf("Mode({}, {}) = {}, {}, expected {}, {}", test.x, test.weights, val, count, test.val, test.count)
+		}
+	}
+}
