@@ -167,6 +167,7 @@ fn quickSelect[T: comparable](mut x: []T, k: int): T {
 }
 
 // Rearranges elements and returns the pivot's final index.
+#disable boundary
 fn partition[T: comparable](mut x: []T, left: int, right: int, pivotIndex: int): int {
 	pivotValue := x[pivotIndex]
 	// Move pivot to end.
