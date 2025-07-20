@@ -83,27 +83,17 @@ let testsMean: []meanTest = [
 #test
 fn testMean(t: &testing::T) {
 	for _, test in testsMean {
-		got := Mean(test.x)
+		mut got := Mean(test.x, nil)
 		if got != test.want {
-			t.Errorf("Mean({}) = {}, expected {}", test.x, got, test.want)
-		}
-	}
-}
-
-#test
-fn testMeanWeight(t: &testing::T) {
-	for _, test in testsMean {
-		mut got := MeanWeight(test.x, nil)
-		if got != test.want {
-			t.Errorf("MeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("Mean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
 		for i in ones {
 			ones[i] = 1
 		}
-		got = MeanWeight(test.x, ones)
+		got = Mean(test.x, ones)
 		if got != test.want {
-			t.Errorf("MeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("Mean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
@@ -119,27 +109,17 @@ let testsGeometricMean: []meanTest = [
 #test
 fn testGeometricMean(t: &testing::T) {
 	for _, test in testsGeometricMean {
-		got := GeometricMean(test.x)
+		mut got := GeometricMean(test.x, nil)
 		if !VeryClose(got, test.want) {
-			t.Errorf("GeometricMean({}) = {}, expected {}", test.x, got, test.want)
-		}
-	}
-}
-
-#test
-fn testGeometricMeanWeight(t: &testing::T) {
-	for _, test in testsGeometricMean {
-		mut got := GeometricMeanWeight(test.x, nil)
-		if !VeryClose(got, test.want) {
-			t.Errorf("GeometricMeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("GeometricMean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
 		for i in ones {
 			ones[i] = 1
 		}
-		got = GeometricMeanWeight(test.x, ones)
+		got = GeometricMean(test.x, ones)
 		if !VeryClose(got, test.want) {
-			t.Errorf("GeometricMeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("GeometricMean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
@@ -155,27 +135,17 @@ let testsHarmonicMean: []meanTest = [
 #test
 fn testHarmonicMean(t: &testing::T) {
 	for _, test in testsHarmonicMean {
-		got := HarmonicMean(test.x)
+		mut got := HarmonicMean(test.x, nil)
 		if !VeryClose(got, test.want) {
-			t.Errorf("HarmonicMean({}) = {}, expected {}", test.x, got, test.want)
-		}
-	}
-}
-
-#test
-fn testHarmonicMeanWeight(t: &testing::T) {
-	for _, test in testsHarmonicMean {
-		mut got := HarmonicMeanWeight(test.x, nil)
-		if !VeryClose(got, test.want) {
-			t.Errorf("HarmonicMeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("HarmonicMean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
 		for i in ones {
 			ones[i] = 1
 		}
-		got = HarmonicMeanWeight(test.x, ones)
+		got = HarmonicMean(test.x, ones)
 		if !VeryClose(got, test.want) {
-			t.Errorf("HarmonicMeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("HarmonicMean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
@@ -195,27 +165,17 @@ let testsRootMeanSquare: []meanTest = [
 #test
 fn testRootMeanSquare(t: &testing::T) {
 	for _, test in testsRootMeanSquare {
-		got := RootMeanSquare(test.x)
+		mut got := RootMeanSquare(test.x, nil)
 		if !VeryClose(got, test.want) {
-			t.Errorf("RootMeanSquare({}) = {}, expected {}", test.x, got, test.want)
-		}
-	}
-}
-
-#test
-fn testRootMeanSquareWeight(t: &testing::T) {
-	for _, test in testsRootMeanSquare {
-		mut got := RootMeanSquareWeight(test.x, nil)
-		if !VeryClose(got, test.want) {
-			t.Errorf("RootMeanSquareWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("RootMeanSquare({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
 		for i in ones {
 			ones[i] = 1
 		}
-		got = RootMeanSquareWeight(test.x, ones)
+		got = RootMeanSquare(test.x, ones)
 		if !VeryClose(got, test.want) {
-			t.Errorf("RootMeanSquareWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("RootMeanSquare({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
@@ -235,27 +195,17 @@ let testsCircularMean: []meanTest = [
 #test
 fn testCircularMean(t: &testing::T) {
 	for _, test in testsCircularMean {
-		got := CircularMean(test.x)
+		mut got := CircularMean(test.x, nil)
 		if !VeryClose(got, test.want) {
-			t.Errorf("CircularMean({}) = {}, expected {}", test.x, got, test.want)
-		}
-	}
-}
-
-#test
-fn testCircularMeanWeight(t: &testing::T) {
-	for _, test in testsCircularMean {
-		mut got := CircularMeanWeight(test.x, nil)
-		if !VeryClose(got, test.want) {
-			t.Errorf("CircularMeanWeight({}, nil) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("CircularMean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
 		for i in ones {
 			ones[i] = 1
 		}
-		got = CircularMeanWeight(test.x, ones)
+		got = CircularMean(test.x, ones)
 		if !VeryClose(got, test.want) {
-			t.Errorf("CircularMeanWeight({}, ones) = {}, expected {}", test.x, got, test.want)
+			t.Errorf("CircularMean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
 }
@@ -351,22 +301,9 @@ let testsCorrelation: []correlationTest = [
 #test
 fn testCorrelation(t: &testing::T) {
 	for _, test in testsCorrelation {
-		if len(test.weights) != 0 {
-			continue
-		}
-		got := Correlation(test.x, test.y)
+		got := Correlation(test.x, test.y, test.weights)
 		if got != test.want {
-			t.Errorf("Correlation({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
-		}
-	}
-}
-
-#test
-fn testCorrelationWeight(t: &testing::T) {
-	for _, test in testsCorrelation {
-		got := CorrelationWeight(test.x, test.y, test.weights)
-		if got != test.want {
-			t.Errorf("CorrelationWeight({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
+			t.Errorf("Correlation({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
 		}
 	}
 }
@@ -400,22 +337,9 @@ let testsVariance: []correlationTest = [
 #test
 fn testVariance(t: &testing::T) {
 	for _, test in testsVariance {
-		if len(test.weights) != 0 {
-			continue
-		}
-		got := Variance(test.x)
+		got := Variance(test.x, test.weights)
 		if !VeryClose(got, test.want) {
-			t.Errorf("Variance({}) = {}, expected {}", test.x, got, test.want)
-		}
-	}
-}
-
-#test
-fn testVarianceWeight(t: &testing::T) {
-	for _, test in testsVariance {
-		got := VarianceWeight(test.x, test.weights)
-		if !VeryClose(got, test.want) {
-			t.Errorf("VarianceWeight({}, {}) = {}, expected {}", test.x, test.weights, got, test.want)
+			t.Errorf("Variance({}, {}) = {}, expected {}", test.x, test.weights, got, test.want)
 		}
 	}
 }
@@ -521,22 +445,9 @@ let testsCovariance: []correlationTest = [
 #test
 fn testCovariance(t: &testing::T) {
 	for _, test in testsCovariance {
-		if len(test.weights) > 0 {
-			continue
-		}
-		got := Covariance(test.x, test.y)
+		got := Covariance(test.x, test.y, test.weights)
 		if !VeryClose(got, test.want) {
-			t.Errorf("Covariance({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
-		}
-	}
-}
-
-#test
-fn testCovarianceWeight(t: &testing::T) {
-	for _, test in testsCovariance {
-		got := CovarianceWeight(test.x, test.y, test.weights)
-		if !VeryClose(got, test.want) {
-			t.Errorf("CovarianceWeight({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
+			t.Errorf("Covariance({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
 		}
 	}
 }
@@ -752,24 +663,10 @@ let testsLinearRegression: []linearRegressionTest = [
 #test
 fn testLinearRegression(t: &testing::T) {
 	for _, test in testsLinearRegression {
-		if len(test.weights) > 0 {
-			continue
-		}
-		alpha, beta := LinearRegression(test.x, test.y, test.origin)
+		alpha, beta := LinearRegression(test.x, test.y, test.weights, test.origin)
 		if !Equal(alpha, test.alpha) && !VeryClose(alpha, test.alpha) ||
 			!Equal(beta, test.beta) && !VeryClose(beta, test.beta) {
-			t.Errorf("LinearRegression({}, {}, {}) = {}, {}, expected {}, {}", test.x, test.y, test.origin, alpha, beta, test.alpha, test.beta)
-		}
-	}
-}
-
-#test
-fn testLinearRegressionWeight(t: &testing::T) {
-	for _, test in testsLinearRegression {
-		alpha, beta := LinearRegressionWeight(test.x, test.y, test.weights, test.origin)
-		if !Equal(alpha, test.alpha) && !VeryClose(alpha, test.alpha) ||
-			!Equal(beta, test.beta) && !VeryClose(beta, test.beta) {
-			t.Errorf("LinearRegressionWeight({}, {}, {}, {}) = {}, {}, expected {}, {}", test.x, test.y, test.weights, test.origin, alpha, beta, test.alpha, test.beta)
+			t.Errorf("LinearRegression({}, {}, {}, {}) = {}, {}, expected {}, {}", test.x, test.y, test.weights, test.origin, alpha, beta, test.alpha, test.beta)
 		}
 	}
 }

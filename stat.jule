@@ -60,20 +60,6 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
 	ret 0.5 * r
 }
 
-// Computes the mean of the data set x.
-//
-// Mathematically, the mean is defined as:
-//	Mean = Σᵢ [ xᵢ ] / n
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-fn Mean[T: integer | float](x: []T): f64 {
-	if len(x) == 0 {
-		ret 0
-	}
-	ret f64(Sum(x...)) / f64(len(x))
-}
-
 // Computes the weighted mean of the data set x.
 //
 // Mathematically, the weighted mean is defined as:
@@ -85,12 +71,15 @@ fn Mean[T: integer | float](x: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn MeanWeight[T: integer | float](x: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret Mean(x)
+fn Mean[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: Mean: len(x) != len(weights)")
 	}
-	if len(x) != len(weights) {
-		panic("julenum: MeanWeight: len(x) != len(weights)")
+	if len(x) == 0 {
+		ret 0
+	}
+	if len(weights) == 0 {
+		ret f64(Sum(x...)) / f64(len(x))
 	}
 	let mut sumX: f64
 	let mut sumW: f64
@@ -101,25 +90,6 @@ fn MeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 		sumW += w
 	}
 	ret sumX / sumW
-}
-
-// Computes the geometric mean of the data set x.
-//
-// Mathematically, the geometric mean is defined as:
-//	G = (x₁ * x₂ * ... * xₙ)^(1/n)
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-fn GeometricMean[T: integer | float](x: []T): f64 {
-	if len(x) == 0 {
-		ret 0
-	}
-	mut logSum := 0.0
-	for _, x_i in x {
-		logSum += math::Log(f64(x_i))
-	}
-	logSum /= f64(len(x))
-	ret math::Exp(logSum)
 }
 
 // Computes the weighted geometric mean of the data set x.
@@ -133,12 +103,20 @@ fn GeometricMean[T: integer | float](x: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret GeometricMean(x)
+fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: GeometricMean: len(x) != len(weights)")
 	}
-	if len(x) != len(weights) {
-		panic("julenum: GeometricMeanWeight: len(x) != len(weights)")
+	if len(x) == 0 {
+		ret 0
+	}
+	if len(weights) == 0 {
+		mut logSum := 0.0
+		for _, x_i in x {
+			logSum += math::Log(f64(x_i))
+		}
+		logSum /= f64(len(x))
+		ret math::Exp(logSum)
 	}
 	mut logSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -149,26 +127,6 @@ fn GeometricMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 	}
 	logSum /= weightsSum
 	ret math::Exp(logSum)
-}
-
-// Computes the harmonic mean of the data set x.
-//
-// Mathematically, the harmonic mean is defined as:
-//	H = n / Σᵢ [ 1 / xᵢ ]
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-#disable boundary
-fn HarmonicMean[T: integer | float](x: []T): f64 {
-	if len(x) == 0 {
-		ret 0
-	}
-	mut z := 0.0
-	mut i := 0
-	for i < len(x); i++ {
-		z += 1 / f64(x[i])
-	}
-	ret f64(len(x)) / z
 }
 
 // Computes the weighted harmonic mean of the data set x.
@@ -182,12 +140,20 @@ fn HarmonicMean[T: integer | float](x: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret HarmonicMean(x)
+fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: HarmonicMean: len(x) != len(weights)")
 	}
-	if len(x) != len(weights) {
-		panic("julenum: HarmonicMeanWeight: len(x) != len(weights)")
+	if len(x) == 0 {
+		ret 0
+	}
+	if len(weights) == 0 {
+		mut z := 0.0
+		mut i := 0
+		for i < len(x); i++ {
+			z += 1 / f64(x[i])
+		}
+		ret f64(len(x)) / z
 	}
 	mut weightedSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -197,27 +163,6 @@ fn HarmonicMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
 		weightsSum += w
 	}
 	ret weightsSum / weightedSum
-}
-
-// Computes the root mean square of the data set x.
-//
-// Mathematically, the root mean square is defined as:
-//	RMS = √(Σᵢ [ xᵢ² ] / n)
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-#disable boundary
-fn RootMeanSquare[T: integer | float](x: []T): f64 {
-	if len(x) == 0 {
-		ret 0
-	}
-	let mut z: f64
-	mut i := 0
-	for i < len(x); i++ {
-		z += f64(x[i]) * f64(x[i])
-	}
-	z /= f64(len(x))
-	ret math::Sqrt(z)
 }
 
 // Computes the weighted root mean square of the data set x.
@@ -231,12 +176,21 @@ fn RootMeanSquare[T: integer | float](x: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret RootMeanSquare(x)
+fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: RootMeanSquare: len(x) != len(weights)")
 	}
-	if len(x) != len(weights) {
-		panic("julenum: RootMeanSquareWeight: len(x) != len(weights)")
+	if len(x) == 0 {
+		ret 0
+	}
+	if len(weights) == 0 {
+		let mut z: f64
+		mut i := 0
+		for i < len(x); i++ {
+			z += f64(x[i]) * f64(x[i])
+		}
+		z /= f64(len(x))
+		ret math::Sqrt(z)
 	}
 	mut weightedSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -246,28 +200,6 @@ fn RootMeanSquareWeight[T: integer | float](x: []T, weights: []T): f64 {
 		weightsSum += w_i
 	}
 	ret math::Sqrt(weightedSum / weightsSum)
-}
-
-// Computes the circular mean of the data set x.
-//
-// Mathematically, the circular mean is defined as:
-//	C = atan2(Σᵢ [ sin(xᵢ) ], Σᵢ [ cos(xᵢ) ])
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-#disable boundary
-fn CircularMean[T: integer | float](x: []T): f64 {
-	if len(x) == 0 {
-		ret 0
-	}
-	mut sumSin, mut sumCos := 0.0, 0.0
-	mut i := 0
-	for i < len(x); i++ {
-		x_i := f64(x[i])
-		sumSin += math::Sin(x_i)
-		sumCos += math::Cos(x_i)
-	}
-	ret math::Atan2(sumSin, sumCos)
 }
 
 // Computes the weighted circular mean of the data set x.
@@ -281,12 +213,22 @@ fn CircularMean[T: integer | float](x: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn CircularMeanWeight[T: integer | float](x: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret CircularMean(x)
+fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: CircularMean: len(x) != len(weights)")
 	}
-	if len(x) != len(weights) {
-		panic("julenum: CircularMeanWeight: len(x) != len(weights)")
+	if len(x) == 0 {
+		ret 0
+	}
+	if len(weights) == 0 {
+		mut sumSin, mut sumCos := 0.0, 0.0
+		mut i := 0
+		for i < len(x); i++ {
+			x_i := f64(x[i])
+			sumSin += math::Sin(x_i)
+			sumCos += math::Cos(x_i)
+		}
+		ret math::Atan2(sumSin, sumCos)
 	}
 	mut sumSin, mut sumCos := 0.0, 0.0
 	mut i := 0
@@ -378,7 +320,7 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 			compensationY += dy
 		}
 	} else {
-		// Manually inlined version of the MeanWeight function for x and y.
+		// Manually inlined version of the Mean function for x and y.
 		mut i := 0
 		for i < len(x); i++ {
 			wi := f64(weights[i])
@@ -412,30 +354,6 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 	ret
 }
 
-// Computes the Pearson correlation coefficient between two data sets x and y.
-// Length of data sets must be equal. Returns 0 if lenghts are zero.
-//
-// Mathematically, the Pearson correlation coefficient is defined as:
-//	r = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / √(Σᵢ [ (xᵢ - x̄)² ]) * √(Σᵢ [ (yᵢ - ȳ)² ])
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-#disable boundary
-fn Correlation[T: integer | float](x: []T, y: []T): f64 {
-	if len(x) != len(y) {
-		panic("julenum: Correlation: len(x) != len(y)")
-	}
-	if len(x) == 0 {
-		ret 0
-	}
-	_, _, _, _, varX, varY, covXY := meanCovariance(x, y, nil)
-	denominator := math::Sqrt(varX * varY)
-	if denominator == 0 {
-		ret 0
-	}
-	ret covXY / denominator
-}
-
 // Computes the weighted Pearson correlation coefficient between two data sets x and y.
 // Length of data sets must be equal. Returns 0 if lenghts are zero.
 //
@@ -448,12 +366,12 @@ fn Correlation[T: integer | float](x: []T, y: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn CorrelationWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret Correlation(x, y)
+fn Correlation[T: integer | float](x: []T, y: []T, weights: []T): f64 {
+	if len(x) != len(y) {
+		panic("julenum: Correlation: len(x) != len(y)")
 	}
-	if len(x) != len(y) || len(x) != len(weights) {
-		panic("julenum: CorrelationWeight: len(x) != len(y) != len(weights)")
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: Correlation: (len(x) == len(y)) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
@@ -491,7 +409,7 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 			compensationX += dx
 		}
 	} else {
-		// Manually inlined version of the MeanWeight function for x.
+		// Manually inlined version of the Mean function for x.
 		mut sumW := 0.0
 		mut i := 0
 		for i < len(x); i++ {
@@ -517,53 +435,8 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 	ret
 }
 
-// Computes the mean and the unbiased sample variance of the data set x.
-// This is faster than calling Mean and Variance functions separately.
-// Unlike Mean, it returns mean in 64-bit floating-point precision.
-//
-// Mathematically, the mean is defined as:
-//	Mean = Σᵢ [ xᵢ ] / n
-//
-// Mathematically, the unbiased sample variance is defined as:
-//	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-fn MeanVariance[T: integer | float](x: []T): (f64, f64) {
-	ret meanVariance(x, nil)
-}
-
-// Computes the unbiased sample variance of the data set x.
-//
-// Mathematically, the unbiased sample variance is defined as:
-//	var(x) = Σᵢ [ (xᵢ - x̄)² ] / (n - 1)
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-fn Variance[T: integer | float](x: []T): f64 {
-	_, varX := meanVariance(x, nil)
-	ret varX
-}
-
-// Computes the unbiased sample covariance of the data set x and y.
-// Length of data sets must be equal.
-//
-// Mathematically, the unbiased sample covariance is defined as:
-//	cov(x, y) = Σᵢ [ (xᵢ - x̄)(yᵢ - ȳ) ] / (n - 1)
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-fn Covariance[T: integer | float](x: []T, y: []T): f64 {
-	if len(x) != len(y) {
-		panic("julenum: Covariance: len(x) != len(y)")
-	}
-	sumW, _, _, _, _, _, covXY := meanCovariance(x, y, nil)
-	ret covXY / (sumW - 1)
-}
-
 // Computes the weighted mean and the weighted unbiased sample variance of the data set x.
-// This is faster than calling MeanWeight and VarianceWeight functions separately.
-// Unlike MeanWeight, it returns mean in 64-bit floating-point precision.
+// This is faster than calling Mean and Variance functions separately.
 //
 // Mathematically, the weighted mean is defined as:
 //	Mean = Σᵢ [ wᵢ * xᵢ ] / Σᵢ [ wᵢ ]
@@ -576,9 +449,9 @@ fn Covariance[T: integer | float](x: []T, y: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn MeanVarianceWeight[T: integer | float](x: []T, weights: []T): (f64, f64) {
-	if len(weights) != 0 && len(x) != len(weights) {
-		panic("julenum: MeanVarianceWeight: len(x) != len(weights)")
+fn MeanVariance[T: integer | float](x: []T, weights: []T): (f64, f64) {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: MeanVariance: len(x) != len(weights)")
 	}
 	ret meanVariance(x, weights)
 }
@@ -593,9 +466,9 @@ fn MeanVarianceWeight[T: integer | float](x: []T, weights: []T): (f64, f64) {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
-	if len(weights) != 0 && len(x) != len(weights) {
-		panic("julenum: VarianceWeight: len(x) != len(weights)")
+fn Variance[T: integer | float](x: []T, weights: []T): f64 {
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: Variance: len(x) != len(weights)")
 	}
 	_, varX := meanVariance(x, weights)
 	ret varX
@@ -612,15 +485,16 @@ fn VarianceWeight[T: integer | float](x: []T, weights: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn CovarianceWeight[T: integer | float](x: []T, y: []T, weights: []T): f64 {
-	if len(weights) == 0 {
-		ret Covariance(x, y)
-	}
-	if len(weights) != 0 && len(x) != len(weights) {
-		panic("julenum: CovarianceWeight: len(x) != len(y) != len(weights)")
-	}
+fn Covariance[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	if len(x) != len(y) {
-		panic("julenum: CovarianceWeight: len(x) != len(y)")
+		panic("julenum: Covariance: len(x) != len(y)")
+	}
+	if len(weights) == 0 {
+		sumW, _, _, _, _, _, covXY := meanCovariance(x, y, nil)
+		ret covXY / (sumW - 1)
+	}
+	if len(x) != len(weights) {
+		panic("julenum: Covariance: (len(x) == len(y)) != len(weights)")
 	}
 	sumW, sumW2, _, _, _, _, covXY := meanCovariance(x, y, weights)
 	ret covXY / (sumW - sumW2/sumW)
@@ -709,48 +583,6 @@ fn Sigmoid[T: integer | float](x: T): f64 {
 	ret 1 / (1 + math::Exp(f64(-x)))
 }
 
-// Computes the best-fit line
-//
-//	y = alpha + beta*x
-//
-// to the data in x and y. If origin is true, the
-// regression is forced to pass through the origin.
-// Length of x and y must be equal.
-//
-// Specifically, computes the values of alpha and
-// beta such that the total residual
-//
-//	Σᵢ [ (yᵢ - alpha - beta*xᵢ)² ]
-//
-// is minimized. If origin is true, then alpha is forced to be zero.
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-#disable boundary
-fn LinearRegression[T: integer | float](x: []T, y: []T, origin: bool): (alpha: f64, beta: f64) {
-	if len(x) != len(y) {
-		panic("julenum: LinearRegression: len(x) != len(y)")
-	}
-
-	if origin {
-		mut x2Sum, mut xySum := 0.0, 0.0
-		mut i := 0
-		for i < len(x); i++ {
-			xi, yi := f64(x[i]), f64(y[i])
-			xySum += xi * yi
-			x2Sum += xi * xi
-		}
-		beta = xySum / x2Sum
-
-		ret 0, beta
-	}
-
-	_, _, meanX, meanY, varX, _, covXY := meanCovariance(x, y, nil)
-	beta = covXY / varX
-	alpha = meanY - beta*meanX
-	ret
-}
-
 // Computes the weighted best-fit line
 //
 //	y = alpha + beta*x
@@ -772,24 +604,29 @@ fn LinearRegression[T: integer | float](x: []T, y: []T, origin: bool): (alpha: f
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn LinearRegressionWeight[T: integer | float](x: []T, y: []T, weights: []T, origin: bool): (alpha: f64, beta: f64) {
-	if len(weights) == 0 {
-		ret LinearRegression(x, y, origin)
-	}
+fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bool): (alpha: f64, beta: f64) {
 	if len(x) != len(y) {
-		panic("julenum: LinearRegressionWeight: len(x) != len(y)")
+		panic("julenum: LinearRegression: len(x) != len(y)")
 	}
-	if len(x) != len(weights) {
-		panic("julenum: LinearRegressionWeight: len(x) != len(y) != len(weights)")
+	if len(weights) > 0 && len(x) != len(weights) {
+		panic("julenum: LinearRegression: (len(x) == len(y)) != len(weights)")
 	}
 
 	if origin {
 		mut x2Sum, mut xySum := 0.0, 0.0
 		mut i := 0
-		for i < len(x); i++ {
-			w, xi, yi := f64(weights[i]), f64(x[i]), f64(y[i])
-			xySum += w * xi * yi
-			x2Sum += w * xi * xi
+		if len(weights) > 0 {
+			for i < len(x); i++ {
+				w, xi, yi := f64(weights[i]), f64(x[i]), f64(y[i])
+				xySum += w * xi * yi
+				x2Sum += w * xi * xi
+			}
+		} else {
+			for i < len(x); i++ {
+				xi, yi := f64(x[i]), f64(y[i])
+				xySum += xi * yi
+				x2Sum += xi * xi
+			}
 		}
 		beta = xySum / x2Sum
 
@@ -802,15 +639,6 @@ fn LinearRegressionWeight[T: integer | float](x: []T, y: []T, weights: []T, orig
 	ret
 }
 
-// Computes the sample standard deviation.
-//
-// Computations are performed using 64-bit floating-point precision and
-// result is in the same precision, casting to proper type is responsibility of the developer.
-fn StdDev[T: integer | float](x: []T): f64 {
-	var := Variance(x)
-	ret math::Sqrt(var)
-}
-
 // Computes the weighted sample standard deviation.
 //
 // If len(weights) == 0, then all of the weights are 1.
@@ -818,8 +646,8 @@ fn StdDev[T: integer | float](x: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn StdDevWeight[T: integer | float](x: []T, weights: []T): f64 {
-	var := VarianceWeight(x, weights)
+fn StdDev[T: integer | float](x: []T, weights: []T): f64 {
+	var := Variance(x, weights)
 	ret math::Sqrt(var)
 }
 
