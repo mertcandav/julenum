@@ -802,6 +802,11 @@ fn LinearRegressionWeight[T: integer | float](x: []T, y: []T, weights: []T, orig
 	ret
 }
 
+// Computes the standard error in the mean with the given values.
+fn StdErr(stdDev: f64, sampleSize: f64): f64 {
+	ret stdDev / math::Sqrt(sampleSize)
+}
+
 // Computes the standard score (a.k.a. z-score, z-value) for the value x
 // with the given mean and standard deviation, i.e.
 //
