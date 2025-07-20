@@ -12,20 +12,20 @@ fn RadiansToDegrees(rad: f64): f64 {
 }
 
 // Converts degrees to radians.
-fn DegToRad(deg: f64): f64 {
+fn DegreesToRadians(deg: f64): f64 {
 	// rad = deg * (π / 180)
 	const DivPi180 = 0.017453292519943295769236907684886127134428718885417254560971914 // https://oeis.org/A019685
 	ret deg * DivPi180
 }
 
 // Converts an angle given in hours, minutes, and seconds to degrees (used in RA conversion).
-fn HMSToDeg(hours: f64, minutes: f64, seconds: f64): f64 {
+fn HMSToDegrees(hours: f64, minutes: f64, seconds: f64): f64 {
 	// deg = 15 * (h + m/60 + s/3600)
 	ret 15 * (hours + minutes/60 + seconds/3600)
 }
 
 // Converts decimal degrees to hours, minutes, and seconds (used in RA).
-fn DegToHMS(deg: f64): (hours: f64, minutes: f64, seconds: f64) {
+fn DegreesToHMS(deg: f64): (hours: f64, minutes: f64, seconds: f64) {
 	totalHours := math::Abs(deg / 15)
 	hours = math::Floor(totalHours)
 	remainder := (totalHours - hours) * 60
@@ -39,7 +39,7 @@ fn DegToHMS(deg: f64): (hours: f64, minutes: f64, seconds: f64) {
 
 // Converts an angle in degrees, arcminutes, and arcseconds to decimal degrees.
 // Supports negative input for southern or western directions.
-fn DMSToDeg(degrees: f64, minutes: f64, seconds: f64): f64 {
+fn DMSToDegrees(degrees: f64, minutes: f64, seconds: f64): f64 {
 	// decimal = sign * (|degrees| + minutes/60 + seconds/3600)
 	sign := math::Copysign(1, degrees) // Preserve the sign of the degrees.
 	absDeg := math::Abs(degrees)
@@ -47,7 +47,7 @@ fn DMSToDeg(degrees: f64, minutes: f64, seconds: f64): f64 {
 }
 
 // Converts decimal degrees to degrees, minutes, and seconds.
-fn DegToDMS(deg: f64): (degrees: f64, minutes: f64, seconds: f64) {
+fn DegreesToDMS(deg: f64): (degrees: f64, minutes: f64, seconds: f64) {
 	sign := math::Copysign(1, deg) // Preserve the sign of the degrees
 	absDeg := math::Abs(deg)
 	degrees = math::Floor(absDeg)
