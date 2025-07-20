@@ -697,3 +697,14 @@ fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
 	distance := math::Sqrt(sumSquare)
 	ret distance
 }
+
+// Computes the Sigmoid function.
+//
+// Mathematically, the Sigmoid function is defined as:
+//	1 / (1 + exp(-x))
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+fn Sigmoid[T: integer | float](x: T): f64 {
+	ret 1 / (1 + math::Exp(f64(-x)))
+}
