@@ -23,3 +23,8 @@ fn Same(a: f64, b: f64): bool {
 	}
 	ret false
 }
+
+// Clamps x to the range [min, max].
+fn Clamp(x: f64, min: f64, max: f64): f64 {
+	ret math::Max(min, math::Min(x, max))
+}
