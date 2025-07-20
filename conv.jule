@@ -28,7 +28,18 @@ fn HMSToDeg(hours: f64, minutes: f64, seconds: f64): f64 {
 // Supports negative input for southern or western directions.
 fn DMSToDeg(degrees: f64, minutes: f64, seconds: f64): f64 {
 	// decimal = sign * (|degrees| + minutes/60 + seconds/3600)
-	sign := math::Copysign(1, degrees) // Preserve the sign of the degrees
+	sign := math::Copysign(1, degrees) // Preserve the sign of the degrees.
 	absDeg := math::Abs(degrees)
 	ret sign * (absDeg + minutes/60 + seconds/3600)
+}
+
+// Converts decimal degrees to degrees, minutes, and seconds.
+fn DegToDMS(deg: f64): (degrees: f64, minutes: f64, seconds: f64) {
+	sign := math::Copysign(1, deg) // Preserve the sign of the degrees
+	absDeg := math::Abs(deg)
+	degrees = math::Floor(absDeg)
+	remainder := (absDeg - degrees) * 60
+	minutes = math::Floor(remainder)
+	seconds = (remainder - minutes) * 60
+	ret degrees * sign, minutes, seconds
 }
