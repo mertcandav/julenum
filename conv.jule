@@ -65,3 +65,12 @@ fn NormalizeAngle(deg: f64): f64 {
 	}
 	ret normalized
 }
+
+// Normalizes RA hours to the range [0, 24).
+fn NormalizeRAHours(hours: f64): f64 {
+	mut normalized := math::Mod(hours, 24)
+	if normalized < 0 {
+		normalized += 24
+	}
+	ret normalized
+}
