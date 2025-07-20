@@ -801,3 +801,12 @@ fn LinearRegressionWeight[T: integer | float](x: []T, y: []T, weights: []T, orig
 	alpha = meanY - beta*meanX
 	ret
 }
+
+// Computes the standard score (a.k.a. z-score, z-value) for the value x
+// with the given mean and standard deviation, i.e.
+//
+// Mathematically, the standard score is defined as:
+//	(x - mean) / stdDev
+fn StdScore(x: f64, mean: f64, stdDev: f64): f64 {
+	ret (x - mean) / stdDev
+}
