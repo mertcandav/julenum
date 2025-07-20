@@ -5,7 +5,7 @@
 use "std/math"
 
 // Converts radians to degrees.
-fn RadToDeg(rad: f64): f64 {
+fn RadiansToDegrees(rad: f64): f64 {
 	// deg = rad * (180 / π)
 	const Div180Pi = 57.2957795130823208767981548141051703324054724665643215491602438 // https://oeis.org/A072097
 	ret rad * Div180Pi
@@ -55,4 +55,13 @@ fn DegToDMS(deg: f64): (degrees: f64, minutes: f64, seconds: f64) {
 	minutes = math::Floor(remainder)
 	seconds = (remainder - minutes) * 60
 	ret degrees * sign, minutes, seconds
+}
+
+// Normalizes an angle in degrees to the range [0, 360).
+fn NormalizeAngle(deg: f64): f64 {
+	mut normalized := math::Mod(deg, 360)
+	if normalized < 0 {
+		normalized += 360
+	}
+	ret normalized
 }
