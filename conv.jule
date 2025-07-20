@@ -74,3 +74,23 @@ fn NormalizeRAHours(hours: f64): f64 {
 	}
 	ret normalized
 }
+
+// Converts Cartesian coordinates (x, y, z) to spherical coordinates (r, theta, phi).
+// Parameters:
+//	r: radius (distance from origin)
+//	theta: polar angle (0 ≤ theta ≤ π), angle from +z axis
+//	phi: azimuthal angle (0 ≤ phi < 2π), angle from +x axis in xy-plane
+fn CartesianToSpherical(x: f64, y: f64, z: f64): (r: f64, theta: f64, phi: f64) {
+	r = math::Sqrt(x*x + y*y + z*z)
+	if r == 0 {
+		theta = 0
+		phi = 0
+		ret
+	}
+	theta = math::Acos(z / r) // polar angle
+	phi = math::Atan2(y, x)   // azimuthal angle
+	if phi < 0 {
+		phi += 2 * Pi
+	}
+	ret
+}
