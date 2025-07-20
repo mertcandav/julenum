@@ -709,12 +709,13 @@ fn Sigmoid[T: integer | float](x: T): f64 {
 	ret 1 / (1 + math::Exp(f64(-x)))
 }
 
-// Computes the best-fit line.
+// Computes the best-fit line
 //
 //	y = alpha + beta*x
 //
 // to the data in x and y. If origin is true, the
 // regression is forced to pass through the origin.
+// Length of x and y must be equal.
 //
 // Specifically, computes the values of alpha and
 // beta such that the total residual
@@ -745,6 +746,57 @@ fn LinearRegression[T: integer | float](x: []T, y: []T, origin: bool): (alpha: f
 	}
 
 	_, _, meanX, meanY, varX, _, covXY := meanCovariance(x, y, nil)
+	beta = covXY / varX
+	alpha = meanY - beta*meanX
+	ret
+}
+
+// Computes the weighted best-fit line
+//
+//	y = alpha + beta*x
+//
+// to the data in x and y. If origin is true, the
+// regression is forced to pass through the origin.
+// Length of x and y must be equal.
+//
+// Specifically, computes the values of alpha and
+// beta such that the total residual
+//
+//	Σᵢ [ wᵢ * (yᵢ - alpha - beta*xᵢ)² ]
+//
+// is minimized. If origin is true, then alpha is forced to be zero.
+//
+// If len(weights) == 0, then all of the weights are 1.
+// Otherwise len(weights) must be equal to len(x).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+#disable boundary
+fn LinearRegressionWeight[T: integer | float](x: []T, y: []T, weights: []T, origin: bool): (alpha: f64, beta: f64) {
+	if len(weights) == 0 {
+		ret LinearRegression(x, y, origin)
+	}
+	if len(x) != len(y) {
+		panic("julenum: LinearRegressionWeight: len(x) != len(y)")
+	}
+	if len(x) != len(weights) {
+		panic("julenum: LinearRegressionWeight: len(x) != len(y) != len(weights)")
+	}
+
+	if origin {
+		mut x2Sum, mut xySum := 0.0, 0.0
+		mut i := 0
+		for i < len(x); i++ {
+			w, xi, yi := f64(weights[i]), f64(x[i]), f64(y[i])
+			xySum += w * xi * yi
+			x2Sum += w * xi * xi
+		}
+		beta = xySum / x2Sum
+
+		ret 0, beta
+	}
+
+	_, _, meanX, meanY, varX, _, covXY := meanCovariance(x, y, weights)
 	beta = covXY / varX
 	alpha = meanY - beta*meanX
 	ret

@@ -724,8 +724,8 @@ let testsLinearRegression: []linearRegressionTest = [
 		x: faithful.waiting,
 		y: faithful.eruptions,
 		weights: faithful.waiting, // Just an arbitrary set of non-uniform weights.
-		alpha: -1.79268,
-		beta: 0.07452,
+		alpha: -1.792678393763112,
+		beta: 0.07452122970940375,
 	},
 	{
 		x: [1, 2, 3, 4, 5],
@@ -737,8 +737,8 @@ let testsLinearRegression: []linearRegressionTest = [
 		x: [1, 2, 3, 4, 5],
 		y: [2, 4, 5, 4, 5],
 		weights: [1, 1, 10, 1, 1],
-		alpha: 2.7,
-		beta: 0.4,
+		alpha: 2.8428571428571434,
+		beta: 0.6,
 	},
 	{
 		x: [1, 2, 3, 4, 5],
@@ -759,6 +759,17 @@ fn testLinearRegression(t: &testing::T) {
 		if !Equal(alpha, test.alpha) && !VeryClose(alpha, test.alpha) ||
 			!Equal(beta, test.beta) && !VeryClose(beta, test.beta) {
 			t.Errorf("LinearRegression({}, {}, {}) = {}, {}, expected {}, {}", test.x, test.y, test.origin, alpha, beta, test.alpha, test.beta)
+		}
+	}
+}
+
+#test
+fn testLinearRegressionWeight(t: &testing::T) {
+	for _, test in testsLinearRegression {
+		alpha, beta := LinearRegressionWeight(test.x, test.y, test.weights, test.origin)
+		if !Equal(alpha, test.alpha) && !VeryClose(alpha, test.alpha) ||
+			!Equal(beta, test.beta) && !VeryClose(beta, test.beta) {
+			t.Errorf("LinearRegressionWeight({}, {}, {}, {}) = {}, {}, expected {}, {}", test.x, test.y, test.weights, test.origin, alpha, beta, test.alpha, test.beta)
 		}
 	}
 }
