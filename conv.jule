@@ -1,0 +1,8 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Converts radians to degrees.
+fn RadToDeg(rad: f64): f64 {
+	ret rad * (180 / Pi)
+}
