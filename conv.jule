@@ -15,3 +15,9 @@ fn DegToRad(deg: f64): f64 {
 	const DivPi180 = 0.017453292519943295769236907684886127134428718885417254560971914 // https://oeis.org/A019685
 	ret deg * DivPi180
 }
+
+// Converts an angle given in hours, minutes, and seconds to degrees (used in RA conversion).
+fn HMSToDeg(hours: f64, minutes: f64, seconds: f64): f64 {
+	// deg = 15 * (h + m/60 + s/3600)
+	ret 15 * (hours + minutes/60 + seconds/3600)
+}
