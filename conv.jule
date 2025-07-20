@@ -24,6 +24,19 @@ fn HMSToDeg(hours: f64, minutes: f64, seconds: f64): f64 {
 	ret 15 * (hours + minutes/60 + seconds/3600)
 }
 
+// Converts decimal degrees to hours, minutes, and seconds (used in RA).
+fn DegToHMS(deg: f64): (hours: f64, minutes: f64, seconds: f64) {
+	totalHours := math::Abs(deg / 15)
+	hours = math::Floor(totalHours)
+	remainder := (totalHours - hours) * 60
+	minutes = math::Floor(remainder)
+	seconds = (remainder - f64(minutes)) * 60
+	if deg < 0 {
+		hours = -hours
+	}
+	ret hours, minutes, seconds
+}
+
 // Converts an angle in degrees, arcminutes, and arcseconds to decimal degrees.
 // Supports negative input for southern or western directions.
 fn DMSToDeg(degrees: f64, minutes: f64, seconds: f64): f64 {
