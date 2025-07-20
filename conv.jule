@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // Converts radians to degrees.
 fn RadToDeg(rad: f64): f64 {
 	// deg = rad * (180 / π)
@@ -20,4 +22,13 @@ fn DegToRad(deg: f64): f64 {
 fn HMSToDeg(hours: f64, minutes: f64, seconds: f64): f64 {
 	// deg = 15 * (h + m/60 + s/3600)
 	ret 15 * (hours + minutes/60 + seconds/3600)
+}
+
+// Converts an angle in degrees, arcminutes, and arcseconds to decimal degrees.
+// Supports negative input for southern or western directions.
+fn DMSToDeg(degrees: f64, minutes: f64, seconds: f64): f64 {
+	// decimal = sign * (|degrees| + minutes/60 + seconds/3600)
+	sign := math::Copysign(1, degrees) // Preserve the sign of the degrees
+	absDeg := math::Abs(degrees)
+	ret sign * (absDeg + minutes/60 + seconds/3600)
 }
