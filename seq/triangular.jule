@@ -23,7 +23,7 @@ impl Seq for seqTriangular {
 	}
 }
 
-// Returns a sequence representing triangular numbers from 1, 3, 6, 10, and so on.
+// Returns a sequence representing triangular numbers from 1, then 3, 6, 10, and so on.
 fn Triangular(): Seq {
 	mut seq := new(seqTriangular)
 	seq.Reset()

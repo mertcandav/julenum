@@ -37,3 +37,9 @@ fn testTriangular(t: &testing::T) {
 	wantseq := []i64([1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120, 136, 153, 171, 190, 210, 231])
 	testSeq(t, "Triangular", Triangular(), wantseq)
 }
+
+#test
+fn testCube(t: &testing::T) {
+	wantseq := []i64([1, 8, 27, 64, 125, 216, 343, 512, 729, 1000, 1331, 1728, 2197, 2744, 3375])
+	testSeq(t, "Cube", Cube(), wantseq)
+}
