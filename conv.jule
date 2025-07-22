@@ -24,6 +24,12 @@ fn DegreesToGradians(deg: f64): f64 {
 	ret deg * (10 / 9)
 }
 
+// Converts gradians to degrees.
+fn GradiansToDegrees(grad: f64): f64 {
+	// 1 gradian = 0.9 degrees.
+	ret grad * 0.9
+}
+
 // Converts an angle given in hours, minutes, and seconds to degrees (used in RA conversion).
 fn HMSToDegrees(hours: f64, minutes: f64, seconds: f64): f64 {
 	// deg = 15 * (h + m/60 + s/3600)
