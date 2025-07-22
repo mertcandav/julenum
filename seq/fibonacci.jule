@@ -1,0 +1,38 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math/big"
+
+struct seqFibonacci {
+	mut prev:  big::Int // term (n-2)
+	mut curr:  big::Int // term (n-1)
+	mut first: bool
+}
+
+impl Seq for seqFibonacci {
+	fn Reset(*self) {
+		self.first = true
+		self.prev = big::Int.FromI64(0)
+		self.curr = big::Int.FromI64(1)
+	}
+
+	fn Next(*self): big::Int {
+		if self.first {
+			self.first = false
+			ret self.prev
+		}
+		// next = prev + curr
+		next := self.prev.Add(self.curr)
+		self.prev = self.curr
+		self.curr = next
+		ret self.prev // term (n-1)
+	}
+}
+
+// Returns a sequence representing fibonacci numbers from 0, then 1, 1, and so on.
+fn Fibonacci(): Seq {
+	mut seq := new(seqFibonacci)
+	seq.Reset()
+	ret seq
+}
