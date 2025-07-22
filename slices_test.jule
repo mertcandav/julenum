@@ -48,6 +48,16 @@ fn testMin(t: &testing::T) {
 }
 
 #test
+fn testMinMax(t: &testing::T) {
+	for _, test in testsCS {
+		min, max := MinMax(test.s...)
+		if !Equal(min, test.min) || !Equal(max, test.max) {
+			t.Errorf("MinMax({}) = {}, {}, expected {}, {}", test.s, min, max, test.min, test.max)
+		}
+	}
+}
+
+#test
 fn testSum(t: &testing::T) {
 	for _, test in testsCS {
 		sum := Sum(test.s...)

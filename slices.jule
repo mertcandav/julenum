@@ -47,6 +47,32 @@ fn Min[T: integer | float](s: ...T): T {
 	ret min
 }
 
+// Returns the minimum and maximum value of the slice.
+// It is faster than calling Min and Max functions separately.
+// If len(s) == 0, it panics.
+//
+// Special cases are:
+//	Min(...) = NaN, if any value is NaN
+#disable boundary
+fn MinMax[T: integer | float](s: ...T): (min: T, max: T) {
+	if len(s) == 0 {
+		panic("MinMax: len(s) == 0")
+	}
+	min = s[0]
+	max = min
+	mut i := 1
+	for i < len(s); i++ {
+		x := s[i]
+		if min > x {
+			min = x
+		}
+		if max < x {
+			max = x
+		}
+	}
+	ret
+}
+
 // Returns the sum of all values of the slice.
 //
 // Special cases are:
