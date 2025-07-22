@@ -1,0 +1,21 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math/big"
+use "std/testing"
+
+fn testSeq(t: &testing::T, name: str, seq: Seq, wantseq: []i64) {
+	for i, want in wantseq {
+		got := seq.Next()
+		if got.Cmp(big::Int.FromI64(want)) != 0 {
+			t.Errorf("{}: sequence value {} = {}, expected {}", name, i, got.Str(), want)
+		}
+	}
+}
+
+#test
+fn testPowerOfTwo(t: &testing::T) {
+	wantseq := []i64([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048])
+	testSeq(t, "PowerOfTwo", PowerOfTwo(), wantseq)
+}
