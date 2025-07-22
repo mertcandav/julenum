@@ -1,0 +1,31 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math/big"
+
+struct seqTriangular {
+	mut n: big::Int
+}
+
+impl Seq for seqTriangular {
+	fn Reset(*self) {
+		self.n = big::Int.FromI64(1)
+	}
+
+	fn Next(*self): big::Int {
+		n := self.n                          // n
+		nPlus1 := n.Add(big::Int.FromI64(1)) // n+1
+		product := n.Mul(nPlus1)             // n*(n+1)
+		triangular := product.Rsh(1)         // product/2
+		self.n = n.Add(big::Int.FromI64(1))  // n++
+		ret triangular
+	}
+}
+
+// Returns a sequence representing triangular numbers from 1, 3, 6, 10, and so on.
+fn Triangular(): Seq {
+	mut seq := new(seqTriangular)
+	seq.Reset()
+	ret seq
+}
