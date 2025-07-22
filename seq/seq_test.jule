@@ -43,3 +43,9 @@ fn testCube(t: &testing::T) {
 	wantseq := []i64([1, 8, 27, 64, 125, 216, 343, 512, 729, 1000, 1331, 1728, 2197, 2744, 3375])
 	testSeq(t, "Cube", Cube(), wantseq)
 }
+
+#test
+fn testSquare(t: &testing::T) {
+	wantseq := []i64([1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225])
+	testSeq(t, "Square", Square(), wantseq)
+}
