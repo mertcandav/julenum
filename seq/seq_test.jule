@@ -19,3 +19,9 @@ fn testPowerOfTwo(t: &testing::T) {
 	wantseq := []i64([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048])
 	testSeq(t, "PowerOfTwo", PowerOfTwo(), wantseq)
 }
+
+#test
+fn testFactorial(t: &testing::T) {
+	wantseq := []i64([1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600])
+	testSeq(t, "Factorial", Factorial(), wantseq)
+}
