@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use jn "julenum"
 use "std/math"
 use "std/testing"
 
@@ -110,7 +111,7 @@ let testsGeometricMean: []meanTest = [
 fn testGeometricMean(t: &testing::T) {
 	for _, test in testsGeometricMean {
 		mut got := GeometricMean(test.x, nil)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("GeometricMean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
@@ -118,7 +119,7 @@ fn testGeometricMean(t: &testing::T) {
 			ones[i] = 1
 		}
 		got = GeometricMean(test.x, ones)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("GeometricMean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
@@ -136,7 +137,7 @@ let testsHarmonicMean: []meanTest = [
 fn testHarmonicMean(t: &testing::T) {
 	for _, test in testsHarmonicMean {
 		mut got := HarmonicMean(test.x, nil)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("HarmonicMean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
@@ -144,7 +145,7 @@ fn testHarmonicMean(t: &testing::T) {
 			ones[i] = 1
 		}
 		got = HarmonicMean(test.x, ones)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("HarmonicMean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
@@ -166,7 +167,7 @@ let testsRootMeanSquare: []meanTest = [
 fn testRootMeanSquare(t: &testing::T) {
 	for _, test in testsRootMeanSquare {
 		mut got := RootMeanSquare(test.x, nil)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("RootMeanSquare({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
@@ -174,7 +175,7 @@ fn testRootMeanSquare(t: &testing::T) {
 			ones[i] = 1
 		}
 		got = RootMeanSquare(test.x, ones)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("RootMeanSquare({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
@@ -196,7 +197,7 @@ let testsCircularMean: []meanTest = [
 fn testCircularMean(t: &testing::T) {
 	for _, test in testsCircularMean {
 		mut got := CircularMean(test.x, nil)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("CircularMean({}, nil) = {}, expected {}", test.x, got, test.want)
 		}
 		mut ones := make([]f64, len(test.x))
@@ -204,7 +205,7 @@ fn testCircularMean(t: &testing::T) {
 			ones[i] = 1
 		}
 		got = CircularMean(test.x, ones)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("CircularMean({}, ones) = {}, expected {}", test.x, got, test.want)
 		}
 	}
@@ -224,7 +225,7 @@ let testsMedian: []meanTest = [
 fn testMedian(t: &testing::T) {
 	for _, test in testsMedian {
 		got := Median(test.x)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("Median({}) = {}, expected {}", test.x, got, test.want)
 		}
 	}
@@ -338,7 +339,7 @@ let testsVariance: []correlationTest = [
 fn testVariance(t: &testing::T) {
 	for _, test in testsVariance {
 		got := Variance(test.x, test.weights)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("Variance({}, {}) = {}, expected {}", test.x, test.weights, got, test.want)
 		}
 	}
@@ -446,7 +447,7 @@ let testsCovariance: []correlationTest = [
 fn testCovariance(t: &testing::T) {
 	for _, test in testsCovariance {
 		got := Covariance(test.x, test.y, test.weights)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("Covariance({}, {}, {}) = {}, expected {}", test.x, test.y, test.weights, got, test.want)
 		}
 	}
@@ -464,7 +465,7 @@ let testsEntropy: []correlationTest = [
 fn testEntropy(t: &testing::T) {
 	for _, test in testsEntropy {
 		got := Entropy(test.x)
-		if !VeryClose(got, test.want) {
+		if !jn::VeryClose(got, test.want) {
 			t.Errorf("Entropy({}) = {}, expected {}", test.x, got, test.want)
 		}
 	}
@@ -484,7 +485,7 @@ let testsCrossEntropy: []correlationTest = [
 fn testCrossEntropy(t: &testing::T) {
 	for _, test in testsCrossEntropy {
 		got := CrossEntropy(test.x, test.y)
-		if !Equal(got, test.want) && !VeryClose(got, test.want) {
+		if !jn::Equal(got, test.want) && !jn::VeryClose(got, test.want) {
 			t.Errorf("CrossEntropy({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
 		}
 	}
@@ -508,7 +509,7 @@ let testsEuclideanDistance: []correlationTest = [
 fn testEuclideanDistance(t: &testing::T) {
 	for _, test in testsEuclideanDistance {
 		got := EuclideanDistance(test.x, test.y)
-		if !Equal(got, test.want) && !VeryClose(got, test.want) {
+		if !jn::Equal(got, test.want) && !jn::VeryClose(got, test.want) {
 			t.Errorf("EuclideanDistance({}, {}) = {}, expected {}", test.x, test.y, got, test.want)
 		}
 	}
@@ -664,8 +665,8 @@ let testsLinearRegression: []linearRegressionTest = [
 fn testLinearRegression(t: &testing::T) {
 	for _, test in testsLinearRegression {
 		alpha, beta := LinearRegression(test.x, test.y, test.weights, test.origin)
-		if !Equal(alpha, test.alpha) && !VeryClose(alpha, test.alpha) ||
-			!Equal(beta, test.beta) && !VeryClose(beta, test.beta) {
+		if !jn::Equal(alpha, test.alpha) && !jn::VeryClose(alpha, test.alpha) ||
+			!jn::Equal(beta, test.beta) && !jn::VeryClose(beta, test.beta) {
 			t.Errorf("LinearRegression({}, {}, {}, {}) = {}, {}, expected {}, {}", test.x, test.y, test.weights, test.origin, alpha, beta, test.alpha, test.beta)
 		}
 	}

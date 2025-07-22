@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use jn "julenum"
 use "std/math"
+use "std/math/rand"
 
 // Computes the chi-square statistic between two vectors: observed and expected.
 // The lengths of obs and exp must be equal, otherwise it panics.
@@ -19,7 +21,7 @@ use "std/math"
 #disable boundary
 fn ChiSquare[T: float](obs: []T, exp: []T): f64 {
 	if len(obs) != len(exp) {
-		panic("julenum: ChiSquare: different vector lengths")
+		panic("stat: ChiSquare: different vector lengths")
 	}
 	mut r := 0.0
 	mut i := 0
@@ -45,7 +47,7 @@ fn ChiSquare[T: float](obs: []T, exp: []T): f64 {
 #disable boundary
 fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
 	if len(x) != len(y) {
-		panic("julenum: ChiSquareDistance: different vector lengths")
+		panic("stat: ChiSquareDistance: different vector lengths")
 	}
 	let mut r: f64
 	mut i := 0
@@ -73,13 +75,13 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
 #disable boundary
 fn Mean[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: Mean: len(x) != len(weights)")
+		panic("stat: Mean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
 	}
 	if len(weights) == 0 {
-		ret f64(Sum(x...)) / f64(len(x))
+		ret f64(jn::Sum(x...)) / f64(len(x))
 	}
 	let mut sumX: f64
 	let mut sumW: f64
@@ -105,7 +107,7 @@ fn Mean[T: integer | float](x: []T, weights: []T): f64 {
 #disable boundary
 fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: GeometricMean: len(x) != len(weights)")
+		panic("stat: GeometricMean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
@@ -142,7 +144,7 @@ fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 #disable boundary
 fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: HarmonicMean: len(x) != len(weights)")
+		panic("stat: HarmonicMean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
@@ -178,7 +180,7 @@ fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
 #disable boundary
 fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: RootMeanSquare: len(x) != len(weights)")
+		panic("stat: RootMeanSquare: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
@@ -215,7 +217,7 @@ fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 #disable boundary
 fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: CircularMean: len(x) != len(weights)")
+		panic("stat: CircularMean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
@@ -240,6 +242,47 @@ fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
 	ret math::Atan2(sumSin, sumCos)
 }
 
+#disable boundary
+fn quickSelect[T: comparable](mut x: []T, k: int): T {
+	mut left, mut right := 0, len(x)-1
+	for {
+		if left == right {
+			ret x[left]
+		}
+
+		// Pivot selection (randomized for performance).
+		mut pivotIndex := rand::IntN(right-left+1) + left
+		pivotIndex = partition(x, left, right, pivotIndex)
+
+		if k == pivotIndex {
+			ret x[k]
+		} else if k < pivotIndex {
+			right = pivotIndex - 1
+		} else {
+			left = pivotIndex + 1
+		}
+	}
+}
+
+// Rearranges elements and returns the pivot's final index.
+#disable boundary
+fn partition[T: comparable](mut x: []T, left: int, right: int, pivotIndex: int): int {
+	pivotValue := x[pivotIndex]
+	// Move pivot to end.
+	x[pivotIndex], x[right] = x[right], x[pivotIndex]
+	mut storeIndex := left
+	mut i := left
+	for i < right; i++ {
+		if x[i] < pivotValue {
+			x[i], x[storeIndex] = x[storeIndex], x[i]
+			storeIndex++
+		}
+	}
+	// Move pivot to its final place.
+	x[storeIndex], x[right] = x[right], x[storeIndex]
+	ret storeIndex
+}
+
 fn medianInPlace[T: integer | float](mut x: []T): f64 {
 	n := len(x)
 	mid := n >> 1
@@ -262,7 +305,7 @@ fn medianInPlace[T: integer | float](mut x: []T): f64 {
 #disable boundary
 fn Median[T: integer | float](x: []T): f64 {
 	if len(x) == 0 {
-		panic("julenum: Median: median of empty slice")
+		panic("stat: Median: median of empty slice")
 	}
 	mut xc := make([]T, len(x))
 	copy(xc, x)
@@ -278,7 +321,7 @@ fn Median[T: integer | float](x: []T): f64 {
 // result is in the same precision, casting to proper type is responsibility of the developer.
 fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 	if len(x) == 0 {
-		panic("julenum: MedianInPlace: median of empty slice")
+		panic("stat: MedianInPlace: median of empty slice")
 	}
 	medianInPlace(x)
 }
@@ -368,10 +411,10 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 #disable boundary
 fn Correlation[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	if len(x) != len(y) {
-		panic("julenum: Correlation: len(x) != len(y)")
+		panic("stat: Correlation: len(x) != len(y)")
 	}
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: Correlation: (len(x) == len(y)) != len(weights)")
+		panic("stat: Correlation: (len(x) == len(y)) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0
@@ -451,7 +494,7 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 // result is in the same precision, casting to proper type is responsibility of the developer.
 fn MeanVariance[T: integer | float](x: []T, weights: []T): (f64, f64) {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: MeanVariance: len(x) != len(weights)")
+		panic("stat: MeanVariance: len(x) != len(weights)")
 	}
 	ret meanVariance(x, weights)
 }
@@ -468,7 +511,7 @@ fn MeanVariance[T: integer | float](x: []T, weights: []T): (f64, f64) {
 // result is in the same precision, casting to proper type is responsibility of the developer.
 fn Variance[T: integer | float](x: []T, weights: []T): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: Variance: len(x) != len(weights)")
+		panic("stat: Variance: len(x) != len(weights)")
 	}
 	_, varX := meanVariance(x, weights)
 	ret varX
@@ -487,14 +530,14 @@ fn Variance[T: integer | float](x: []T, weights: []T): f64 {
 // result is in the same precision, casting to proper type is responsibility of the developer.
 fn Covariance[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	if len(x) != len(y) {
-		panic("julenum: Covariance: len(x) != len(y)")
+		panic("stat: Covariance: len(x) != len(y)")
 	}
 	if len(weights) == 0 {
 		sumW, _, _, _, _, _, covXY := meanCovariance(x, y, nil)
 		ret covXY / (sumW - 1)
 	}
 	if len(x) != len(weights) {
-		panic("julenum: Covariance: (len(x) == len(y)) != len(weights)")
+		panic("stat: Covariance: (len(x) == len(y)) != len(weights)")
 	}
 	sumW, sumW2, _, _, _, _, covXY := meanCovariance(x, y, weights)
 	ret covXY / (sumW - sumW2/sumW)
@@ -532,7 +575,7 @@ fn Entropy[T: integer | float](p: []T): f64 {
 #disable boundary
 fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
 	if len(p) != len(q) {
-		panic("julenum: CrossEntropy: len(p) != len(q)")
+		panic("stat: CrossEntropy: len(p) != len(q)")
 	}
 	mut e := 0.0
 	mut i := 0
@@ -557,7 +600,7 @@ fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
 #disable boundary
 fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
 	if len(p1) != len(p2) {
-		panic("julenum: EuclideanDistance: len(p1) != len(p2)")
+		panic("stat: EuclideanDistance: len(p1) != len(p2)")
 	}
 	if len(p1) == 0 {
 		ret 0
@@ -606,10 +649,10 @@ fn Sigmoid[T: integer | float](x: T): f64 {
 #disable boundary
 fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bool): (alpha: f64, beta: f64) {
 	if len(x) != len(y) {
-		panic("julenum: LinearRegression: len(x) != len(y)")
+		panic("stat: LinearRegression: len(x) != len(y)")
 	}
 	if len(weights) > 0 && len(x) != len(weights) {
-		panic("julenum: LinearRegression: (len(x) == len(y)) != len(weights)")
+		panic("stat: LinearRegression: (len(x) == len(y)) != len(weights)")
 	}
 
 	if origin {
@@ -677,7 +720,7 @@ fn StdScore(x: f64, mean: f64, stdDev: f64): f64 {
 #disable boundary
 fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 	if len(weights) != 0 && len(x) != len(weights) {
-		panic("julenum: Mode: len(x) != len(weights)")
+		panic("stat: Mode: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
 		ret 0, 0
