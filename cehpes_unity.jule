@@ -1,0 +1,156 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Derived from SciPy's special/cephes/unity.c
+// https://github.com/scipy/scipy/blob/master/scipy/special/cephes/unity.c
+// Made freely available by Stephen L. Moshier without support or guarantee.
+
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+// Copyright ©1984, ©1996 by Stephen L. Moshier
+// Portions Copyright ©2016 The Gonum Authors. All rights reserved.
+
+use "std/math"
+
+const invSqrt2 = 1 / Sqrt2
+
+// Coefficients for
+//
+//	log(1+x) = x - \frac{x^2}{2} + \frac{x^3 lP(x)}{lQ(x)}
+//
+// for
+//
+//	\frac{1}{\sqrt{2}} <= x < \sqrt{2}
+//
+// Theoretical peak relative error = 2.32e-20
+let lP: [...]f64 = [
+	4.5270000862445199635215e-5,
+	4.9854102823193375972212e-1,
+	6.5787325942061044846969e0,
+	2.9911919328553073277375e1,
+	6.0949667980987787057556e1,
+	5.7112963590585538103336e1,
+	2.0039553499201281259648e1,
+]
+
+let lQ: [...]f64 = [
+	1.5062909083469192043167e1,
+	8.3047565967967209469434e1,
+	2.2176239823732856465394e2,
+	3.0909872225312059774938e2,
+	2.1642788614495947685003e2,
+	6.0118660497603843919306e1,
+]
+
+// computes
+//
+//	log(1 + x)
+fn log1p(x: f64): f64 {
+	mut z := 1 + x
+	if z < invSqrt2 || z > Sqrt2 {
+		ret math::Log(z)
+	}
+	z = x * x
+	z = -0.5*z + x*(z*polevl(x, lP[:], 6)/p1evl(x, lQ[:], 6))
+	ret x + z
+}
+
+// computes
+//
+//	log(1 + x) - x
+fn log1pmx(x: f64): f64 {
+	if math::Abs(x) < 0.5 {
+		mut xfac := x
+		mut res := 0.0
+
+		let mut term: f64
+		mut n := 2
+		for n < maxIter; n++ {
+			xfac *= -x
+			term = xfac / f64(n)
+			res += term
+			if math::Abs(term) < machEp*math::Abs(res) {
+				break
+			}
+		}
+		ret res
+	}
+	ret log1p(x) - x
+}
+
+// Coefficients for
+//
+//	e^x = 1 + \frac{2x eP(x^2)}{eQ(x^2) - eP(x^2)}
+//
+// for
+//
+//	-0.5 <= x <= 0.5
+let eP: [...]f64 = [
+	1.2617719307481059087798e-4,
+	3.0299440770744196129956e-2,
+	9.9999999999999999991025e-1,
+]
+
+let eQ: [...]f64 = [
+	3.0019850513866445504159e-6,
+	2.5244834034968410419224e-3,
+	2.2726554820815502876593e-1,
+	2.0000000000000000000897e0,
+]
+
+// computes
+//
+//	expm1(x) = e^x - 1
+fn expm1(x: f64): f64 {
+	if math::IsInf(x, 0) {
+		if math::IsNaN(x) || x > 0 {
+			ret x
+		}
+		ret -1
+	}
+	if x < -0.5 || x > 0.5 {
+		ret math::Exp(x) - 1
+	}
+	xx := x * x
+	mut r := x * polevl(xx, eP[:], 2)
+	r = r / (polevl(xx, eQ[:], 3) - r)
+	ret r + r
+}
+
+// Computes
+//
+//	lgam(x + 1)
+//
+// around x = 0 using its Taylor series.
+fn lgam1pTaylor(x: f64): f64 {
+	if x == 0 {
+		ret 0
+	}
+	mut res := -Euler * x
+	mut xfac := -x
+	mut n := 2
+	for n < 42; n++ {
+		nf := f64(n)
+		xfac *= -x
+		coeff := Zeta(nf, 1) * xfac / nf
+		res += coeff
+		if math::Abs(coeff) < machEp*math::Abs(res) {
+			break
+		}
+	}
+
+	ret res
+}
+
+// computes
+//
+//	lgam(x + 1)
+fn lgam1p(x: f64): f64 {
+	if math::Abs(x) <= 0.5 {
+		ret lgam1pTaylor(x)
+	} else if math::Abs(x-1) < 0.5 {
+		ret math::Log(x) + lgam1pTaylor(x-1)
+	}
+	ret lgam(x + 1)
+}
