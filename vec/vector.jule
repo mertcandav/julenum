@@ -1,0 +1,17 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// General vector type for type T.
+type Vector[T: integer | float]: []T
+
+impl Vector {
+	// Returns new Vector buffer enough to store at least n values.
+	fn make(mut *self, n: int): Vector[T] {
+		// Reuse self capacity, if there is enough space.
+		if n <= cap(*self) {
+			ret (*self)[:n]
+		}
+		ret make(Vector[T], n)
+	}
+}
