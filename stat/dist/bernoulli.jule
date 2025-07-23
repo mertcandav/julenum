@@ -5,7 +5,7 @@
 use "std/math"
 use "std/math/rand"
 
-// Represents an unvariate Bernoulli distribution.
+// Represents an Bernoulli distribution.
 // It models a single experiment with two possible outcomes: success (1) or failure (0).
 // The parameter 'P' is the probability of success.
 //
