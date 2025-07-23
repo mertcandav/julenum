@@ -1,0 +1,35 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the test gonum package.
+//
+// Copyright ©2016 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "std/math"
+
+const logPi = 1.14472988584940017414342735135305871164729481 // http://oeis.org/A053510
+
+// Returns the log of the multivariate Gamma function. Dim
+// must be greater than zero, and MvLgamma will return NaN if v < (dim-1)/2.
+//
+// See https://en.wikipedia.org/wiki/Multivariate_gamma_function for more
+// information.
+fn MvLgamma(v: f64, dim: int): f64 {
+	if dim < 1 {
+		panic("julenum: negative dimension")
+	}
+	df := f64(dim)
+	if v < (df-1)*0.5 {
+		ret math::NaN()
+	}
+	mut ans := df * (df - 1) * 0.25 * logPi
+	mut i := 1
+	for i <= dim; i++ {
+		lg, _ := math::Lgamma(v + f64(1-i)*0.5)
+		ans += lg
+	}
+	ret ans
+}
