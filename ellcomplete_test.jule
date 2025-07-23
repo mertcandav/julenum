@@ -1,0 +1,51 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math"
+use "std/testing"
+
+// Checks if the Legendre's relation for m=0.0001(0.0001)0.9999
+// is satisfied with accuracy 1e-14.
+#test
+fn testCompleteKE(t: &testing::T) {
+	mut m := 1
+	for m <= 9999; m++ {
+		mf := f64(m) / 10000
+		mp := 1 - mf
+		K, Kp := CompleteK(mf), CompleteK(mp)
+		E, Ep := CompleteE(mf), CompleteE(mp)
+		legendre := math::Abs(E*Kp + Ep*K - K*Kp - Pi/2)
+		if legendre > 1e-14 {
+			t.Errorf("legendre > tol: m={}, legendre={}, tol=1e-14", mf, legendre)
+			ret
+		}
+	}
+}
+
+// Checks if the relations between two associate elliptic integrals B(m), D(m)
+// and more common Legendre's elliptic integrals K(m), E(m) are satisfied with accuracy 1e-14
+// for m=0.0001(0.0001)0.9999.
+//
+// K(m) and E(m) can be computed without cancellation problems as following:
+//	K(m) = B(m) + D(m),
+//	E(m) = B(m) + (1-m)D(m).
+#test
+fn testCompleteBD(t: &testing::T) {
+	mut m := 1
+	for m <= 9999; m++ {
+		mf := f64(m) / 10000
+		B, D := CompleteB(mf), CompleteD(mf)
+		K, E := CompleteK(mf), CompleteE(mf)
+		difference1 := math::Abs(K - (B + D))
+		difference2 := math::Abs(E - (B + (1-mf)*D))
+		if difference1 > 1e-14 {
+			t.Errorf("difference1 > tol: m={}, difference1={}, tol=1e-14", mf, difference1)
+			ret
+		}
+		if difference2 > 1e-14 {
+			t.Errorf("difference2 > tol: m={}, difference2={}, tol=1e-14", mf, difference2)
+			ret
+		}
+	}
+}
