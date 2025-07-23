@@ -221,3 +221,16 @@ fn testBernoulliVariance(t: &testing::T) {
 		t.Errorf("Variance: got {}, want {}", got, want)
 	}
 }
+
+#test
+fn testBernoulliFit(t: &testing::T) {
+	mut b := Bernoulli{} // initial p doesn't matter; will be overwritten
+
+	// Valid samples
+	samples := [0.0, 1, 0, 1, 1, 0, 1]
+	b.Fit(samples)
+	expectedP := 4.0 / 7.0
+	if !jn::Tolerance(b.P, expectedP, 1e-10) {
+		t.Errorf("Fit: got p={}, want {}", b.P, expectedP)
+	}
+}
