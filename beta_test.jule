@@ -1,0 +1,147 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math"
+use "std/testing"
+
+struct betaTest {
+	p:    f64
+	q:    f64
+	want: f64
+}
+
+let testsBeta: []betaTest = [
+	{
+		p: 1,
+		q: 2,
+		want: 0.5, // obtained from scipy.special.beta(1,2) (version=0.18.0)
+	},
+	{
+		p: 10,
+		q: 20,
+		want: 4.9925087406346778e-09, // obtained from scipy.special.beta(10,20) (version=0.18.0)
+	},
+	{
+		p: +0,
+		q: 10,
+		want: math::Inf(+1),
+	},
+	{
+		p: -0,
+		q: 10,
+		want: math::Inf(+1),
+	},
+	{
+		p: 0,
+		q: 0,
+		want: math::NaN(),
+	},
+	{
+		p: 0,
+		q: math::Inf(-1),
+		want: math::NaN(),
+	},
+	{
+		p: 10,
+		q: math::Inf(-1),
+		want: math::NaN(),
+	},
+	{
+		p: 0,
+		q: math::Inf(+1),
+		want: math::NaN(),
+	},
+	{
+		p: 10,
+		q: math::Inf(+1),
+		want: math::NaN(),
+	},
+	{
+		p: math::NaN(),
+		q: 10,
+		want: math::NaN(),
+	},
+	{
+		p: math::NaN(),
+		q: 0,
+		want: math::NaN(),
+	},
+	{
+		p: -1,
+		q: 0,
+		want: math::NaN(),
+	},
+	{
+		p: -1,
+		q: +1,
+		want: math::NaN(),
+	},
+]
+
+#test
+fn testBeta(t: &testing::T) {
+	for i, test in testsBeta {
+		v := Beta(test.p, test.q)
+		if !(Tolerance(v, test.want, 1e-12) ||
+			(math::IsNaN(test.want) && math::IsNaN(v))) {
+			t.Errorf("test #{}: Beta({}, {})={}. want={}",
+				i, test.p, test.q, v, test.want)
+		}
+
+		u := Beta(test.q, test.p)
+		if !(Tolerance(u, test.want, 1e-12) ||
+			(math::IsNaN(test.want) && math::IsNaN(u))) {
+			t.Errorf("test #{}: Beta({}, {})={}. want={}",
+				i, test.q, test.p, u, test.want)
+		}
+
+		if math::IsInf(v, +1) || math::IsNaN(v) {
+			continue
+		}
+
+		vv := Beta(test.p, test.q+1)
+		uu := Beta(test.p+1, test.q)
+		if !Tolerance(v, vv+uu, 1e-12) {
+			t.Errorf("test #{}: Beta(p,q) != Beta(p,q+1)+Beta(p+1,q)")
+		}
+
+		vbeta2 := beta2(test.p, test.q)
+		if !Tolerance(v, vbeta2, 1e-12) {
+			t.Errorf("test #{}: Beta(p,q) != Beta2(p,q)")
+		}
+	}
+}
+
+fn beta2(x: f64, y: f64): f64 {
+	ret math::Gamma(x) * math::Gamma(y) / math::Gamma(x+y)
+}
+
+#test
+fn testLbeta(t: &testing::T) {
+	for i, test in testsBeta {
+		want := math::Log(test.want)
+		v := Lbeta(test.p, test.q)
+		if !(Tolerance(v, want, 1e-15) ||
+			(math::IsNaN(want) && math::IsNaN(v))) {
+			t.Errorf("test #{}: Lbeta({}, {})={}. want={}",
+				i, test.p, test.q, v, want)
+		}
+
+		u := Lbeta(test.q, test.p)
+		if !(Tolerance(u, want, 1e-15) ||
+			(math::IsNaN(want) && math::IsNaN(u))) {
+			t.Errorf("test #{}: Lbeta({}, {})={}. want={}",
+				i, test.q, test.p, u, want)
+		}
+
+		if math::IsInf(v, +1) || math::IsNaN(v) {
+			continue
+		}
+
+		vbeta2 := math::Log(beta2(test.p, test.q))
+		if !Tolerance(v, vbeta2, 1e-15) {
+			t.Errorf("test #{}: Lbeta(p,q) != Log(Beta2(p,q))")
+		}
+	}
+}
