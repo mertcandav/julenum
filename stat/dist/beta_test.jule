@@ -1,0 +1,140 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/math"
+use "std/testing"
+
+#test
+fn testBetaMean(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 3}
+	expected := 2.0 / (2.0 + 3.0)
+	got := b.Mean()
+	if !jn::Tolerance(got, expected, 1e-12) {
+		t.Errorf("Mean: expected {}, got {}", expected, got)
+	}
+}
+
+#test
+fn testBetaVariance(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 3}
+	expected := (2.0 * 3.0) / (math::Pow(5.0, 2) * 6.0)
+	got := b.Variance()
+	if !jn::Tolerance(got, expected, 1e-12) {
+		t.Errorf("Variance: expected {}, got {}", expected, got)
+	}
+}
+
+#test
+fn testBetaMode(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 3}
+	expected := (2.0 - 1.0) / (2.0 + 3.0 - 2.0)
+	got := b.Mode()
+	if !jn::Tolerance(got, expected, 1e-12) {
+		t.Errorf("Mode: expected {}, got {}", expected, got)
+	}
+}
+
+#test
+fn testBetaPDF(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 2}
+	prob := b.PDF(0.5)
+	if prob <= 0 {
+		t.Errorf("PDF(0.5) should be positive, got {}", prob)
+	}
+}
+
+#test
+fn testBetaLogPDF(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 2}
+	got := b.LogPDF(0.5)
+	if math::IsNaN(got) || math::IsInf(got, 0) {
+		t.Errorf("LogPDF(0.5) should be finite, got {}", got)
+	}
+}
+
+#test
+fn testBetaCDF(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 2}
+	mut cdf := b.CDF(0.0)
+	if cdf != 0.0 {
+		t.Errorf("CDF(0) = {}, expected 0", cdf)
+	}
+	cdf = b.CDF(1.0)
+	if cdf != 1.0 {
+		t.Errorf("CDF(1) = {}, expected 1", cdf)
+	}
+}
+
+#test
+fn testBetaEntropy(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 3}
+	got := b.Entropy()
+	if math::IsNaN(got) || math::IsInf(got, 0) {
+		t.Errorf("Entropy should be finite, got {}", got)
+	}
+}
+
+#test
+fn testBetaExcessKurtosis(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 3}
+	got := b.ExcessKurtosis()
+	if math::IsNaN(got) || math::IsInf(got, 0) {
+		t.Errorf("ExcessKurtosis should be finite, got {}", got)
+	}
+}
+
+#test
+fn testBetaSurvival(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 2}
+	s := b.Survival(0.4)
+	cdf := b.CDF(0.4)
+	if !jn::Tolerance(s, 1.0-cdf, 1e-12) {
+		t.Errorf("Survival(0.4) = {}, expected {}", s, 1.0-cdf)
+	}
+}
+
+#test
+fn testBetaStdDev(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 3}
+	std := b.StdDev()
+	expected := math::Sqrt(b.Variance())
+	if !jn::Tolerance(std, expected, 1e-12) {
+		t.Errorf("StdDev: expected {}, got {}", expected, std)
+	}
+}
+
+#test
+fn testBetaRand(t: &testing::T) {
+	b := Beta{Alpha: 2, Beta: 2}
+	sample := b.Rand()
+	if sample < 0 || sample > 1 {
+		t.Errorf("Rand() = {}, expected in [0, 1]", sample)
+	}
+}
+
+#test
+fn testBetaFit(t: &testing::T) {
+	// Known parameters
+	trueAlpha := 2.0
+	trueBeta := 5.0
+	b := Beta{Alpha: trueAlpha, Beta: trueBeta}
+
+	// Generate samples
+	mut samples := make([]f64, 16750)
+	for i in samples {
+		samples[i] = b.Rand()
+	}
+
+	// Fit to new Gamma
+	let mut fitted: Gamma
+	fitted.Fit(samples)
+
+	if !jn::Tolerance(fitted.Mean(), b.Mean(), b.Mean()*0.15) {
+		t.Errorf("Fitted mean off: got {}, want ~{}", fitted.Mean(), b.Mean())
+	}
+	if !jn::Tolerance(fitted.Variance(), b.Variance(), b.Variance()*0.25) {
+		t.Errorf("Fitted variance off: got {}, want ~{}", fitted.Variance(), b.Variance())
+	}
+}
