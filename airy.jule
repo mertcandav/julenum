@@ -28,6 +28,23 @@ fn AiryAi(z: cmplx128): cmplx128 {
 	ret cmplx(air, aii)
 }
 
+// Returns the value of the derivative of the Airy function at z. The
+// Airy function here, Ai(z), is one of the two linearly independent solutions to
+//
+//	y′′ - y*z = 0.
+//
+// See http://mathworld.wolfram.com/AiryFunctions.html for more detailed information.
+fn AiryAiDeriv(z: cmplx128): cmplx128 {
+	// id specifies the order of the derivative to compute,
+	// 0 for the function itself and 1 for the derivative.
+	// kode specifies the scaling option. See the function
+	// documentation for the exact behavior.
+	id := 1
+	kode := 1
+	air, aii, _, _ := zairy(real(z), imag(z), id, kode)
+	ret cmplx(air, aii)
+}
+
 /*
 The AMOS functions are included in SLATEC, and the SLATEC guide (http://www.netlib.org/slatec/guide) explicitly states:
 "The Library is in the public domain and distributed by the Energy
