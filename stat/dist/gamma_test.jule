@@ -1,0 +1,126 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/math"
+use "std/testing"
+
+#test
+fn testGammaBasicStats(t: &testing::T) {
+	g := Gamma{K: 3, Theta: 2}
+
+	mean := g.Mean()
+	if !jn::Tolerance(mean, 6, 1e-9) {
+		t.Errorf("Mean: got {}, want 6", mean)
+	}
+	variance := g.Variance()
+	if !jn::Tolerance(variance, 12, 1e-9) {
+		t.Errorf("Variance: got {}, want 12", variance)
+	}
+	std := g.StdDev()
+	if !jn::Tolerance(std, math::Sqrt(12), 1e-9) {
+		t.Errorf("StdDev: got {}, want {}", std, math::Sqrt(12))
+	}
+	skewness := g.Skewness()
+	if !jn::Tolerance(skewness, 2.0/math::Sqrt(3), 1e-9) {
+		t.Errorf("Skewness incorrect")
+	}
+	exkurtosis := g.ExcessKurtosis()
+	if !jn::Tolerance(exkurtosis, 6.0/3.0, 1e-9) {
+		t.Errorf("ExcessKurtosis incorrect")
+	}
+}
+
+#test
+fn testGammaEntropy(t: &testing::T) {
+	g := Gamma{K: 2, Theta: 1}
+	got := g.Entropy()
+	if math::IsNaN(got) || math::IsInf(got, 0) {
+		t.Errorf("Entropy is invalid: {}", got)
+	}
+}
+
+#test
+fn testGammaMGF(t: &testing::T) {
+	g := Gamma{K: 2, Theta: 1}
+	tval := 0.5
+	got := g.MGF(tval)
+	expected := math::Pow(1.0-1.0*tval, -2)
+	if !jn::Tolerance(got, expected, 1e-9) {
+		t.Errorf("MGF incorrect: got {}, want {}", got, expected)
+	}
+}
+
+#test
+fn testGammaPDFandLogPDF(t: &testing::T) {
+	g := Gamma{K: 2, Theta: 2}
+	x := 3.0
+
+	pdf := g.PDF(x)
+	logpdf := g.LogPDF(x)
+	if !jn::Tolerance(math::Log(pdf), logpdf, 1e-9) {
+		t.Errorf("LogPDF not equal to log(PDF): got {} vs {}", logpdf, math::Log(pdf))
+	}
+}
+
+#test
+fn testGammaCDFSurvival(t: &testing::T) {
+	g := Gamma{K: 2, Theta: 2}
+	x := 4.0
+	cdf := g.CDF(x)
+	sf := g.Survival(x)
+
+	if !jn::Tolerance(cdf+sf, 1.0, 1e-9) {
+		t.Errorf("CDF + Survival != 1: got {} + {} = {}", cdf, sf, cdf+sf)
+	}
+}
+
+#test
+fn testGammaRandSample(t: &testing::T) {
+	g := Gamma{K: 2, Theta: 3}
+	x := g.Rand()
+	if x < 0 {
+		t.Errorf("Rand sample is negative: {}", x)
+	}
+}
+
+#test
+fn testGammaQuantileBounds(t: &testing::T) {
+	g := Gamma{K: 2, Theta: 2}
+
+	if !math::IsNaN(g.Quantile(-0.1)) {
+		t.Errorf("Quantile(-0.1) should be NaN")
+	}
+	if g.Quantile(0) != 0 {
+		t.Errorf("Quantile(0) should be 0")
+	}
+	if !math::IsInf(g.Quantile(1), 1) {
+		t.Errorf("Quantile(1) should be +Inf")
+	}
+}
+
+#test
+fn testGammaFit(t: &testing::T) {
+	// Known parameters
+	trueK := 5.0
+	trueTheta := 2.0
+	g := Gamma{K: trueK, Theta: trueTheta}
+
+	// Generate samples
+	mut samples := make([]f64, 10000)
+	for i in samples {
+		samples[i] = g.Rand()
+	}
+
+	// Fit to new Gamma
+	let mut fitted: Gamma
+	fitted.Fit(samples)
+
+	if !jn::Tolerance(fitted.Mean(), g.Mean(), g.Mean()*0.15) {
+		t.Errorf("Fitted mean off: got {}, want ~{}", fitted.Mean(), g.Mean())
+	}
+	if !jn::Tolerance(fitted.Variance(), g.Variance(), g.Variance()*0.25) {
+		t.Errorf("Fitted variance off: got {}, want ~{}", fitted.Variance(), g.Variance())
+	}
+}

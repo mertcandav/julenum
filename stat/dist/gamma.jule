@@ -1,0 +1,325 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/math"
+use "std/math/rand"
+
+// Represents a Gamma distribution.
+// It is a continuous probability distribution defined on the positive real numbers.
+// It is parameterized by a shape parameter k (or α) and a scale parameter θ (or β).
+// The Gamma distribution is widely used to model waiting times or the sum of
+// exponentially distributed random variables.
+//
+// Uses the RNG for randomness. It may be nil.
+// Implementation will use global random functions if RNG is nil.
+//
+// Parameters:
+//	- K (Shape): The shape parameter (k or α), must be greater than 0.
+//	- Theta (Scale): The scale parameter (θ or β), must be greater than 0.
+struct Gamma {
+	K:     f64 // Shape parameter (k or α)
+	Theta: f64 // Scale parameter (θ or β)
+	RNG:   &rand::Rand
+}
+
+impl Gamma {
+	// Returns the number of parameters required to define the distribution.
+	fn NumParams(*self): int {
+		ret 2
+	}
+
+	// Computes the Cumulative Distribution Function (CDF) at x.
+	// The CDF is the probability that a random variable X is less than or equal to a given value x.
+	// For the Gamma distribution, the CDF is given by the regularized lower incomplete gamma function P(k, x/θ).
+	// x must be non-negative.
+	//
+	// Formula:
+	//	CDF(x) = P(k, x/θ)
+	//	where P is the regularized lower incomplete gamma function.
+	fn CDF(*self, x: f64): f64 {
+		if x < 0 {
+			ret 0
+		}
+		if x == 0 {
+			ret 0
+		}
+		ret jn::GammaIncReg(self.K, self.Theta*x)
+	}
+
+	// Computes the Probability Density Function (PDF) for the Gamma distribution.
+	// The PDF gives the relative likelihood for this continuous random variable to take on a given value.
+	// x must be non-negative. Returns 0 if x<0.
+	//
+	// Formula:
+	//	PDF(x) = (1 / (Γ(k) * θ^k)) * x^(k-1) * e^(-x/θ)
+	//	where Γ is the Gamma function.
+	fn PDF(*self, x: f64): f64 {
+		if x < 0 {
+			ret 0
+		}
+		if x == 0 {
+			if self.K == 1 { // Exponential distribution case, PDF is 1/theta at x=0
+				ret 1 / self.Theta
+			}
+			if self.K < 1 { // PDF goes to infinity at x=0 for k < 1
+				ret math::Inf(1)
+			}
+			ret 0 // PDF is 0 at x=0 for k > 1
+		}
+
+		denominator := math::Gamma(self.K) * math::Pow(self.Theta, self.K)
+		numerator := math::Pow(x, self.K-1) * math::Exp(-x/self.Theta)
+		ret numerator / denominator
+	}
+
+	// Computes the natural logarithm of the Probability Density Function (PDF) at x.
+	// This is often used in maximum likelihood estimation to avoid underflow with very small probabilities.
+	// x must be non-negative. Returns -Inf if x<0.
+	//
+	// Formula:
+	//	log(PDF(x)) = (k - 1)log(x) - (x / θ) - log(Γ(k)) - k log(θ)
+	//	where Γ is the Gamma function.
+	fn LogPDF(*self, x: f64): f64 {
+		if x < 0 {
+			ret math::Inf(-1)
+		}
+		if x == 0 {
+			if self.K == 1 { // Exponential distribution case, PDF is 1/theta at x=0
+				ret math::Log(1 / self.Theta)
+			}
+			if self.K < 1 { // PDF goes to infinity at x=0 for k < 1
+				ret math::Inf(1)
+			}
+			ret math::Inf(-1) // PDF is 0 at x=0 for k > 1
+		}
+
+		logGammaK, _ := math::Lgamma(self.K) // natural log of Gamma(k)
+
+		ret (self.K-1)*math::Log(x) - (x / self.Theta) - logGammaK - self.K*math::Log(self.Theta)
+	}
+
+	// Computes the Moment Generating Function (MGF) of the distribution.
+	//
+	// Formula:
+	//	MGF(t) = (1 - θt)^(-k), for t < 1/θ
+	fn MGF(*self, t: f64): f64 {
+		if t >= 1/self.Theta {
+			ret math::NaN() // MGF not defined for t >= 1/θ
+		}
+		ret math::Pow(1.0-self.Theta*t, -self.K)
+	}
+
+	// Computes the Survival Function (SF), also known as the Complementary Cumulative Distribution Function (CCDF).
+	// The Survival Function is the probability that a random variable X is greater than a given value x.
+	// SF(x) = P(X > x) = 1 - CDF(x)
+	fn Survival(*self, x: f64): f64 {
+		ret 1 - self.CDF(x)
+	}
+
+	// Computes the Quantile Function (inverse CDF) for the distribution.
+	// The quantile function returns the value x such that the probability of a random variable
+	// being less than or equal to x is p. This requires numerically solving P(k, x/θ) = p.
+	// Returns NaN if p is outside [0, 1].
+	fn Quantile(*self, p: f64): f64 {
+		if p < 0 || p > 1 {
+			ret math::NaN()
+		}
+		if p == 0 {
+			ret 0
+		}
+		if p == 1 {
+			ret math::Inf(1) // Goes to infinity for p=1
+		}
+		ret jn::GammaIncRegInv(self.K, p) / self.Theta
+	}
+
+	// Returns the differential entropy of the distribution.
+	//
+	// Formula:
+	//	Entropy = k - log(θ) + log(Γ(k)) + (1 - k)ψ(k)
+	//	where ψ is the digamma function (Γ'/Γ)
+	fn Entropy(*self): f64 {
+		lg, _ := math::Lgamma(self.K)
+		ret self.K - math::Log(self.Theta) + lg + (1-self.K)*jn::Digamma(self.K)
+	}
+
+	// Computes the excess kurtosis of the distribution.
+	// Excess kurtosis measures the "tailedness" of the distribution relative to a normal distribution.
+	//
+	// Formula:
+	//	Excess Kurtosis = 6 / k
+	fn ExcessKurtosis(*self): f64 {
+		ret 6 / self.K
+	}
+
+	// Computes the mean (expected value) of the distribution.
+	//
+	// Formula:
+	//	E[X] = k * θ
+	fn Mean(*self): f64 {
+		ret self.K * self.Theta
+	}
+
+	// Computes the mode of the distribution.
+	// The mode is the value at which the probability density function (PDF) is maximized.
+	// Returns 0 if k<1.
+	//
+	// Formula:
+	//	- If k >= 1: Mode = (k - 1) * θ
+	//	- If k < 1: The mode is at x = 0 (or undefined for k<=0, but handled by constructor).
+	fn Mode(*self): f64 {
+		if self.K >= 1 {
+			ret (self.K - 1) * self.Theta
+		}
+		ret 0 // Mode is at 0 for k < 1
+	}
+
+	// Generates a random number from the distribution.
+	// Generating Gamma variates is non-trivial and depends on the shape parameter k.
+	// Common algorithms include Marsaglia and Tsang's method for k >= 1 and
+	// rejection sampling for k < 1.
+	fn Rand(*self): f64 {
+		const (
+			// The 0.2 threshold is from https://www4.stat.ncsu.edu/~rmartin/Codes/rgamss.R
+			// described in detail in https://arxiv.org/abs/1302.1884.
+			smallAlphaThresh = 0.2
+		)
+		if self.Theta <= 0 {
+			panic("gamma: theta <= 0")
+		}
+
+		mut unifrnd := rand::F64
+		mut exprnd := rand::ExpF64
+		mut normrnd := rand::NormF64
+		if self.RNG != nil {
+			unifrnd = fn|| unsafe { self.RNG.F64() }
+			exprnd = fn|| unsafe { self.RNG.ExpF64() }
+			normrnd = fn|| unsafe { self.RNG.NormF64() }
+		}
+
+		a := self.K
+		b := self.Theta
+		match {
+		| a <= 0:
+			panic("gamma: k <= 0")
+		| a == 1:
+			// Generate from exponential
+			ret exprnd() / b
+		| a < smallAlphaThresh:
+			// Generate using
+			//  Liu, Chuanhai, Martin, Ryan and Syring, Nick. "Simulating from a
+			//  gamma distribution with small shape parameter"
+			//  https://arxiv.org/abs/1302.1884
+			//   use this reference: http://link.springer.com/article/10.1007/s00180-016-0692-0
+
+			// Algorithm adjusted to work in log space as much as possible.
+			lambda := 1/a - 1
+			lr := -math::Log1p(1 / lambda / jn::E)
+			for {
+				e := exprnd()
+				let mut z: f64
+				if e >= -lr {
+					z = e + lr
+				} else {
+					z = -exprnd() / lambda
+				}
+				eza := math::Exp(-z / a)
+				lh := -z - eza
+				let mut lEta: f64
+				if z >= 0 {
+					lEta = -z
+				} else {
+					lEta = -1 + lambda*z
+				}
+				if lh-lEta > -exprnd() {
+					ret eza / b
+				}
+			}
+		| a >= smallAlphaThresh:
+			// Generate using:
+			//  Marsaglia, George, and Wai Wan Tsang. "A simple method for generating
+			//  gamma variables." ACM Transactions on Mathematical Software (TOMS)
+			//  26.3 (2000): 363-372.
+			mut d := a - 1.0/3
+			mut m := 1.0
+			if a < 1 {
+				d += 1.0
+				m = math::Pow(unifrnd(), 1/a)
+			}
+			c := 1 / (3 * math::Sqrt(d))
+			for {
+				x := normrnd()
+				mut v := 1 + x*c
+				if v <= 0.0 {
+					continue
+				}
+				v = v * v * v
+				u := unifrnd()
+				if u < 1.0-0.0331*(x*x)*(x*x) {
+					ret m * d * v / b
+				}
+				if math::Log(u) < 0.5*x*x+d*(1-v+math::Log(v)) {
+					ret m * d * v / b
+				}
+			}
+		}
+		panic("unreachable")
+	}
+
+	// Computes the skewness of the distribution.
+	//
+	// Formula:
+	//	Skewness = 2 / sqrt(k)
+	fn Skewness(*self): f64 {
+		ret 2 / math::Sqrt(self.K)
+	}
+
+	// Computes the variance of the distribution.
+	// Variance measures how far the numbers are spread out from the average value.
+	//
+	// Formula:
+	//	Var(X) = k * θ²
+	fn Variance(*self): f64 {
+		ret self.K * self.Theta * self.Theta
+	}
+
+	// Computes the standard deviation of the distribution.
+	// The standard deviation is the square root of the variance, measuring the spread of the distribution.
+	//
+	// Formula:
+	//	StdDev = sqrt(k * θ^2) = θ * sqrt(k)
+	fn StdDev(*self): f64 {
+		ret math::Sqrt(self.Variance())
+	}
+
+	// Estimates the parameters (k, θ) of the distribution from sample data
+	// using the method of moments. Requires at least 2 non-negative samples.
+	fn Fit(mut *self, samples: []f64) {
+		n := len(samples)
+		if n < 2 {
+			panic("dist: Fit requires at least 2 samples for Gamma distribution")
+		}
+
+		let mut sum: f64
+		let mut sumsq: f64
+		for _, x in samples {
+			if x < 0 {
+				panic("dist: negative sample value")
+			}
+			sum += x
+			sumsq += x * x
+		}
+
+		mean := sum / f64(n)
+		variance := (sumsq - f64(n)*mean*mean) / f64(n-1)
+
+		if variance <= 0 {
+			panic("dist: non-positive sample variance")
+		}
+
+		self.K = mean * mean / variance
+		self.Theta = variance / mean
+	}
+}
