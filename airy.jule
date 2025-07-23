@@ -2465,6 +2465,5 @@ fn dgamln(z: f64, ierr: int): f64 {
 	if z < 0 {
 		ret 0
 	}
-	a2, _ := math::Lgamma(z)
-	ret a2
+	ret lgam(z)
 }

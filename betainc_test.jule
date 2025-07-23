@@ -1,0 +1,44 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math"
+use "std/testing"
+
+struct incBetaTest {
+	a:    f64
+	b:    f64
+	x:    f64
+	want: f64
+}
+
+// Test against values from scipy.
+let testsIncBeta: []incBetaTest = [
+	{1, 1, 0.8, 0.8},
+	{1, 5, 0.8, 0.99968000000000001},
+	{10, 10, 0.8, 0.99842087945083291},
+	{10, 10, 0.1, 3.929882327128003e-06},
+	{10, 2, 0.4, 0.00073400320000000028},
+	{0.1, 0.2, 0.6, 0.69285678232066683},
+	{1, 10, 0.7489, 0.99999900352334858},
+]
+
+#test
+fn testIncBeta(t: &testing::T) {
+	for i, test in testsIncBeta {
+		y := RegIncBeta(test.a, test.b, test.x)
+		if !Tolerance(y, test.want, 1e-11) {
+			t.Errorf("Incomplete beta mismatch. Case {}: Got {}, want {}", i, y, test.want)
+		}
+
+		yc := 1 - RegIncBeta(test.b, test.a, 1-test.x)
+		if !Tolerance(y, yc, 1e-11) {
+			t.Errorf("Incomplete beta complementary mismatch. Case {}: Got {}, want {}", i, y, yc)
+		}
+
+		x := InvRegIncBeta(test.a, test.b, y)
+		if !Tolerance(x, test.x, 1e-10) {
+			t.Errorf("Inverse incomplete beta mismatch. Case {}: Got {}, want {}", i, x, test.x)
+		}
+	}
+}
