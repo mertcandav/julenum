@@ -702,3 +702,59 @@ fn testMode(t: &testing::T) {
 		}
 	}
 }
+
+struct bayesTest {
+	prior:      f64
+	likelihood: f64
+	evidence:   f64
+	want:       f64
+}
+
+let testsBayes: []bayesTest = [
+	{
+		prior: 0.01,
+		likelihood: 0.9,
+		evidence: 0.1,
+		want: 0.09,
+	},
+	{
+		prior: 1.0,
+		likelihood: 1.0,
+		evidence: 1.0,
+		want: 1.0,
+	},
+	{
+		prior: 0.0,
+		likelihood: 0.9,
+		evidence: 0.1,
+		want: 0.0,
+	},
+	{
+		prior: 0.5,
+		likelihood: 0.0,
+		evidence: 0.1,
+		want: 0.0,
+	},
+	{
+		prior: 0.5,
+		likelihood: 0.8,
+		evidence: 0.0,
+		want: 0.0,
+	},
+	{
+		prior: 0.5,
+		likelihood: 0.8,
+		evidence: 0.0001,
+		want: 4000.0,     // (0.8 * 0.5) / 0.0001
+	},
+]
+
+#test
+fn testBayes(t: &testing::T) {
+	for _, test in testsBayes {
+		got := Bayes(test.prior, test.likelihood, test.evidence)
+		if !jn::VeryClose(got, test.want) {
+			t.Errorf("Bayes({}, {}, {}) = {}, expected {}", test.prior, test.likelihood, test.evidence, got, test.want)
+		}
+	}
+}

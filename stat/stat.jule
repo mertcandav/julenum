@@ -744,3 +744,12 @@ fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 	}
 	ret max, maxCount
 }
+
+// Computes the posterior probability P(A|B) using Bayes' Theorem:
+//	P(A|B) = P(B|A) * P(A) / P(B)
+fn Bayes[T: float](prior: T, likelihood: T, evidence: T): T {
+	if evidence == 0 {
+		ret 0 // avoid division by zero
+	}
+	ret (likelihood * prior) / evidence
+}
