@@ -69,6 +69,20 @@ impl Vector {
 		ret dot(self, y)
 	}
 
+	// Sets self to to x scaled by k.
+	//
+	// If self have enough capacity, Normalize will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn Scale(mut *self, &x: *Vector[T], k: f64) {
+		// Make sure the self data have enough space.
+		*self = self.make(len(*x))
+
+		mut i := 0
+		for i < len(*self); i++ {
+			(*self)[i] = (*x)[i] * k
+		}
+	}
+
 	// Returns norm (length) of vector.
 	fn Norm(*self): f64 {
 		ret math::Sqrt(f64(dot(self, self)))
