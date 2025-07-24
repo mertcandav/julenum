@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/fmt"
 use "std/math"
 use "std/testing"
 
@@ -155,6 +156,14 @@ let testsLinspace: []linspaceTest = [
 		start: math::Inf(-1), stop: math::Inf(+1), n: 4,
 		want: [math::Inf(-1), math::NaN(), math::NaN(), math::NaN()],
 	},
+	{
+		start: math::Inf(-1), stop: math::NaN(), n: 4,
+		want: [math::Inf(-1), math::NaN(), math::NaN(), math::NaN()],
+	},
+	{
+		start: math::NaN(), stop: math::Inf(+1), n: 4,
+		want: [math::NaN(), math::NaN(), math::NaN(), math::NaN()],
+	},
 ]
 
 #test
@@ -168,6 +177,59 @@ fn testLinspace(t: &testing::T) {
 		for i in got {
 			if !Equal(got[i], test.want[i]) && !VeryClose(got[i], test.want[i]) {
 				t.Errorf("Linspace({}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, got, test.want)
+				break
+			}
+		}
+	}
+}
+
+struct logspaceTest {
+	start: f64
+	stop:  f64
+	n:     int
+	base:  f64
+	want:  []f64
+}
+
+let testsLogspace: []logspaceTest = [
+	{
+		start: 1, stop: 1, n: 0, base: 10,
+		want: [],
+	},
+	{
+		start: 0, stop: 3, n: 4, base: 10,
+		want: [1, 10, 100, 1000],
+	},
+	{
+		start: 2, stop: 33, n: 5, base: 10,
+		want: [100, 5.623413251903491e+09, 3.16227766016838e+17, 1.7782794100389228e+25, 1.0000000000000001e+33],
+	},
+	{
+		start: -2, stop: 5, n: 5, base: 2,
+		want: [0.25, 0.8408964152537146, 2.82842712474619, 9.513656920021768, 32],
+	},
+	{
+		start: -2, stop: -5, n: 3, base: 8,
+		want: [0.015625, 0.0006905339660024879, 3.0517578125e-05],
+	},
+	{
+		start: 100, stop: 10, n: 4, base: E,
+		want: [2.6881171418161247e+43, 2.5154386709191598e+30, 2.3538526683701962e+17, 22026.465794806707],
+	},
+]
+
+#test
+fn testLogspace(t: &testing::T) {
+	for _, test in testsLogspace {
+		got := Logspace(test.start, test.stop, test.n, test.base)
+		if len(got) != len(test.want) {
+			t.Errorf("Logspace({}, {}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, test.base, got, test.want)
+			continue
+		}
+		for i in got {
+			if !Equal(got[i], test.want[i]) && !VeryClose(got[i], test.want[i]) {
+				println(fmt::Sprintg(got))
+				t.Errorf("Logspace({}, {}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, test.base, got, test.want)
 				break
 			}
 		}

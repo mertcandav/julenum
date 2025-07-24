@@ -86,27 +86,8 @@ fn Sum[T: numeric](s: ...T): T {
 	ret sum
 }
 
-// Returns a slice of n evenly spaced values between start and stop, inclusive.
-//
-// If n is 0, it returns an empty slice. If n is 1, the slice contains only start.
-// Otherwise, it returns n values starting from start and ending at stop, linearly spaced.
-// It panics if n is negative.
-//
-// Special cases are:
-//	Linspace(start, NaN, n) = [start, NaN, NaN, NaN, ...]
-//	Linspace(NaN, stop, n) = [NaN, NaN, NaN, NaN, ...]
-//	Linspace(NaN, NaN, n) = [NaN, NaN, NaN, NaN, ...]
-//	Linspace(±Inf, stop, n) = [±Inf, NaN, NaN, NaN, ...]
-//	Linspace(start, ±Inf, n) = [start, ±Inf, ±Inf, ±Inf, ...]
 #disable boundary
-fn Linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
-	if n == 0 {
-		ret make([]T, 0)
-	}
-	if n < 0 {
-		panic("Linspace: n < 0")
-	}
-
+fn linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
 	mut r := make([]T, n)
 	if start <= stop {
 		step := (stop - start) / T(n-1)
@@ -120,6 +101,54 @@ fn Linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
 			r[i] = start
 			start -= step
 		}
+	}
+	ret r
+}
+
+// Returns a slice of n evenly spaced values between start and stop, inclusive.
+//
+// If n is 0, it returns an empty slice. If n is 1, the slice contains only start.
+// Otherwise, it returns n values starting from start and ending at stop, linearly spaced.
+// It panics if n is negative.
+//
+// Special cases are:
+//	Linspace(start, NaN, n) = [start, NaN, NaN, NaN, ...]
+//	Linspace(NaN, stop, n) = [NaN, NaN, NaN, NaN, ...]
+//	Linspace(NaN, NaN, n) = [NaN, NaN, NaN, NaN, ...]
+//	Linspace(±Inf, stop, n) = [±Inf, NaN, NaN, NaN, ...]
+//	Linspace(start, ±Inf, n) = [start, ±Inf, ±Inf, ±Inf, ...]
+fn Linspace[T: integer | float](start: T, stop: T, n: int): []T {
+	if n == 0 {
+		ret make([]T, 0)
+	}
+	if n < 0 {
+		panic("julenum: Linspace: n < 0")
+	}
+	ret linspace(start, stop, n)
+}
+
+// Returns a slice of n values spaced evenly on a log scale (with given base)
+// between base^start and base^stop, inclusive.
+// It is the exponential (base^x) of a linearly spaced range.
+// It panics if n is negative.
+//
+// Special cases are:
+//	- If start, stop or base is NaN or ±Inf, result is undefined, but panic-safe
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use 64-bit floating-point type.
+#disable boundary
+fn Logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
+	if n == 0 {
+		ret make([]T, 0)
+	}
+	if n < 0 {
+		panic("julenum: Logspace: n < 0")
+	}
+	mut r := linspace(start, stop, n)
+	for i in r {
+		r[i] = T(math::Pow(base, f64(r[i])))
 	}
 	ret r
 }
@@ -139,7 +168,7 @@ fn Linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
 #disable boundary
 fn Range[T: integer | float](mut start: T, stop: T, step: T): []T {
 	if step == 0 {
-		panic("Range: step == 0")
+		panic("julenum: Range: step == 0")
 	}
 
 	let mut r: []T
