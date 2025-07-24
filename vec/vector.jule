@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
+
 // General vector type for type T.
 type Vector[T: integer | float]: []T
 
@@ -25,9 +27,6 @@ impl Vector {
 		if len(*x) != len(*y) {
 			panic("vec: Vector.Add: len(x) != len(y)")
 		}
-		if len(*x) == 0 {
-			*self = (*self)[:0]
-		}
 
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
@@ -48,9 +47,6 @@ impl Vector {
 		if len(*x) != len(*y) {
 			panic("vec: Vector.Sub: len(x) != len(y)")
 		}
-		if len(*x) == 0 {
-			*self = (*self)[:0]
-		}
 
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
@@ -70,11 +66,20 @@ impl Vector {
 			panic("vec: Vector.Dot: len(self) != len(y)")
 		}
 
-		let mut dot: T
-		mut i := 0
-		for i < len(*self); i++ {
-			dot += (*self)[i] * (*y)[i]
-		}
-		ret dot
+		ret dot(self, y)
 	}
+
+	// Returns norm (length) of vector.
+	fn Norm(*self): f64 {
+		ret math::Sqrt(f64(dot(self, self)))
+	}
+}
+
+fn dot[T: integer | float](&x: *Vector[T], &y: *Vector[T]): T {
+	let mut dot: T
+	mut i := 0
+	for i < len(*x); i++ {
+		dot += (*x)[i] * (*y)[i]
+	}
+	ret dot
 }

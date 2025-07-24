@@ -2,20 +2,23 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/math"
 use "std/slices"
 use "std/testing"
 
 struct vectorCSTest {
-	x:   Vector[f64]
-	y:   Vector[f64]
-	dot: f64
-	add: Vector[f64]
-	sub: Vector[f64]
+	x:    Vector[f64]
+	norm: f64
+	y:    Vector[f64]
+	dot:  f64
+	add:  Vector[f64]
+	sub:  Vector[f64]
 }
 
 let mut testsVectorCS: []vectorCSTest = [
 	{
 		x: [],
+		norm: 0,
 		y: [],
 		dot: 0,
 		add: [],
@@ -23,6 +26,7 @@ let mut testsVectorCS: []vectorCSTest = [
 	},
 	{
 		x: [1, 2, 3, 4],
+		norm: math::Sqrt(1*1 + 2*2 + 3*3 + 4*4),
 		y: [1, 2, 3, 4],
 		dot: 1*1 + 2*2 + 3*3 + 4*4,
 		add: [2, 4, 6, 8],
@@ -30,6 +34,7 @@ let mut testsVectorCS: []vectorCSTest = [
 	},
 	{
 		x: [10, 20, 30, 40],
+		norm: math::Sqrt(10*10 + 20*20 + 30*30 + 40*40),
 		y: [0, 0, 0, 0],
 		dot: 0,
 		add: [10, 20, 30, 40],
@@ -37,6 +42,7 @@ let mut testsVectorCS: []vectorCSTest = [
 	},
 	{
 		x: [10, 20, 30, 40],
+		norm: math::Sqrt(10*10 + 20*20 + 30*30 + 40*40),
 		y: [10, 10, 10, 10],
 		dot: 10*10 + 20*10 + 30*10 + 40*10,
 		add: [20, 30, 40, 50],
@@ -79,6 +85,16 @@ fn testVectorDot(t: &testing::T) {
 		got := test.x.Dot(&test.y)
 		if got != test.dot {
 			t.Errorf("Dot({}, {}) = {}, expected {}", test.x, test.y, got, test.dot)
+		}
+	}
+}
+
+#test
+fn testVectorNorm(t: &testing::T) {
+	for (_, mut test) in testsVectorCS {
+		got := test.x.Norm()
+		if got != test.norm {
+			t.Errorf("Norm({}, {}) = {}, expected {}", test.x, test.y, got, test.norm)
 		}
 	}
 }
