@@ -60,7 +60,6 @@ impl Vector {
 	// Returns the dot product self*y.
 	// self any y must have same length.
 	// Returns zero if length is zero.
-	#disable boundary
 	fn Dot(*self, &y: *Vector[T]): T {
 		if len(*self) != len(*y) {
 			panic("vec: Vector.Dot: len(self) != len(y)")
@@ -73,6 +72,7 @@ impl Vector {
 	//
 	// If self have enough capacity, Normalize will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
 	fn Scale(mut *self, &x: *Vector[T], k: f64) {
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
@@ -140,6 +140,7 @@ impl Vector {
 	//
 	// If self have enough capacity, Normalize will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
 	fn Proj(mut *self, &x: *Vector[T], &y: *Vector[T]) {
 		if len(*self) != len(*y) {
 			panic("vec: Vector.Proj: len(x) != len(y)")
@@ -162,6 +163,7 @@ impl Vector {
 	}
 }
 
+#disable boundary
 fn dot[T: integer | float](&x: *Vector[T], &y: *Vector[T]): T {
 	let mut dot: T
 	mut i := 0
