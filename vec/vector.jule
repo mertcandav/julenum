@@ -60,4 +60,21 @@ impl Vector {
 			(*self)[i] = (*x)[i] - (*y)[i]
 		}
 	}
+
+	// Returns the dot product self*y.
+	// self any y must have same length.
+	// Returns zero if length is zero.
+	#disable boundary
+	fn Dot(*self, &y: *Vector[T]): T {
+		if len(*self) != len(*y) {
+			panic("vec: Vector.Dot: len(self) != len(y)")
+		}
+
+		let mut dot: T
+		mut i := 0
+		for i < len(*self); i++ {
+			dot += (*self)[i] * (*y)[i]
+		}
+		ret dot
+	}
 }
