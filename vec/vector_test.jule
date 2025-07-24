@@ -103,20 +103,18 @@ fn testVectorCS(t: &testing::T, name: str, f: fn(mut vectorCSTest): (Vector[f64]
 #test
 fn testVectorAdd(t: &testing::T) {
 	testVectorCS(t, "Add", fn|mut test| {
-		mut z := make(Vector[f64], len(test.x))
-		copy(z, test.x)
-		z.Add(&test.x, &test.y)
-		ret z, test.add
+		let mut r: Vector[f64]
+		r.Add(&test.x, &test.y)
+		ret r, test.add
 	})
 }
 
 #test
 fn testVectorSub(t: &testing::T) {
 	testVectorCS(t, "Sub", fn|mut test| {
-		mut z := make(Vector[f64], len(test.x))
-		copy(z, test.x)
-		z.Sub(&test.x, &test.y)
-		ret z, test.sub
+		let mut r: Vector[f64]
+		r.Sub(&test.x, &test.y)
+		ret r, test.sub
 	})
 }
 
@@ -195,9 +193,8 @@ fn testVectorScale(t: &testing::T) {
 #test
 fn testVectorProj(t: &testing::T) {
 	testVectorCS(t, "Proj", fn|mut test| {
-		mut z := make(Vector[f64], len(test.x))
-		copy(z, test.x)
-		z.Proj(&test.x, &test.y)
-		ret z, test.proj
+		let mut r: Vector[f64]
+		r.Proj(&test.x, &test.y)
+		ret r, test.proj
 	})
 }

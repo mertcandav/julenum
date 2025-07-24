@@ -142,7 +142,7 @@ impl Vector {
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
 	fn Proj(mut *self, &x: *Vector[T], &y: *Vector[T]) {
-		if len(*self) != len(*y) {
+		if len(*x) != len(*y) {
 			panic("vec: Vector.Proj: len(x) != len(y)")
 		}
 
