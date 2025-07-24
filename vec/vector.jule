@@ -133,6 +133,33 @@ impl Vector {
 		}
 		ret math::Acos(cosTheta)
 	}
+
+	// Sets self to projection of vector x onto y.
+	// x any y must have same length.
+	// If the vector y has zero norm, it returns the zero vector (x₁=0, x₂=0, ..., xₙ=0) to avoid division by zero.
+	//
+	// If self have enough capacity, Normalize will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn Proj(mut *self, &x: *Vector[T], &y: *Vector[T]) {
+		if len(*self) != len(*y) {
+			panic("vec: Vector.Proj: len(x) != len(y)")
+		}
+
+		// Make sure the self data have enough space.
+		*self = self.make(len(*x))
+
+		yn := y.Norm()
+		if yn == 0 {
+			mut i := 0
+			for i < len(*self); i++ {
+				(*self)[i] = 0
+			}
+		} else {
+			xy := dot(x, y)
+			scale := xy / (yn * yn)
+			self.Scale(y, scale)
+		}
+	}
 }
 
 fn dot[T: integer | float](&x: *Vector[T], &y: *Vector[T]): T {

@@ -84,7 +84,7 @@ impl Vector3 {
 	}
 
 	// Sets self to projection of vector x onto y.
-	// If the vector y has zero norm, it returns the zero vector (0, 0) to avoid division by zero.
+	// If the vector y has zero norm, it returns the zero vector (0, 0, 0) to avoid division by zero.
 	fn Proj(mut *self, &x: *Vector3, &y: *Vector3) {
 		yn := y.Norm()
 		if yn == 0 {
