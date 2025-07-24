@@ -9,23 +9,33 @@ struct vectorCSTest {
 	x:   Vector[f64]
 	y:   Vector[f64]
 	add: Vector[f64]
+	sub: Vector[f64]
 }
 
 let mut testsVectorCS: []vectorCSTest = [
 	{
+		x: [],
+		y: [],
+		add: [],
+		sub: [],
+	},
+	{
 		x: [1, 2, 3, 4],
 		y: [1, 2, 3, 4],
 		add: [2, 4, 6, 8],
+		sub: [0, 0, 0, 0],
 	},
 	{
 		x: [10, 20, 30, 40],
 		y: [0, 0, 0, 0],
 		add: [10, 20, 30, 40],
+		sub: [10, 20, 30, 40],
 	},
 	{
 		x: [10, 20, 30, 40],
 		y: [10, 10, 10, 10],
 		add: [20, 30, 40, 50],
+		sub: [0, 10, 20, 30],
 	},
 ]
 
@@ -45,5 +55,15 @@ fn testVectorAdd(t: &testing::T) {
 		copy(z, test.x)
 		z.Add(&test.x, &test.y)
 		ret z, test.add
+	})
+}
+
+#test
+fn testVectorSub(t: &testing::T) {
+	testVectorCS(t, "Sub", fn|mut test| {
+		mut z := make(Vector[f64], len(test.x))
+		copy(z, test.x)
+		z.Sub(&test.x, &test.y)
+		ret z, test.sub
 	})
 }
