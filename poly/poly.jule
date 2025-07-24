@@ -1,0 +1,37 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Represents a single term (monomial) of a polynomial.
+// It has a coefficient and an exponent (degree).
+//
+// Mathematically, a term is expressed as:
+//	coef * x^exp
+//
+// where:
+// - coef ∈ ℝ (coefficient, a real number)
+// - exp ∈ ℕ₀ (non-negative integer exponent)
+//
+// For example:
+//	the term 3x² is represented as Term{Coef: 3, Exp: 2}.
+//	the term 1 is represented as Term{Coef: 1, Exp: 0}
+struct Term {
+	Coef: f64
+	Exp:  int
+}
+
+// Represents a polynomial as a slice of Terms.
+//
+// A polynomial P(x) is a finite sum of terms:
+//	P(x) = Σᵢ [ Coefᵢ * x^Expᵢ ]
+//
+// where each Term is stored as an element of the Terms slice.
+//
+// Terms are expected to be stored in descending order of exponent (Exp),
+// i.e., Terms[0].Exp > Terms[1].Exp > ... > Terms[n-1].Exp,
+// which simplifies polynomial operations like addition and multiplication.
+// Any corruption in this order is undefined behavior.
+//
+// Capacity of underlying slices is never changed for values; i.e. that there are
+// no 3-operand slice expressions. Any corruption of this rule is undefined behavior.
+type Polynomial: []Term
