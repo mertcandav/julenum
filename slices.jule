@@ -127,6 +127,14 @@ fn Linspace[T: integer | float](start: T, stop: T, n: int): []T {
 	ret linspace(start, stop, n)
 }
 
+fn logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
+	mut r := linspace(start, stop, n)
+	for i in r {
+		r[i] = T(math::Pow(base, f64(r[i])))
+	}
+	ret r
+}
+
 // Returns a slice of n values spaced evenly on a log scale (with given base)
 // between base^start and base^stop, inclusive.
 // It is the exponential (base^x) of a linearly spaced range.
@@ -138,7 +146,6 @@ fn Linspace[T: integer | float](start: T, stop: T, n: int): []T {
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use 64-bit floating-point type.
-#disable boundary
 fn Logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
 	if n == 0 {
 		ret make([]T, 0)
@@ -146,10 +153,50 @@ fn Logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
 	if n < 0 {
 		panic("julenum: Logspace: n < 0")
 	}
-	mut r := linspace(start, stop, n)
-	for i in r {
-		r[i] = T(math::Pow(base, f64(r[i])))
+	ret logspace(start, stop, n, base)
+}
+
+// Returns a slice of n values spaced evenly on a log scale (base 10) between start and stop,
+// inclusive. The output is such that each element is the geometric progression from start to stop.
+// It is equivalent to Logspace(log10(start), log10(stop), n, 10) as computation.
+// It panics if n is negative.
+//
+// Special cases are:
+//	- If start or stop is zero, or if they have different signs, the result is undefined and may contain NaNs.
+//	- If start or stop is NaN or ±Inf, result is undefined, but panic-safe
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use 64-bit floating-point type.
+#disable boundary
+fn Geomspace[T: integer | float](mut start: T, mut stop: T, n: int): []T {
+	if n == 0 {
+		ret make([]T, 0)
 	}
+	if n < 0 {
+		panic("julenum: Geomspace: n < 0")
+	}
+
+	sign := T(math::Copysign(1, f64(start)))
+	start *= sign
+	stop *= sign
+	logStart := T(math::Log10(f64(start)))
+	logStop := T(math::Log10(f64(stop)))
+	mut r := logspace(logStart, logStop, n, 10)
+
+	// Make sure the result slice's first and last values match the start and stop arguments.
+	// This is necessary because math::Exp(math::Log(x)) is not necessarily equal to x.
+	if n > 0 {
+		r[0] = start
+		if n > 1 {
+			r[len(r)-1] = stop
+		}
+	}
+
+	for i in r {
+		r[i] = r[i] * sign
+	}
+
 	ret r
 }
 

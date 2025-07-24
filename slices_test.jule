@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "std/fmt"
 use "std/math"
 use "std/testing"
 
@@ -228,8 +227,59 @@ fn testLogspace(t: &testing::T) {
 		}
 		for i in got {
 			if !Equal(got[i], test.want[i]) && !VeryClose(got[i], test.want[i]) {
-				println(fmt::Sprintg(got))
 				t.Errorf("Logspace({}, {}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, test.base, got, test.want)
+				break
+			}
+		}
+	}
+}
+
+let testsGeomspace: []linspaceTest = [
+	{
+		start: 1, stop: 1, n: 0,
+		want: [],
+	},
+	{
+		start: 2, stop: 33, n: 5,
+		want: [2, 4.030890324639448, 8.124038404635959, 16.373553901123195, 33],
+	},
+	{
+		start: -2, stop: -33, n: 5,
+		want: [-2, -4.030890324639448, -8.124038404635959, -16.373553901123195, -33],
+	},
+	{
+		start: 8, stop: 1, n: 3,
+		want: [8, 2.828427124746189, 1],
+	},
+	{
+		start: 78.34, stop: 873.4, n: 5,
+		want: [78.34, 143.1498747290609, 261.57629097454515, 477.975661030107, 873.4],
+	},
+]
+
+#test
+fn testGeomspace(t: &testing::T) {
+	for _, test in testsGeomspace {
+		got := Geomspace(test.start, test.stop, test.n)
+		if len(got) != len(test.want) {
+			t.Errorf("Geomspace({}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, got, test.want)
+			continue
+		}
+		for i in got {
+			if !Equal(got[i], test.want[i]) {
+				t.Errorf("Geomspace({}, {}, {}) = {}, expected {}", test.start, test.stop, test.n, got, test.want)
+				break
+			}
+		}
+		sign := math::Copysign(1, test.start)
+		logspace := Logspace(math::Log10(math::Abs(test.start)), math::Log10(math::Abs(test.stop)), test.n, 10)
+		if len(got) != len(logspace) {
+			t.Errorf("Geomspace({}, {}, {}) != Logspace(log10(start), log10(stop), n, 10)", test.start, test.stop, test.n)
+			continue
+		}
+		for i in got {
+			if !Equal(got[i], logspace[i]*sign) && !Close(got[i], logspace[i]*sign) {
+				t.Errorf("Geomspace({}, {}, {}) != Logspace(log10(start), log10(stop), n, 10)", test.start, test.stop, test.n)
 				break
 			}
 		}
