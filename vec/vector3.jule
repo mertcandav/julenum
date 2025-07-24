@@ -47,7 +47,7 @@ impl Vector3 {
 	}
 
 	// Sets self to the unit vector (vector with norm 1) in the same direction as x.
-	// If the vector x has zero norm, it returns the zero vector (0, 0) to avoid division by zero.
+	// If the vector x has zero norm, it returns the zero vector (0, 0, 0) to avoid division by zero.
 	fn Normalize(mut *self, &x: *Vector3) {
 		norm := x.Norm()
 		if norm == 0 {

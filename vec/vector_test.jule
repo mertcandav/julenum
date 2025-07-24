@@ -98,3 +98,24 @@ fn testVectorNorm(t: &testing::T) {
 		}
 	}
 }
+
+#test
+fn testVectorNormalize(t: &testing::T) {
+	for (_, mut test) in testsVectorCS {
+		mut z := make(Vector[f64], len(test.x))
+		copy(z, test.x)
+		z.Normalize(&z)
+		if len(z) != len(test.x) {
+			t.Errorf("Normalize({}) = len({}), expected len({})", test.x, len(z), len(test.x))
+			continue
+		}
+		mut i := 0
+		for i < len(z); i++ {
+			want := test.x[i] / test.norm
+			if z[i] != want {
+				t.Errorf("Norm({})[{}] = {}, expected {}", test.x, i, z[i], want)
+				break
+			}
+		}
+	}
+}

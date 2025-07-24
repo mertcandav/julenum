@@ -73,6 +73,30 @@ impl Vector {
 	fn Norm(*self): f64 {
 		ret math::Sqrt(f64(dot(self, self)))
 	}
+
+	// Sets self to the unit vector (vector with norm 1) in the same direction as x.
+	// If the vector x has zero norm, it returns the zero vector (x₁=0, x₂=0, ..., xₙ=0) to avoid division by zero.
+	//
+	// If self have enough capacity, Normalize will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Normalize(mut *self, &x: *Vector[T]) {
+		// Make sure the self data have enough space.
+		*self = self.make(len(*x))
+
+		norm := x.Norm()
+		if norm == 0 {
+			mut i := 0
+			for i < len(*self); i++ {
+				(*self)[i] = 0
+			}
+		} else {
+			mut i := 0
+			for i < len(*self); i++ {
+				(*self)[i] = (*x)[i] / norm
+			}
+		}
+	}
 }
 
 fn dot[T: integer | float](&x: *Vector[T], &y: *Vector[T]): T {
