@@ -117,6 +117,78 @@ impl Polynomial {
 		// Zero coefficients ignored, so final length may be different.
 		*self = r[:k]
 	}
+
+	// Sets self to difference x-y.
+	//
+	// If self have enough capacity, Sub will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Sub(mut *self, &x: *Polynomial, &y: *Polynomial) {
+		// If y is empty, just copy x.
+		if len(*y) == 0 {
+			// self is an x for self, return immediately.
+			if self == x {
+				ret
+			}
+			*self = self.make(len(*x))
+			copy(*self, *x)
+			ret
+		}
+		// If x is empty, just copy y.
+		if len(*x) == 0 {
+			*self = self.make(len(*y))
+			for (i, mut p) in *y {
+				p.Coef = -p.Coef
+				(*self)[i] = p
+			}
+			ret
+		}
+
+		// Allocate result Polynomial.
+		let mut r: Polynomial
+		if self == x || self == y || alias(self, x) || alias(self, y) {
+			// self is an alias for x or y - cannot reuse.
+			// We have to allocate new Matrix to compute properly.
+			r = make(Polynomial, len(*x)+len(*y))
+		} else {
+			r = self.make(len(*x) + len(*y))
+		}
+		// compute x-y
+
+		mut i, mut j, mut k := 0, 0, 0
+		for i < len(*x) && j < len(*y) {
+			xi, mut yj := (*x)[i], (*y)[j]
+			if xi.Exp == yj.Exp {
+				diffCoef := xi.Coef - yj.Coef
+				if diffCoef != 0 {
+					r[k] = Term{Coef: diffCoef, Exp: xi.Exp}
+					k++
+				}
+				i++
+				j++
+			} else if xi.Exp > yj.Exp {
+				r[k] = xi
+				k++
+				i++
+			} else {
+				yj.Coef = -yj.Coef
+				r[k] = yj
+				k++
+				j++
+			}
+		}
+		// Append remaining terms.
+		for i < len(*x); i, k = i+1, k+1 {
+			r[k] = (*x)[i]
+		}
+		for j < len(*y); j, k = j+1, k+1 {
+			r[k] = Term{Coef: -(*y)[j].Coef, Exp: (*y)[j].Exp}
+		}
+
+		// Trim to actual length.
+		// Zero coefficients ignored, so final length may be different.
+		*self = r[:k]
+	}
 }
 
 // Reports whether x and y share the same base array.
