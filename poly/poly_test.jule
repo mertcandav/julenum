@@ -1,0 +1,66 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/slices"
+use "std/testing"
+
+struct testPolyCS {
+	x:    Polynomial
+	y:    Polynomial
+	want: Polynomial
+}
+
+let testsAdd: []testPolyCS = [
+	{
+		x: [],
+		y: [],
+		want: [],
+	},
+	{
+		x: [{2, 3}],
+		y: [],
+		want: [{2, 3}],
+	},
+	{
+		x: [],
+		y: [{2, 3}],
+		want: [{2, 3}],
+	},
+	{
+		x: [{3, 2}],
+		y: [{2, 2}],
+		want: [{5, 2}],
+	},
+	{
+		x: [{3, 2}],
+		y: [{-3, 2}],
+		want: [],
+	},
+	{
+		x: [{3, 3}, {1, 1}],
+		y: [{2, 2}, {5, 1}],
+		want: [{3, 3}, {2, 2}, {6, 1}],
+	},
+	{
+		x: [{1, 5}, {2, 3}, {4, 1}],
+		y: [{2, 4}, {3, 3}, {4, 0}],
+		want: [{1, 5}, {2, 4}, {5, 3}, {4, 1}, {4, 0}],
+	},
+	{
+		x: [{1, 2}, {1, 1}],
+		y: [{1, 2}, {-1, 1}],
+		want: [{2, 2}],
+	},
+]
+
+#test
+fn testAdd(t: &testing::T) {
+	for _, test in testsAdd {
+		let mut r: Polynomial
+		r.Add(&test.x, &test.y)
+		if !slices::Equal([]Term(r), []Term(test.want)) {
+			t.Errorf("Add({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
+		}
+	}
+}
