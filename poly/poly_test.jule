@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use jn "julenum"
+use "std/math"
 use "std/slices"
 use "std/testing"
 
@@ -115,6 +117,199 @@ fn testSub(t: &testing::T) {
 		r.Sub(&test.x, &test.y)
 		if !slices::Equal([]Term(r), []Term(test.want)) {
 			t.Errorf("Sub({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
+		}
+	}
+}
+
+let testsMulNaive: []testPolyCS = [
+	{
+		x: [],
+		y: [],
+		want: [],
+	},
+	{
+		x: [{2, 3}],
+		y: [],
+		want: [],
+	},
+	{
+		x: [],
+		y: [{2, 3}],
+		want: [],
+	},
+	{
+		x: [{1, 0}],
+		y: [{5, 0}],
+		want: [{5, 0}],
+	},
+	{
+		x: [{2, 1}, {1, 0}],                    // 2x + 1
+		y: [{3, 2}, {1, 0}],                    // 3x² + 1
+		want: [{6, 3}, {3, 2}, {2, 1}, {1, 0}], // 6x³ + 3x² + 2x + 1
+	},
+	{
+		x: [{0, 3}, {4, 1}],
+		y: [{3, 2}, {0, 0}],
+		want: [{12, 3}],
+	},
+	{
+		x: [{1, 1}, {1, 0}],
+		y: [{-1, 1}, {1, 0}],
+		// (x + 1)*( -x + 1) = -x² + x - x + 1 = -x² + 1
+		want: [{-1, 2}, {1, 0}],
+	},
+	{
+		x: [{1e-6, 0}],
+		y: [{1e-7, 0}],
+		want: [{1e-13, 0}],
+	},
+	{
+		// 1e-6 * 1e-6 = 1e-12
+		x: [{1e-6, 0}],
+		y: [{1e-6, 0}],
+		want: [{1e-12, 0}],
+	},
+	{
+		// 1e-5 * 1e-6 = 1e-11
+		x: [{1e-5, 0}],
+		y: [{1e-6, 0}],
+		want: [{1e-11, 0}],
+	},
+	{
+		// 1e-5 * 1e-5 = 1e-10
+		x: [{1e-5, 0}],
+		y: [{1e-5, 0}],
+		want: [{1e-10, 0}],
+	},
+	{
+		// 1e-1 * 1e-1 = 1e-2
+		x: [{1e-1, 0}],
+		y: [{1e-1, 0}],
+		want: [{1e-2, 0}],
+	},
+	{
+		// 1e-1 * 9e-1 = 9e-2
+		x: [{1e-1, 0}],
+		y: [{9e-1, 0}],
+		want: [{9e-2, 0}],
+	},
+	{
+		// 1e-6 * 1e-6 = 1e-12
+		x: [{1e-6, 0}],
+		y: [{1e-6, 0}],
+		want: [{1e-12, 0}],
+	},
+	{
+		// 5e-6 * 2e-6 = 1e-11
+		x: [{5e-6, 1}],
+		y: [{2e-6, 2}],
+		want: [{1e-11, 3}],
+	},
+	{
+		x: [{1e-5, 3}],
+		y: [{1e-5, 4}],
+		want: [{1e-10, 7}],
+	},
+	{
+		x: [{5e-7, 3}],
+		y: [{5e-7, 4}],
+		want: [{2.5e-13, 7}],
+	},
+	{
+		x: [{9e-7, 0}, {2e-6, 2}],
+		y: [{2e-7, 0}, {1e-7, 1}],
+		want: [
+			{2e-13, 3},
+			{4e-13, 2},
+			{9e-14, 1},
+			{1.8e-13, 0},
+		],
+	},
+	{
+		x: [{1e-6, 0}, {2e-7, 1}],
+		y: [{1e-7, 0}, {3e-7, 1}],
+		want: [
+			{6e-14, 2},         // 2e-7 * 3e-7
+			{3e-13 + 2e-14, 1}, // 1e-6*3e-7 + 2e-7*1e-7
+			{1e-13, 0},         // 1e-6 * 1e-7
+		],
+	},
+	{
+		x: [{1, 0}, {1, 1}, {1, 2}, {1, 3}, {1, 4}],
+		y: [{1, 0}, {1, 1}, {1, 2}, {1, 3}, {1, 4}],
+		want: [{1, 8}, {2, 7}, {3, 6}, {4, 5}, {5, 4}, {4, 3}, {3, 2}, {2, 1}, {1, 0}],
+	},
+]
+
+#test
+fn testMulNaive(t: &testing::T) {
+	for _, test in testsMulNaive {
+		let mut r: Polynomial
+		r.MulNaive(&test.x, &test.y)
+		if len(r) != len(test.want) {
+			t.Errorf("MulNaive({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
+			continue
+		}
+		mut i := 0
+		for i < len(r); i++ {
+			want := test.want[i]
+			if !jn::Close(r[i].Coef, want.Coef) ||
+				!jn::Close(f64(r[i].Exp), f64(want.Exp)) {
+				t.Errorf("MulNaive({}, {})[{}] = {}, expected {}", test.x, test.y, i, r[i], want)
+				break
+			}
+		}
+	}
+}
+
+#test
+#disable boundary
+fn testMulFFT(t: &testing::T) {
+	// Use naive multiplication tests to test accuracy and stay close to naive.
+	for _, test in testsMulNaive {
+		size := fftSize(&test.x, &test.y)
+		tol := dynamicTolerance(&test.x, &test.y, size)
+
+		let mut r: Polynomial
+		r.MulFFT(&test.x, &test.y, tol)
+		if len(r) != len(test.want) {
+			t.Errorf("MulFFT({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
+			continue
+		}
+		mut i := 0
+		for i < len(r); i++ {
+			want := test.want[i]
+			if !jn::Close(r[i].Coef, want.Coef) ||
+				!jn::Close(f64(r[i].Exp), f64(want.Exp)) {
+				t.Errorf("MulFFT({}, {})[{}] = {}, expected {}", test.x, test.y, i, r[i], want)
+				break
+			}
+		}
+	}
+
+	// Test dynamic tolerance and FFT on large polynomials and exp.
+	sizes := [128, 158, 199, 256, 512, 1000, 2048, 1 << 14, 1 << 16]
+	for _, n in sizes {
+		mut x := make(Polynomial, n)
+		mut y := make(Polynomial, n)
+
+		mut i := 0
+		for i < n; i++ {
+			x[i] = Term{Coef: 1, Exp: i}
+			y[i] = Term{Coef: 1, Exp: i}
+		}
+
+		size := fftSize(&x, &y)
+		tol := dynamicTolerance(&x, &y, size)
+		x.MulFFT(&x, &y, tol)
+
+		if len(x) != 2*n-1 {
+			t.Errorf("Expected result length {}, got {}", 2*n-1, len(x))
+			ret
+		}
+		if !jn::Tolerance(x[0].Coef, 1, tol) || !jn::Tolerance(x[1].Coef, 2, tol) ||
+			!jn::Tolerance(x[n-1].Coef, f64(n), tol) || !jn::Tolerance(x[2*n-2].Coef, 1, tol) {
+			t.Errorf("Incorrect FFT result for dense input")
 		}
 	}
 }

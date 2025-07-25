@@ -2,6 +2,14 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use jn "julenum"
+use "std/math"
+use "std/math/cmplx"
+use "std/slices"
+
+// Size of a uint in bits.
+const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
+
 // Represents a single term (monomial) of a polynomial.
 // It has a coefficient and an exponent (degree).
 //
@@ -189,6 +197,406 @@ impl Polynomial {
 		// Zero coefficients ignored, so final length may be different.
 		*self = r[:k]
 	}
+
+	// Sets self to product x*y.
+	//
+	// It is equals to MulTol(x, y, tol), but determines tolerance dynamically.
+	// Dynamic tolerance value might not be suitable for some cases.
+	// Use MulTol with custom tolerance when needed, especially for precise
+	// and small coefficients like 1e-14. However, small coefficients might be removed
+	// due to rounding errors during computation with custom tolerance.
+	//
+	// For minimum rounding-errors, use MulNaive to force native algorithms.
+	// Naive algorithm is slower than FFT, but more accurate.
+	//
+	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Mul(mut *self, &x: *Polynomial, &y: *Polynomial) {
+		n := len(*x) * len(*y)
+
+		// Early return: x or y is zero.
+		if n == 0 {
+			*self = (*self)[:0]
+			ret
+		}
+
+		if n < fftThreshold {
+			basicMul(self, x, y)
+		} else {
+			size := fftSize(x, y)
+			tol := dynamicTolerance(x, y, size)
+			fftMul(self, x, y, size, tol)
+		}
+	}
+
+	// Sets self to product x*y.
+	// Like Mul but forces to naive algorithm and never uses FFT.
+	// Provides more accurate results, but slower for large polynomials.
+	//
+	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn MulNaive(mut *self, &x: *Polynomial, &y: *Polynomial) {
+		// Early return: x or y is zero.
+		if len(*x)*len(*y) == 0 {
+			*self = (*self)[:0]
+			ret
+		}
+		basicMul(self, x, y)
+	}
+
+	// Sets self to product x*y.
+	//
+	// Unlike MulTol, Mul computes tolerance dynamically, might be inefficient for some cases.
+	// This function takes custom tolerance and it uses for FFT.
+	// If FFT algorithm will not be used, tolerance will not be used.
+	//
+	// Algorithm will select naive algorithm of FFT to compute,
+	// which one is efficient for the case.
+	//
+	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn MulTol(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+		n := len(*x) * len(*y)
+
+		// Early return: x or y is zero.
+		if n == 0 {
+			*self = (*self)[:0]
+			ret
+		}
+
+		if n < fftThreshold {
+			basicMul(self, x, y)
+		} else {
+			size := fftSize(x, y)
+			fftMul(self, x, y, size, tol)
+		}
+	}
+
+	// Sets self to product x*y.
+	// Like MulTol but forces to FFT and never uses naive algorithm.
+	// Provides faster computations for large polynomaisl, but less accurate.
+	//
+	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn MulFFT(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+		n := len(*x) * len(*y)
+
+		// Early return: x or y is zero.
+		if n == 0 {
+			*self = (*self)[:0]
+			ret
+		}
+
+		size := fftSize(x, y)
+		fftMul(self, x, y, size, tol)
+	}
+}
+
+#disable boundary
+fn dynamicTolerance(&x: *Polynomial, &y: *Polynomial, size: int): f64 {
+	const (
+		machineEpsilon = 2.22e-16
+		safetyFactor   = 10000000.0 // Increase to be stricter, for large sizes.
+		smallThreshold = 200
+	)
+
+	if size < smallThreshold {
+		mut maxCoef := 0.0
+		for _, term in *x {
+			absCoef := math::Abs(term.Coef)
+			if absCoef > maxCoef {
+				maxCoef = absCoef
+			}
+		}
+		for _, term in *y {
+			absCoef := math::Abs(term.Coef)
+			if absCoef > maxCoef {
+				maxCoef = absCoef
+			}
+		}
+
+		if maxCoef == 0 {
+			ret 0
+		}
+
+		basicTol := machineEpsilon * f64(size) * maxCoef
+		relativeTol := 1e-14 * maxCoef
+		absoluteTol := 1e-16
+		ret math::Max(basicTol, math::Max(relativeTol, absoluteTol))
+	} else {
+		ret machineEpsilon * f64(size) * math::Log2(f64(size)) * safetyFactor
+	}
+}
+
+// z = x*y
+#disable boundary
+fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
+	// Temporary map to sum coefficients of matching exponents.
+	mut temp := map[int]f64{}
+
+	for _, a in *x {
+		if a.Coef == 0 {
+			continue
+		}
+		for _, b in *y {
+			if b.Coef == 0 {
+				continue
+			}
+			exp := a.Exp + b.Exp
+			temp[exp] += a.Coef * b.Coef
+		}
+	}
+
+	// Convert map to slice and eliminate zeroes.
+	*z = z.make(len(temp))
+	mut k := 0
+	for exp, coef in temp {
+		if coef != 0 {
+			(*z)[k] = Term{Coef: coef, Exp: exp}
+			k++
+		}
+	}
+
+	// Trim to actual length.
+	// Zero coefficients ignored, so final length may be different.
+	*z = (*z)[:k]
+
+	// Sort terms by decreasing exponent.
+	if len(*z) > 1 {
+		slices::SortFunc([]Term(*z), fn|i, j| {
+			match {
+			| i.Exp == j.Exp:
+				ret 0
+			| i.Exp > j.Exp:
+				ret -1
+			|:
+				ret +1
+			}
+		})
+	}
+}
+
+#disable boundary
+fn polyToCoeffs(mut &z: *[]cmplx128, &p: *Polynomial) {
+	for i in *p {
+		(*z)[(*p)[i].Exp] = cmplx((*p)[i].Coef, 0)
+	}
+}
+
+#disable boundary
+fn coeffsToPoly(mut &z: *Polynomial, coeffs: []cmplx128, tol: f64) {
+	*z = z.make(len(coeffs))
+	mut k := 0
+	for exp in coeffs {
+		coef := real(coeffs[exp])
+		if !jn::Tolerance(coef, 0, tol) {
+			(*z)[k] = Term{Coef: coef, Exp: exp}
+			k++
+		}
+	}
+
+	// Trim to actual length.
+	// Zero coefficients ignored, so final length may be different.
+	*z = (*z)[:k]
+
+	// Sort terms by decreasing exponent.
+	slices::SortFunc([]Term(*z), fn|i, j| {
+		match {
+		| i.Exp == j.Exp:
+			ret 0
+		| i.Exp > j.Exp:
+			ret -1
+		|:
+			ret +1
+		}
+	})
+}
+
+// Threshold for switching to basic multiplication.
+// This value is crucial for performance, FFT algorithm is inefficient for small polynomials.
+const fftThreshold = 128
+
+#disable boundary
+fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
+	mut maxExpX, mut maxExpY := 0, 0
+	if len(*x) > 0 {
+		maxExpX = (*x)[0].Exp
+	}
+	if len(*y) > 0 {
+		maxExpY = (*y)[0].Exp
+	}
+	maxExpX = max(maxExpX, len(*x))
+	maxExpY = max(maxExpY, len(*y))
+	ret nextPowerOfTwo(maxExpX + maxExpY + 1)
+}
+
+// FFT implementation (Cooley-Tukey).
+// Inplace transform.
+#disable boundary
+fn fft(mut a: []cmplx128, invert: bool) {
+	n := len(a)
+	if n == 1 {
+		ret
+	}
+
+	// Bit reversal permutation.
+	mut j := 0
+	mut i := 1
+	for i < n; i++ {
+		mut bit := n >> 1
+		for j&bit != 0; bit >>= 1 {
+			j ^= bit
+		}
+		j ^= bit
+		if i < j {
+			a[i], a[j] = a[j], a[i]
+		}
+	}
+
+	mut length := 2
+	for length <= n; length <<= 1 {
+		mut angle := 2 * jn::Pi / f64(length)
+		if invert {
+			angle = -angle
+		}
+		wlen := cmplx::Exp(cmplx(0, angle))
+		i = 0
+
+		for i < n; i += length {
+			mut w := cmplx(1, 0)
+			j = 0
+			for j < length>>1; j++ {
+				u := a[i+j]
+				v := a[i+j+length>>1] * w
+				a[i+j] = u + v
+				a[i+j+length>>1] = u - v
+				w *= wlen
+			}
+		}
+	}
+
+	if invert {
+		i = 0
+		denom := cmplx(f64(n), 0)
+		for i < len(a); i++ {
+			a[i] /= denom
+		}
+	}
+}
+
+// FFT implementation (Cooley-Tukey).
+// Inplace transform.
+// This is faster than calling fft(x, false) for a and b separately.
+#disable boundary
+fn fft2(mut a: []cmplx128, mut b: []cmplx128) {
+	n := len(a)
+	if n == 1 {
+		ret
+	}
+
+	// Bit reversal permutation.
+	mut j := 0
+	mut i := 1
+	for i < n; i++ {
+		mut bit := n >> 1
+		for j&bit != 0; bit >>= 1 {
+			j ^= bit
+		}
+		j ^= bit
+		if i < j {
+			a[i], a[j] = a[j], a[i]
+			b[i], b[j] = b[j], b[i]
+		}
+	}
+
+	mut length := 2
+	for length <= n; length <<= 1 {
+		angle := 2 * jn::Pi / f64(length)
+		wlen := cmplx::Exp(cmplx(0, angle))
+		i = 0
+
+		for i < n; i += length {
+			mut w := cmplx(1, 0)
+			j = 0
+			for j < length>>1; j++ {
+				{
+					u := a[i+j]
+					v := a[i+j+length>>1] * w
+					a[i+j] = u + v
+					a[i+j+length>>1] = u - v
+				}
+				{
+					u := b[i+j]
+					v := b[i+j+length>>1] * w
+					b[i+j] = u + v
+					b[i+j+length>>1] = u - v
+				}
+				w *= wlen
+			}
+		}
+	}
+}
+
+// z = x*y, using FFT.
+#disable boundary
+fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol: f64) {
+	// Allocate temporary slices with single allocation.
+	// size² should enough to store all coefficients for fa and fb.
+	// size/2 is the total size of a single slice.
+	mut workspace := make([]cmplx128, size<<1)
+	mut fa, mut fb := workspace[:size], workspace[size:]
+
+	// Convert to coeff arrays.
+	polyToCoeffs(&fa, x)
+	polyToCoeffs(&fb, y)
+
+	// Forward FFT.
+	fft2(fa, fb)
+
+	// Point-wise multiply.
+	for i in fa {
+		fa[i] *= fb[i]
+	}
+
+	// Inverse FFT.
+	fft(fa, true)
+
+	// Convert to Polynomial and assign to z.
+	coeffsToPoly(z, fa, tol)
+}
+
+// https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+fn isPowerOfTwo(n: int): bool {
+	ret n&(n-1) == 0
+}
+
+// https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+fn nextPowerOfTwo(mut n: int): int {
+	if n <= 1 {
+		ret 1
+	}
+	if isPowerOfTwo(n) {
+		ret n
+	}
+	n--
+	n |= n >> 1
+	n |= n >> 2
+	n |= n >> 4
+	n |= n >> 8
+	n |= n >> 16
+	if uintSize == 64 { // 64-bit architecture
+		n |= n >> 32
+	}
+	ret n + 1
+}
+
+fn max(x: int, y: int): int {
+	if x > y {
+		ret x
+	}
+	ret y
 }
 
 // Reports whether x and y share the same base array.
