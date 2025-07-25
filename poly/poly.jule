@@ -234,7 +234,7 @@ impl Polynomial {
 	// Like Mul but forces to naive algorithm and never uses FFT.
 	// Provides more accurate results, but slower for large polynomials.
 	//
-	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If self have enough capacity, MulNaive will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
 	fn MulNaive(mut *self, &x: *Polynomial, &y: *Polynomial) {
@@ -248,14 +248,13 @@ impl Polynomial {
 
 	// Sets self to product x*y.
 	//
-	// Unlike MulTol, Mul computes tolerance dynamically, might be inefficient for some cases.
-	// This function takes custom tolerance and it uses for FFT.
+	// Unlike Mul, this function takes custom tolerance and it uses for FFT.
 	// If FFT algorithm will not be used, tolerance will not be used.
 	//
 	// Algorithm will select naive algorithm of FFT to compute,
 	// which one is efficient for the case.
 	//
-	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If self have enough capacity, MulTol will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	fn MulTol(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
 		n := len(*x) * len(*y)
@@ -275,10 +274,11 @@ impl Polynomial {
 	}
 
 	// Sets self to product x*y.
+	//
 	// Like MulTol but forces to FFT and never uses naive algorithm.
 	// Provides faster computations for large polynomaisl, but less accurate.
 	//
-	// If self have enough capacity, Mul will use it to avoid making allocation.
+	// If self have enough capacity, MulFFT will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	fn MulFFT(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
 		n := len(*x) * len(*y)
@@ -291,6 +291,30 @@ impl Polynomial {
 
 		size := fftSize(x, y)
 		fftMul(self, x, y, size, tol)
+	}
+
+	// Sets self to the first derivative of polynomial x.
+	//
+	// If x = ∑ aᵢ·xⁱ, then self = ∑ (i·aᵢ)·xⁱ⁻¹ for i ≥ 1.
+	// Constant terms (exp = 0) are omitted.
+	#disable boundary
+	fn Derivative(mut *self, &x: *Polynomial) {
+		*self = self.make(len(*x))
+
+		mut k := 0
+		for _, term in *x {
+			if term.Exp != 0 {
+				(*self)[k] = Term{
+					Coef: term.Coef * f64(term.Exp),
+					Exp: term.Exp - 1,
+				}
+				k++
+			}
+		}
+
+		// Trim to actual length.
+		// Zero coefficients ignored, so final length may be different.
+		*self = (*self)[:k]
 	}
 }
 

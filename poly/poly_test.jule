@@ -313,3 +313,56 @@ fn testMulFFT(t: &testing::T) {
 		}
 	}
 }
+
+struct derivativeTest {
+	input: Polynomial
+	want:  Polynomial
+}
+
+let testsDerivative: []derivativeTest = [
+	// d/dx (5) = 0
+	{
+		input: [{5, 0}],
+		want: [],
+	},
+
+	// d/dx (3x) = 3
+	{
+		input: [{3, 1}],
+		want: [{3, 0}],
+	},
+
+	// d/dx (3 + 2x + 5x^3) = 2 + 15x^2
+	{
+		input: [
+			{3, 0},
+			{2, 1},
+			{5, 3},
+		],
+		want: [
+			{2, 0},
+			{15, 2},
+		],
+	},
+
+	// d/dx (x^5 - 2x^3 + x) = 5x^4 - 6x^2 + 1
+	{
+		input: [{1, 1}, {-2, 3}, {1, 5}],
+		want: [
+			{1, 0},
+			{-6, 2},
+			{5, 4},
+		],
+	},
+]
+
+#test
+fn testDerivative(t: &testing::T) {
+	for _, test in testsDerivative {
+		let mut r: Polynomial
+		r.Derivative(&test.input)
+		if !slices::Equal([]Term(r), []Term(test.want)) {
+			t.Errorf("Derivative({}) = {}, expected {}", test.input, r, test.want)
+		}
+	}
+}
