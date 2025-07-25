@@ -316,6 +316,37 @@ impl Polynomial {
 		// Zero coefficients ignored, so final length may be different.
 		*self = (*self)[:k]
 	}
+
+	// Evaluates the polynomial at a given x.
+	fn Eval(*self, x: f64): f64 {
+		match len(*self) {
+		| 0:
+			ret 0
+		| 1:
+			t := (*self)[0]
+			if t.Exp == 0 {
+				ret t.Coef
+			}
+			ret t.Coef * math::Pow(x, f64(t.Exp))
+		}
+
+		// For general case: cache powers of x on the fly.
+		let mut result: f64
+		mut powCache := map[int]f64{}
+		for _, term in *self {
+			if term.Exp == 0 {
+				result += term.Coef
+				continue
+			}
+			mut px, ok := powCache[term.Exp]
+			if !ok {
+				px = math::Pow(x, f64(term.Exp))
+				powCache[term.Exp] = px
+			}
+			result += term.Coef * px
+		}
+		ret result
+	}
 }
 
 #disable boundary
