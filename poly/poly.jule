@@ -207,7 +207,7 @@ impl Polynomial {
 	// due to rounding errors during computation with custom tolerance.
 	//
 	// For minimum rounding-errors, use MulNaive to force native algorithms.
-	// Naive algorithm is slower than FFT, but more accurate.
+	// Naive algorithm is slower than FFT, but it is more accurate.
 	//
 	// If self have enough capacity, Mul will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
@@ -231,6 +231,7 @@ impl Polynomial {
 	}
 
 	// Sets self to product x*y.
+	//
 	// Like Mul but forces to naive algorithm and never uses FFT.
 	// Provides more accurate results, but slower for large polynomials.
 	//
@@ -293,10 +294,68 @@ impl Polynomial {
 		fftMul(self, x, y, size, tol)
 	}
 
+	// Sets self to quotient x/y, sets rem to remainder x/y if it is not nil.
+	// Panics for divide by zero.
+	//
+	// It uses naive division for small inputs, FFT division for larger inputs.
+	// When FFT division used, accuracy decreased due to floating-point rounding.
+	// Especiall remainder is less accurate compared to naive division.
+	//
+	// For minimum rounding-errors, use DivModNaive to force native division.
+	// Naive algorithm is slower than FFT, but it is more accurate.
+	//
+	// If self and rem have enough capacity, DivMod will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn DivMod(mut *self, &x: *Polynomial, &y: *Polynomial, mut &rem: *Polynomial) {
+		if len(*y) == 0 {
+			panic("poly: division by zero")
+		}
+
+		n := len(*x) * len(*y)
+		if rem != nil {
+			if n < fftThreshold {
+				basicDivMod(self, x, y, rem)
+			} else {
+				fftDivMod(self, x, y, rem)
+			}
+		} else {
+			let mut _rem: Polynomial
+			if n < fftThreshold {
+				basicDivMod(self, x, y, &_rem)
+			} else {
+				fftDivMod(self, x, y, &_rem)
+			}
+		}
+	}
+
+	// Sets self to quotient x/y, sets rem to remainder x/y if it is not nil.
+	// Panics for divide by zero.
+	//
+	// Like DivMod but forces to naive algorithm and never uses FFT.
+	// Provides more accurate results, but slower for large polynomials.
+	//
+	// If self and rem have enough capacity, DivMod will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn DivModNaive(mut *self, &x: *Polynomial, &y: *Polynomial, mut &rem: *Polynomial) {
+		if len(*y) == 0 {
+			panic("poly: division by zero")
+		}
+
+		if rem != nil {
+			basicDivMod(self, x, y, rem)
+		} else {
+			let mut _rem: Polynomial
+			basicDivMod(self, x, y, &_rem)
+		}
+	}
+
 	// Sets self to the first derivative of polynomial x.
 	//
-	// If x = ∑ aᵢ·xⁱ, then self = ∑ (i·aᵢ)·xⁱ⁻¹ for i ≥ 1.
+	// If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
 	// Constant terms (exp = 0) are omitted.
+	//
+	// If self have enough capacity, Derivative will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
 	fn Derivative(mut *self, &x: *Polynomial) {
 		*self = self.make(len(*x))
@@ -431,6 +490,186 @@ fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
 			}
 		})
 	}
+}
+
+// quot = quotient x/y
+// rem = remainder x/y
+#disable boundary
+fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &rem: *Polynomial) {
+	if len(*x) == 0 {
+		*quot = (*quot)[:0]
+		if rem != nil {
+			*rem = rem.make(len(*y))
+			copy(*rem, *y)
+		}
+		ret
+	}
+
+	degDiv := (*y)[0].Exp
+	coefDiv := (*y)[0].Coef
+	if coefDiv == 0 {
+		panic("poly: leading coefficient of divisor is zero")
+	}
+
+	degX := (*x)[0].Exp
+	degY := (*y)[0].Exp
+
+	if rem != x {
+		*rem = rem.make(len(*x))
+		copy(*rem, *x)
+	}
+
+	if degX < degY {
+		*quot = (*quot)[:0]
+		ret
+	}
+
+	k := degX - degY + 1
+	*quot = quot.make(k)
+
+	mut k := 0
+	mut subtrahend := make(Polynomial, len(*y))
+	for len(*rem) > 0 && (*rem)[0].Exp >= degDiv; k++ {
+		leadRem := (*rem)[0]
+		expDiff := leadRem.Exp - degDiv
+		coefQuot := leadRem.Coef / coefDiv
+		(*quot)[k] = Term{Coef: coefQuot, Exp: expDiff}
+		for i, dterm in *y {
+			subtrahend[i] = Term{
+				Coef: dterm.Coef * coefQuot,
+				Exp: dterm.Exp + expDiff,
+			}
+		}
+		rem.Sub(rem, &subtrahend)
+	}
+
+	// Trim to actual length.
+	// Zero coefficients ignored, so final length may be different.
+	*quot = (*quot)[:k]
+}
+
+// p(x) -> x^degree * p(1/x)
+#disable boundary
+fn reverse(mut &rev: *Polynomial, &p: *Polynomial, degree: int) {
+	*rev = rev.make(len(*p))
+	for i, term in *p {
+		(*rev)[i] = Term{Coef: term.Coef, Exp: degree - term.Exp}
+	}
+	slices::SortFunc([]Term(*rev), fn|i, j| {
+		if i.Exp > j.Exp {
+			ret -1
+		}
+		if i.Exp < j.Exp {
+			ret +1
+		}
+		ret 0
+	})
+}
+
+// (mod x^k)
+#disable boundary
+fn truncate(mut &x: *Polynomial, k: int) {
+	mut i := 0
+	for _, term in *x {
+		if term.Exp < k {
+			(*x)[i] = term
+			i++
+		}
+	}
+	*x = (*x)[:i]
+}
+
+// d(x), c(x)d(x) = 1 (mod x^k)
+fn inverse(mut &inv: *Polynomial, &c: *Polynomial, k: int) {
+	if k == 0 {
+		*inv = (*inv)[:0]
+		ret
+	}
+	if k == 1 {
+		let mut c0: f64
+		for _, term in *c {
+			if term.Exp == 0 {
+				c0 = term.Coef
+				break
+			}
+		}
+		if math::Abs(c0) == 0 {
+			panic("poly: constant zero term is illegal for inverse")
+		}
+		*inv = make(Polynomial, 1)
+		(*inv)[0] = Term{Coef: 1.0 / c0, Exp: 0}
+		ret
+	}
+
+	k_half := (k + 1) / 2
+	let mut d_prev: Polynomial
+	inverse(&d_prev, c, k_half)
+
+	let mut temp: Polynomial
+	temp.Mul(c, &d_prev)
+	truncate(&temp, k)
+
+	two := Polynomial([{Coef: 2, Exp: 0}])
+	temp.Sub(&two, &temp)
+
+	inv.Mul(&d_prev, &temp)
+	truncate(inv, k)
+}
+
+fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Polynomial) {
+	if len(*b) == 0 || ((*b)[0].Exp == 0 && math::Abs((*b)[0].Coef) == 0) {
+		panic("poly: division by zero")
+	}
+
+	if len(*a) == 0 {
+		*q = (*q)[:0]
+		if r != nil {
+			*r = r.make(len(*b))
+			copy(*r, *b)
+		}
+		ret
+	}
+
+	degA := (*a)[0].Exp
+	degB := (*b)[0].Exp
+
+	if degA < degB {
+		*q = (*q)[:0]
+		if r != nil {
+			*r = r.make(len(*a))
+			copy(*r, *a)
+		}
+		ret
+	}
+
+	k := degA - degB + 1
+
+	let mut aRev: Polynomial
+	reverse(&aRev, a, degA)
+	let mut bRev: Polynomial
+	reverse(&bRev, b, degB)
+
+	// (mod x^k)
+	let mut invB: Polynomial
+	inverse(&invB, &bRev, k)
+
+	// 3. qRev = aRev * invB mod x^k
+	let mut qRev: Polynomial
+	basicMul(&qRev, &aRev, &invB)
+
+	truncate(&qRev, k)
+
+	// q = reverse(qRev)
+	reverse(q, &qRev, k-1)
+
+	// qb = q * b
+	let mut qb: Polynomial
+	basicMul(&qb, q, b)
+
+	// r = a - qb
+	r.Sub(a, &qb)
+
+	truncate(r, degB)
 }
 
 #disable boundary
