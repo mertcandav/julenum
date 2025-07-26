@@ -590,6 +590,47 @@ fn testDerivative(t: &testing::T) {
 	}
 }
 
+let testsIntegral: []scaleTest = [
+	{
+		p: [{3, 2}, {4, 0}],
+		k: 0,
+		want: [
+			{1, 3}, // 3x^2 -> x^3
+			{4, 1}, // 4 -> 4x
+		],
+	},
+	{
+		p: [{2, 1}, {6, 0}],
+		k: 5,
+		want: [
+			{1, 2}, // 2x -> x^2
+			{6, 1}, // 6 -> 6x
+			{5, 0}, // constant
+		],
+	},
+	{
+		p: [],
+		k: 7,
+		want: [{7, 0}],
+	},
+	{
+		p: [],
+		k: 0,
+		want: [],
+	},
+]
+
+#test
+fn testIntegral(t: &testing::T) {
+	for _, test in testsIntegral {
+		let mut r: Polynomial
+		r.Integral(&test.p, test.k)
+		if !slices::Equal([]Term(r), []Term(test.want)) {
+			t.Errorf("Integral({}, {}) = {}, expected {}", test.p, test.k, r, test.want)
+		}
+	}
+}
+
 struct evalTest {
 	p:    Polynomial
 	x:    f64

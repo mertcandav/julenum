@@ -468,6 +468,31 @@ impl Polynomial {
 		*self = (*self)[:k]
 	}
 
+	// Sets self to the indefinite integral of polynomial x with constant term C.
+	// That is, integrates each term and appends a constant term.
+	//
+	// If self have enough capacity, Derivative will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Integral(mut *self, &x: *Polynomial, C: f64) {
+		n := len(*x)
+		*self = self.make(n + 1)
+
+		mut i := 0
+		for i < n; i++ {
+			exp := (*x)[i].Exp + 1
+			(*self)[i].Exp = exp
+			(*self)[i].Coef = (*x)[i].Coef / f64(exp)
+		}
+
+		// Constant term
+		if C != 0 {
+			(*self)[i] = Term{Coef: C, Exp: 0}
+		} else {
+			*self = (*self)[:i] // remove trailing zero if C=0
+		}
+	}
+
 	// Evaluates the polynomial at a given x.
 	fn Eval(*self, x: f64): f64 {
 		match len(*self) {
