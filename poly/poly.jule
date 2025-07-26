@@ -616,6 +616,49 @@ impl Polynomial {
 			*self = (*self)[:0]
 		}
 	}
+
+	// Sets self to product x^n.
+	// Condition n >= 0 must be true.
+	//
+	// If self have enough capacity, Pow will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn Pow(mut *self, &x: *Polynomial, mut n: int) {
+		if n < 0 {
+			panic("poly: negative exponent not supported")
+		}
+		if n == 0 {
+			// p^0 = 1
+			*self = self.make(1)
+			(*self)[0].Coef = 1
+			(*self)[0].Exp = 0
+			ret
+		}
+		if n == 1 {
+			// self is an alias for x, return immediately.
+			if self == x {
+				ret
+			}
+			*self = self.make(len(*x))
+			copy(*self, *x)
+			ret
+		}
+
+		let mut base: Polynomial
+		base = make(Polynomial, len(*x))
+		copy(base, *x)
+
+		// *self = 1
+		*self = self.make(1)
+		(*self)[0].Coef = 1
+		(*self)[0].Exp = 0
+
+		for n > 0; n >>= 1 {
+			if n&1 == 1 {
+				self.Mul(self, &base)
+			}
+			base.Mul(&base, &base)
+		}
+	}
 }
 
 #disable boundary
