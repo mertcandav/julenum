@@ -78,6 +78,19 @@ impl Polynomial {
 		}
 	}
 
+	// Copies polynomial x to self.
+	//
+	// If self have enough capacity, Negate will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn Copy(mut *self, x: *Polynomial) {
+		// self is an x for self, return immediately.
+		if self == x {
+			ret
+		}
+		*self = self.make(len(*x))
+		copy(*self, *x)
+	}
+
 	// Sets self to simplified form of the polynomial p.
 	// IT merges like terms and removes zero coefficients with tolerance.
 	//
