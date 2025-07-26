@@ -22,6 +22,8 @@ const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
 //
 // For example:
 //	the term 3x² is represented as Term{Coef: 3, Exp: 2}.
+//	the term x is represented as Term{Coef: 1, Exp: 1}.
+//	the term 2x is represented as Term{Coef: 2, Exp: 1}.
 //	the term 1 is represented as Term{Coef: 1, Exp: 0}
 struct Term {
 	Coef: f64
