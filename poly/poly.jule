@@ -111,17 +111,7 @@ impl Polynomial {
 		// Zero coefficients ignored, so final length may be different.
 		*self = (*self)[:k]
 
-		// Sort by descending exponent.
-		slices::SortFunc([]Term(*self), fn|i, j| {
-			match {
-			| i.Exp == j.Exp:
-				ret 0
-			| i.Exp > j.Exp:
-				ret -1
-			|:
-				ret +1
-			}
-		})
+		sortByExp(self)
 	}
 
 	// Sets self to sum x+y.
@@ -549,16 +539,7 @@ fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
 
 	// Sort terms by decreasing exponent.
 	if len(*z) > 1 {
-		slices::SortFunc([]Term(*z), fn|i, j| {
-			match {
-			| i.Exp == j.Exp:
-				ret 0
-			| i.Exp > j.Exp:
-				ret -1
-			|:
-				ret +1
-			}
-		})
+		sortByExp(z)
 	}
 }
 
@@ -625,15 +606,7 @@ fn reverse(mut &rev: *Polynomial, &p: *Polynomial, degree: int) {
 	for i, term in *p {
 		(*rev)[i] = Term{Coef: term.Coef, Exp: degree - term.Exp}
 	}
-	slices::SortFunc([]Term(*rev), fn|i, j| {
-		if i.Exp > j.Exp {
-			ret -1
-		}
-		if i.Exp < j.Exp {
-			ret +1
-		}
-		ret 0
-	})
+	sortByExp(rev)
 }
 
 // (mod x^k)
@@ -765,17 +738,7 @@ fn coeffsToPoly(mut &z: *Polynomial, coeffs: []cmplx128, tol: f64) {
 	// Zero coefficients ignored, so final length may be different.
 	*z = (*z)[:k]
 
-	// Sort terms by decreasing exponent.
-	slices::SortFunc([]Term(*z), fn|i, j| {
-		match {
-		| i.Exp == j.Exp:
-			ret 0
-		| i.Exp > j.Exp:
-			ret -1
-		|:
-			ret +1
-		}
-	})
+	sortByExp(z)
 }
 
 // Threshold for switching to basic multiplication.
@@ -929,6 +892,20 @@ fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol:
 
 	// Convert to Polynomial and assign to z.
 	coeffsToPoly(z, fa, tol)
+}
+
+// Sort terms of the polynomial p by decreasing exponent.
+fn sortByExp(mut &p: *Polynomial) {
+	slices::SortFunc([]Term(*p), fn|i, j| {
+		match {
+		| i.Exp == j.Exp:
+			ret 0
+		| i.Exp > j.Exp:
+			ret -1
+		|:
+			ret +1
+		}
+	})
 }
 
 // https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
