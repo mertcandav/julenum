@@ -503,6 +503,13 @@ let testsDivMod: []testDiv = [
 		quot: [{3, 1}],
 		rem: [{-5, 1}, {1, 0}],
 	},
+	// x^3 - 1 / x - 1 = quotient x^2 + x + 1, remainder= = 0
+	{
+		x: [{1, 3}, {0, 2}, {0, 1}, {-1, 0}],
+		y: [{1, 1}, {-1, 0}],
+		quot: [{1, 2}, {1, 1}, {1, 0}],
+		rem: [],
+	},
 ]
 
 #test
@@ -674,6 +681,60 @@ fn testEval(t: &testing::T) {
 		got := test.p.Eval(test.x)
 		if got != test.want {
 			t.Errorf("Eval({}) = {}, expected {}", test.x, got, test.want)
+		}
+	}
+}
+
+let testsGCD: []testPolyCS = [
+	{
+		x: [],    // 0
+		y: [],    // 0
+		want: [], // 0
+	},
+	{
+		x: [{1, 2}, {-1, 0}],    // x^2 - 1
+		y: [{1, 2}, {-1, 1}],    // x^2 - x
+		want: [{1, 1}, {-1, 0}], // x - 1
+	},
+	{
+		x: [],
+		y: [{1, 5}],    // x^5
+		want: [{1, 5}], // x^5
+	},
+	{
+		x: [{1, 2}],    // x^2
+		y: [{0, 0}],    // 0
+		want: [{1, 2}], // x^2
+	},
+	{
+		x: [{1, 3}, {-6, 2}, {11, 1}, {-6, 0}], // (x-1)(x-2)(x-3)
+		y: [{1, 2}, {-5, 1}, {6, 0}],           // (x-2)(x-3)
+		want: [{1, 2}, {-5, 1}, {6, 0}],        // (x-2)(x-3)
+	},
+	{
+		x: [{-1, 1}, {1, 0}],    // -x + 1 = -(x -1)
+		y: [{1, 1}, {-1, 0}],    // x - 1
+		want: [{1, 1}, {-1, 0}],
+	},
+	{
+		x: [{1, 4}, {-3, 2}],
+		y: [{1, 0}],
+		want: [{1, 0}],
+	},
+	{
+		x: [{1, 2}, {-1, 0}],    // x^2 - 1
+		y: [{1, 2}, {-1, 0}],
+		want: [{1, 2}, {-1, 0}],
+	},
+]
+
+#test
+fn testGCD(t: &testing::T) {
+	for _, test in testsGCD {
+		let mut r: Polynomial
+		r.GCD(&test.x, &test.y, 0)
+		if !slices::Equal([]Term(r), []Term(test.want)) {
+			t.Errorf("GCD({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
 }

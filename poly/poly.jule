@@ -503,7 +503,7 @@ impl Polynomial {
 	// Sets self to the indefinite integral of polynomial x with constant term C.
 	// That is, integrates each term and appends a constant term.
 	//
-	// If self have enough capacity, Derivative will use it to avoid making allocation.
+	// If self have enough capacity, Integral will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
 	fn Integral(mut *self, &x: *Polynomial, C: f64) {
@@ -554,6 +554,39 @@ impl Polynomial {
 			result += term.Coef * px
 		}
 		ret result
+	}
+
+	// Sets self to the greatest common divisor of two polynomials x and y.
+	// Leading coefficient is normalized to 1 (if not zero).
+	//
+	// If self have enough capacity, GCD will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn GCD(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+		let mut X: Polynomial
+		let mut Y: Polynomial
+		let mut R: Polynomial
+		let mut Q: Polynomial
+		X.Copy(x)
+		Y.Copy(y)
+
+		for !Y.Zero(tol) && !jn::Tolerance(Y.LeadingCoef(), 0, tol) {
+			Q.DivMod(&X, &Y, &R)
+			X.Copy(&Y)
+			Y.Copy(&R)
+		}
+
+		// Normalize leading coefficient to 1
+		if !X.Zero(tol) {
+			lc := X.LeadingCoef()
+			if jn::Tolerance(lc, 0, tol) {
+				*self = (*self)[:0]
+				ret
+			}
+
+			self.Scale(&X, 1/lc)
+		} else {
+			*self = (*self)[:0]
+		}
 	}
 }
 
