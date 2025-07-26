@@ -51,3 +51,34 @@ fn testLinear(t: &testing::T) {
 		}
 	}
 }
+
+let testsLagrange: []testInterp = [
+	// Basic quadratic function points (x²)
+	{x: 3, xp: [1, 2, 4], fp: [1, 4, 16], want: 9},
+
+	// Linear points
+	{x: 1.5, xp: [1, 2], fp: [3, 5], want: 4},
+
+	// Interpolation at known points (should return exact fp)
+	{x: 1, xp: [1, 2, 3], fp: [10, 20, 30], want: 10},
+	{x: 3, xp: [1, 2, 3], fp: [10, 20, 30], want: 30},
+
+	// Outside known points (extrapolation)
+	{x: 0, xp: [1, 2, 3], fp: [10, 20, 30], want: 0},
+
+	// Constant function
+	{x: 2, xp: [0, 1, 2], fp: [5, 5, 5], want: 5},
+
+	// Single point (constant)
+	{x: 100, xp: [50], fp: [25], want: 25},
+]
+
+#test
+fn testLagrange(t: &testing::T) {
+	for _, test in testsLagrange {
+		got := Lagrange(test.x, test.xp, test.fp)
+		if got != test.want {
+			t.Errorf("Lagrange({}, {}, {}) = {}, expected {}", test.x, test.xp, test.fp, got, test.want)
+		}
+	}
+}

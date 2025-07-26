@@ -51,3 +51,34 @@ fn Linear(x: f64, xp: []f64, fp: []f64): f64 {
 	// Linear interpolation
 	ret y0 + (x-x0)*(y1-y0)/(x1-x0)
 }
+
+// Computes Lagrange polynomial interpolation for given
+// points (xp, fp) and evaluates the polynomial at x.
+//
+// xp and fp slices must be of the same length > 0, and xp points should be distinct.
+//
+// Mathematically, the Lagrange interpolation polynomial is defined as:
+//
+//	P(x) = ∑_{j=0}^{n-1} [ fⱼ * Lⱼ(x) ], where;
+//	Lⱼ(x) = ∏_{m=0, m≠j}^{n-1} [ (x - xₘ) / (xⱼ - xₘ) ]
+fn Lagrange(x: f64, xp: []f64, fp: []f64): f64 {
+	n := len(xp)
+	if n == 0 || len(fp) != n {
+		panic("interp: xp and fp must be of same non-zero length")
+	}
+
+	mut result := 0.0
+	mut j := 0
+	for j < n; j++ {
+		mut term := fp[j]
+		mut m := 0
+		for m < n; m++ {
+			if m == j {
+				continue
+			}
+			term *= (x - xp[m]) / (xp[j] - xp[m])
+		}
+		result += term
+	}
+	ret result
+}
