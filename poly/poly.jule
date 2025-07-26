@@ -68,7 +68,7 @@ impl Polynomial {
 	// Reports whether polynomial is zero within tolerance.
 	fn Zero(*self, tol: f64): bool {
 		for _, term in *self {
-			if jn::Tolerance(term.Coef, 0, tol) {
+			if !jn::Tolerance(term.Coef, 0, tol) {
 				ret false
 			}
 		}
