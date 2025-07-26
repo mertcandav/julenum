@@ -179,6 +179,46 @@ fn testSub(t: &testing::T) {
 	}
 }
 
+struct scaleTest {
+	p:    Polynomial
+	k:    f64
+	want: Polynomial
+}
+
+let testsScale: []scaleTest = [
+	{
+		p: [{3, 2}, {-2, 1}, {1, 0}],
+		k: 2,
+		want: [{6, 2}, {-4, 1}, {2, 0}],
+	},
+	{
+		p: [{1.5, 3}, {-0.5, 1}],
+		k: -2,
+		want: [{-3, 3}, {1, 1}],
+	},
+	{
+		p: [],
+		k: 100,
+		want: [],
+	},
+	{
+		p: [{3, 2}],
+		k: 0,
+		want: [],
+	},
+]
+
+#test
+fn testScale(t: &testing::T) {
+	for _, test in testsScale {
+		let mut r: Polynomial
+		r.Scale(&test.p, test.k)
+		if !slices::Equal([]Term(r), []Term(test.want)) {
+			t.Errorf("Scale({}, {}) = {}, expected {}", test.p, test.k, r, test.want)
+		}
+	}
+}
+
 let testsMulNaive: []testPolyCS = [
 	{
 		x: [],

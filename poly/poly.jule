@@ -85,6 +85,7 @@ impl Polynomial {
 	//
 	// If self have enough capacity, Simplify will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
 	fn Simplify(mut *self, &p: *Polynomial, tol: f64) {
 		if len(*p) <= 1 {
 			ret // Already simplified.
@@ -256,6 +257,35 @@ impl Polynomial {
 		// Trim to actual length.
 		// Zero coefficients ignored, so final length may be different.
 		*self = r[:k]
+	}
+
+	// Sets self to scaled coefficients of x by scalar k.
+	// For example, if k = 2, (3x^2 - x) becomes (6x^2 - 2x).
+	//
+	// If self have enough capacity, Scale will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Scale(mut *self, &x: *Polynomial, k: f64) {
+		if len(*x) == 0 || k == 1 {
+			// self is an alias for x, return immediately.
+			if self == x {
+				ret
+			}
+			*self = self.make(len(*x))
+			copy(*self, *x)
+			ret
+		}
+		if k == 0 {
+			*self = (*self)[:0]
+			ret
+		}
+		*self = self.make(len(*x))
+		for i, term in *x {
+			(*self)[i] = Term{
+				Coef: term.Coef * k,
+				Exp: term.Exp,
+			}
+		}
 	}
 
 	// Sets self to product x*y.
