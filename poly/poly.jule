@@ -622,6 +622,7 @@ impl Polynomial {
 	//
 	// If self have enough capacity, Pow will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
 	fn Pow(mut *self, &x: *Polynomial, mut n: int) {
 		if n < 0 {
 			panic("poly: negative exponent not supported")
@@ -657,6 +658,28 @@ impl Polynomial {
 				self.Mul(self, &base)
 			}
 			base.Mul(&base, &base)
+		}
+	}
+
+	// Sets self to rescaled polynomial x, so that its leading coefficient is 1.
+	// If the polynomial is zero or leading coefficient is very small, output length is zero.
+	#disable boundary
+	fn Normalize(mut *self, &x: *Polynomial, tol: f64) {
+		if len(*x) == 0 {
+			*self = (*self)[:0]
+			ret // zero polynomial, do nothing
+		}
+
+		lc := (*x)[0].Coef
+		if jn::Tolerance(lc, 0, tol) {
+			*self = (*self)[:0]
+			ret // avoid division by near-zero
+		}
+
+		*self = self.make(len(*x))
+		for i in *x {
+			(*self)[i].Coef = (*x)[i].Coef / lc
+			(*self)[i].Exp = (*x)[i].Exp
 		}
 	}
 }
