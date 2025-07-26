@@ -7,6 +7,37 @@ use "std/math"
 use "std/slices"
 use "std/testing"
 
+struct ioTest {
+	input: Polynomial
+	want:  Polynomial
+}
+
+let testsNegate: []ioTest = [
+	{
+		input: [{3, 2}, {-4, 1}, {1, 0}],
+		want: [{-3, 2}, {4, 1}, {-1, 0}],
+	},
+	{
+		input: [],
+		want: [],
+	},
+	{
+		input: [{0, 0}, {-1, 5}],
+		want: [{0, 0}, {1, 5}],
+	},
+]
+
+#test
+fn testNegate(t: &testing::T) {
+	for _, test in testsNegate {
+		let mut r: Polynomial
+		r.Negate(&test.input)
+		if !slices::Equal([]Term(r), []Term(test.want)) {
+			t.Errorf("Negate({}, {}) = {}, expected {}", test.input, r, test.want)
+		}
+	}
+}
+
 struct testPolyCS {
 	x:    Polynomial
 	y:    Polynomial
@@ -444,12 +475,7 @@ fn testDivMod(t: &testing::T) {
 	}
 }
 
-struct derivativeTest {
-	input: Polynomial
-	want:  Polynomial
-}
-
-let testsDerivative: []derivativeTest = [
+let testsDerivative: []ioTest = [
 	// d/dx (5) = 0
 	{
 		input: [{5, 0}],

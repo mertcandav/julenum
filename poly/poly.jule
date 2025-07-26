@@ -54,6 +54,19 @@ impl Polynomial {
 		ret make(Polynomial, n)
 	}
 
+	// Sets self to negated coefficients of the polynomial x.
+	// For example, (3x^2 - 4x + 1) becomes (-3x^2 + 4x - 1).
+	//
+	// If self have enough capacity, Negate will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Negate(mut *self, &x: *Polynomial) {
+		*self = self.make(len(*x))
+		for i in *x {
+			(*self)[i] = Term{Coef: -(*x)[i].Coef, Exp: (*x)[i].Exp}
+		}
+	}
+
 	// Sets self to sum x+y.
 	//
 	// If self have enough capacity, Add will use it to avoid making allocation.
