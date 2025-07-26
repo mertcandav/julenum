@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "julenum/internal/ibits"
+use "julenum/internal/imem"
 use "std/comptime"
 use "std/math"
 use "std/math/cmplx"
-
-// Size of a uint in bits.
-const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
 
 // A matrix for type T.
 // Uses internal mutable slice to store data.
@@ -207,7 +206,7 @@ impl Matrix {
 		// Size is different, resize the matrix.
 
 		let mut copySpace: []T
-		if alias(self.data, z.data) {
+		if imem::Alias(self.data, z.data) {
 			// Matrix self and matrix z have shared data.
 			// We have to allocate new (M×N) Matrix to copy properly.
 			copySpace = make([]T, m*n)
@@ -272,7 +271,7 @@ impl Matrix {
 		// (M×N) matrix will become (N×M).
 		// So size will not be changed.
 		// Make sure the self data have enough space.
-		if self == z || alias(self.data, z.data) {
+		if self == z || imem::Alias(self.data, z.data) {
 			// Matrix self and matrix z have shared data.
 			// We have to allocate new (N×M) Matrix to compute properly.
 			mut r := uncheckedNew[T](z.n, z.m)
@@ -431,12 +430,12 @@ impl Matrix {
 		// Compute x*y.
 
 		// Use basic multiplication if matrices are small.
-		n := max(max(x.m, x.n), y.n)
+		n := ibits::Max(ibits::Max(x.m, x.n), y.n)
 		if n < strassenThreshold {
 			// self is an alias for x or y - cannot reuse.
 			// We have to allocate new Matrix to compute properly.
 			if self == x || self == y ||
-				alias(self.data, x.data) || alias(self.data, y.data) {
+				imem::Alias(self.data, x.data) || imem::Alias(self.data, y.data) {
 				mut r := uncheckedNew[T](x.m, y.n)
 				basicMul(&r, x, y)
 				*self = r
@@ -456,7 +455,7 @@ impl Matrix {
 
 		// Determine smallest power-of-two dimension to pad matrices to.
 		// Ensures Strassen recursion works correctly.
-		k := nextPowerOfTwo(n)
+		k := ibits::NextPowerOfTwo(n)
 
 		// Total common buffer allocation size estimation for Strassen implementation:
 		// Let n = size
@@ -471,8 +470,8 @@ impl Matrix {
 		mut strassenSize := 9 * k * k
 
 		// Determine whether the input matrices needs padding.
-		xPadNeed := !isPowerOfTwo(x.m) || !isPowerOfTwo(x.n)
-		yPadNeed := !isPowerOfTwo(y.m) || !isPowerOfTwo(y.n)
+		xPadNeed := !ibits::IsPowerOfTwo(x.m) || !ibits::IsPowerOfTwo(x.n)
+		yPadNeed := !ibits::IsPowerOfTwo(y.m) || !ibits::IsPowerOfTwo(y.n)
 
 		// Remove size of the matrices, if it does not need padding.
 		// It helps to reduce size of the common buffer allocation.
@@ -488,7 +487,7 @@ impl Matrix {
 		// Once allocated, it will be used for the whole computation, no extra allocation.
 		let mut strassenSpace: []T
 		if self == x || self == y ||
-			alias(self.data, x.data) || alias(self.data, y.data) {
+			imem::Alias(self.data, x.data) || imem::Alias(self.data, y.data) {
 			// self is an alias for x or y - cannot reuse.
 			// We have to allocate new Matrix to compute properly.
 			strassenSpace = make([]T, strassenSize)
@@ -1296,7 +1295,7 @@ fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[
 	// If the matrix size is small enough, use basic matrix multiplication.
 	// This threshold balances recursion overhead and cache-local performance.
 	// Threshold choice (e.g., 64) is crucial for performance and determines space needs.
-	n := max(max(x.m, x.n), y.n)
+	n := ibits::Max(ibits::Max(x.m, x.n), y.n)
 	if n < strassenThreshold {
 		basicMul(z, x, y)
 		ret
@@ -1467,46 +1466,4 @@ fn getMatrix[T: numeric](m: int, n: int, mut &space: *[]T): Matrix[T] {
 		n: n,
 		data: data,
 	}
-}
-
-// Reports whether x and y share the same base array.
-//
-// Note: alias assumes that the capacity of underlying arrays
-// is never changed for values; i.e. that there are
-// no 3-operand slice expressions in this code (or worse,
-// reflect-based operations to the same effect).
-fn alias[T: numeric](x: []T, y: []T): bool {
-	ret cap(x) > 0 && cap(y) > 0 && &x[0:cap(x)][cap(x)-1] == &y[0:cap(y)][cap(y)-1]
-}
-
-// https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
-fn isPowerOfTwo(n: int): bool {
-	ret n&(n-1) == 0
-}
-
-// https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-fn nextPowerOfTwo(mut n: int): int {
-	if n <= 1 {
-		ret 1
-	}
-	if isPowerOfTwo(n) {
-		ret n
-	}
-	n--
-	n |= n >> 1
-	n |= n >> 2
-	n |= n >> 4
-	n |= n >> 8
-	n |= n >> 16
-	if uintSize == 64 { // 64-bit architecture
-		n |= n >> 32
-	}
-	ret n + 1
-}
-
-fn max(x: int, y: int): int {
-	if x > y {
-		ret x
-	}
-	ret y
 }

@@ -3,12 +3,11 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "julenum/internal/ibits"
+use "julenum/internal/imem"
 use "std/math"
 use "std/math/cmplx"
 use "std/slices"
-
-// Size of a uint in bits.
-const uintSize = 32 << (^uint(0) >> 63) // 32 or 64
 
 // Represents a single term (monomial) of a polynomial.
 // It has a coefficient and an exponent (degree).
@@ -1051,9 +1050,9 @@ fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
 	if len(*y) > 0 {
 		maxExpY = (*y)[0].Exp
 	}
-	maxExpX = max(maxExpX, len(*x))
-	maxExpY = max(maxExpY, len(*y))
-	ret nextPowerOfTwo(maxExpX + maxExpY + 1)
+	maxExpX = ibits::Max(maxExpX, len(*x))
+	maxExpY = ibits::Max(maxExpY, len(*y))
+	ret ibits::NextPowerOfTwo(maxExpX + maxExpY + 1)
 }
 
 // FFT implementation (Cooley-Tukey).
@@ -1205,38 +1204,6 @@ fn sortByExp(mut &p: *Polynomial) {
 	})
 }
 
-// https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
-fn isPowerOfTwo(n: int): bool {
-	ret n&(n-1) == 0
-}
-
-// https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-fn nextPowerOfTwo(mut n: int): int {
-	if n <= 1 {
-		ret 1
-	}
-	if isPowerOfTwo(n) {
-		ret n
-	}
-	n--
-	n |= n >> 1
-	n |= n >> 2
-	n |= n >> 4
-	n |= n >> 8
-	n |= n >> 16
-	if uintSize == 64 { // 64-bit architecture
-		n |= n >> 32
-	}
-	ret n + 1
-}
-
-fn max(x: int, y: int): int {
-	if x > y {
-		ret x
-	}
-	ret y
-}
-
 // Reports whether x and y share the same base array.
 //
 // Note: alias assumes that the capacity of underlying arrays
@@ -1244,5 +1211,5 @@ fn max(x: int, y: int): int {
 // no 3-operand slice expressions in this code (or worse,
 // reflect-based operations to the same effect).
 fn alias(&x: *Polynomial, &y: *Polynomial): bool {
-	ret cap(*x) > 0 && cap(*y) > 0 && &((*x)[0:cap(*x)][cap(*x)-1]) == &((*y)[0:cap(*y)][cap(*y)-1])
+	ret imem::Alias([]Term(*x), []Term(*y))
 }

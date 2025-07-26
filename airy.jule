@@ -8,6 +8,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+use "julenum/internal/ibits"
 use "std/math"
 use "std/math/cmplx"
 
@@ -55,13 +56,6 @@ Mention of AMOS's inclusion in SLATEC goes back at least to this 1985 technical 
 // NaNs are for padding to keep indexing easy.
 let imach: [...]int = [-0, 5, 6, 0, 0, 32, 4, 2, 31, 2147483647, 2, 24, -125, 127, 53, -1021, 1023]
 let dmach: [...]f64 = [math::NaN(), 2.23e-308, 1.79e-308, 1.11e-16, 2.22e-16, 0.30103000998497009]
-
-fn abs(a: int): int {
-	if a >= 0 {
-		ret a
-	}
-	ret -a
-}
 
 fn zairy(ZR: f64, ZI: f64, ID: int, KODE: int): (AIR: f64, AII: f64, NZ: int, IERR: int) {
 	// zairy is adapted from the original Netlib code by Donald Amos.
@@ -425,7 +419,7 @@ Seventy:
 	K2 = imach[16]
 	R1M5 = dmach[5]
 
-	K = min(abs(K1), abs(K2))
+	K = ibits::Min(ibits::Abs(K1), ibits::Abs(K2))
 	ELIM = 2.303e0 * (f64(K)*R1M5 - 3.0e0)
 	K1 = imach[14] - 1
 	AA = R1M5 * f64(K1)
@@ -1444,7 +1438,7 @@ fn zkscl(ZRR: f64, ZRI: f64, FNU: f64, N: int, mut YR: []f64, mut YI: []f64, RZR
 	ZEROR = 0
 	ZEROI = 0
 	IC = 0
-	NN = min(2, N)
+	NN = ibits::Min(2, N)
 	I = 1
 	for I <= NN; I++ {
 		S1R = YR[I]
@@ -1822,7 +1816,7 @@ fn zasyi(ZR: f64, ZI: f64, FNU: f64, KODE: int, N: int, mut YR: []f64, mut YI: [
 	AZ = cmplx::Abs(cmplx(ZR, ZI))
 	ARM = 1.0e3 * dmach[1]
 	RTR1 = math::Sqrt(ARM)
-	IL = min(2, N)
+	IL = ibits::Min(2, N)
 	DFNU = FNU + f64(f32(N-IL))
 
 	// OVERFLOW TEST
@@ -2147,7 +2141,7 @@ Twenty:
 Forty:
 	// BACKWARD RECURRENCE AND SUM NORMALIZING RELATION.
 	K = K + 1
-	KK = max(I+IAZ, K+INU)
+	KK = ibits::Max(I+IAZ, K+INU)
 	FKK = f64(f32(KK))
 	P1R = ZEROR
 	P1I = ZEROI
@@ -2339,7 +2333,7 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 		mut coef := cmplx::Exp(cmplx(aa, imag(ak1)))
 		atol := tol * acz / (fnu + f64(NN))
 		mut i := 0
-		for i < min(2, NN); i++ {
+		for i < ibits::Min(2, NN); i++ {
 			FNUP := fnu + f64(NN-i)
 			mut s1 := 1 + 0i
 			if acz >= tol*FNUP {

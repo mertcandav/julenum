@@ -28,17 +28,3 @@ fn Same(a: f64, b: f64): bool {
 fn Clamp(x: f64, min: f64, max: f64): f64 {
 	ret math::Max(min, math::Min(x, max))
 }
-
-fn min(x: int, y: int): int {
-	if x < y {
-		ret x
-	}
-	ret y
-}
-
-fn max(x: int, y: int): int {
-	if x > y {
-		ret x
-	}
-	ret y
-}
