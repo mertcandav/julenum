@@ -92,7 +92,7 @@ fn Lagrange(x: f64, xp: []f64, fp: []f64): f64 {
 // Mathematically, the Newton interpolation polynomial is defined as:
 //
 //	P(x) = f₀ + ∑_{j=1}^{n-1} [ f[x₀, x₁, ..., xⱼ] * ∏_{m=0}^{j-1} (x - xₘ) ], where:
-//  - f[x₀, x₁, ..., xⱼ] are the divided differences computed recursively by:
+//	f[x₀, x₁, ..., xⱼ] are the divided differences computed recursively by:
 //		f[xⱼ] = fⱼ,
 //		f[xᵢ, ..., x_{i+k}] = (f[x_{i+1}, ..., x_{i+k}] - f[xᵢ, ..., x_{i+k-1}]) / (x_{i+k} - xᵢ)
 #disable boundary

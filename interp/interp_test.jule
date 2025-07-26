@@ -52,7 +52,8 @@ fn testLinear(t: &testing::T) {
 	}
 }
 
-let testsLagrange: []testInterp = [
+// Mutable, but do not mutate the content.
+let mut testsLagrange: []testInterp = [
 	// Basic quadratic function points (x²)
 	{x: 3, xp: [1, 2, 4], fp: [1, 4, 16], want: 9},
 

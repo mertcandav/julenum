@@ -1,0 +1,93 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+
+// Implements Barycentric form of Lagrange polynomial interpolation.
+//
+// Given distinct sample points xp and their corresponding values fp,
+// it precomputes Barycentric weights wⱼ:
+//
+//	wⱼ = 1 / ∏_{m=0, m≠j}^{n-1} [ (xⱼ - xₘ) ]
+//
+// The interpolation polynomial at point x is then evaluated by:
+//
+//	P(x) = ∑_{j=0}^{n-1} [ (wⱼ / (x - xⱼ)) * fⱼ ] / ∑_{j=0}^{n-1} [ wⱼ / (x - xⱼ) ]
+//
+// If x coincides with some xⱼ, P(x) = fⱼ exactly (no division by zero).
+//
+// This form is numerically stable and efficient for multiple evaluations.
+struct Barycentric {
+	xp:      []f64
+	fp:      []f64
+	weights: []f64
+}
+
+impl Barycentric {
+	// Initializes the Barycentric interpolator for given points.
+	// xp and fp must have the same length (>0) and contain distinct points.
+	// It precomputes Barycentric weights wⱼ used in interpolation.
+	//
+	// Uses mutable copy of xp and fp. The behavior and results are undefined,
+	// if any mutation performed after initialization.
+	#disable boundary
+	fn Init(mut *self, mut xp: []f64, mut fp: []f64, tol: f64) {
+		n := len(xp)
+		if n == 0 || len(fp) != n {
+			panic("NewBarycentric: xp and fp must be same non-zero length")
+		}
+		mut weights := make([]f64, n)
+
+		mut j := 0
+		for j < n; j++ {
+			mut w := 1.0
+			xj := xp[j]
+			mut m := 0
+			for m < n; m++ {
+				if m == j {
+					continue
+				}
+				diff := xj - xp[m]
+				if jn::Tolerance(diff, 0, tol) {
+					panic("InitBarycentric: duplicate points detected")
+				}
+				w *= diff
+			}
+			weights[j] = 1 / w
+		}
+		self.xp, self.fp, self.weights = xp, fp, weights
+	}
+
+	// Computes the Barycentric interpolation polynomial at x.
+	//
+	// If x equals some sample point xpⱼ, returns fpⱼ directly.
+	//
+	// Otherwise, computes:
+	//
+	//	P(x) = ∑ⱼ [ wⱼ / (x - xⱼ)) * fⱼ ] / ∑ⱼ [ wⱼ / (x - xⱼ) ]
+	//
+	// Interpolation must be initialized by Init, otherwise behavior is undefined.
+	#disable boundary
+	fn Interpolate(*self, x: f64): f64 {
+		n := len(self.xp)
+
+		// Check if x exactly matches any xp[j]
+		mut j := 0
+		for j < n; j++ {
+			if x == self.xp[j] {
+				ret self.fp[j]
+			}
+		}
+
+		mut numerator, mut denominator := 0.0, 0.0
+		j = 0
+		for j < n; j++ {
+			term := self.weights[j] / (x - self.xp[j])
+			numerator += term * self.fp[j]
+			denominator += term
+		}
+
+		ret numerator / denominator
+	}
+}
