@@ -56,6 +56,15 @@ impl Polynomial {
 		ret make(Polynomial, n)
 	}
 
+	// Returns the leading coefficient of the polynomial.
+	// Panics if polynomial is zero.
+	fn LeadingCoef(*self): f64 {
+		if len(*self) == 0 {
+			panic("poly: LeadingCoef called on zero polynomial")
+		}
+		ret (*self)[0].Coef
+	}
+
 	// Reports whether polynomial is zero within tolerance.
 	fn Zero(*self, tol: f64): bool {
 		for _, term in *self {
