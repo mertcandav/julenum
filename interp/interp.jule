@@ -1,0 +1,53 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Computes one-dimensional piecewise linear interpolation.
+//
+// Given a set of monotonically increasing sample points xp and their corresponding
+// function values fp, it estimates the value of the underlying function at a
+// point x by linear interpolation between the nearest points in xp.
+//
+// xp must be sorted in strictly ascending order, otherwise the result is undefined.
+// xp and fp must be have same length and non-empty.
+//
+// Boundary behavior:
+//	- If x < xp[0], it returns fp[0] (constant extrapolation).
+//	- If x > xp[len(xp)-1], it returns fp[len(fp)-1] (constant extrapolation).
+#disable boundary
+fn Linear(x: f64, xp: []f64, fp: []f64): f64 {
+	n := len(xp)
+	if n == 0 || len(fp) != n {
+		panic("interp: xp and fp must be of the same non-zero length")
+	}
+	if n == 1 {
+		ret fp[0]
+	}
+
+	// Clip to bounds
+	if x <= xp[0] {
+		ret fp[0]
+	}
+	if x >= xp[n-1] {
+		ret fp[n-1]
+	}
+
+	// Binary search
+	mut lo, mut hi := 0, n-1
+	for lo <= hi {
+		mid := int(uint(lo+hi) >> 1) // avoid overflow when computing mid
+		if xp[mid] <= x {
+			lo = mid + 1
+		} else {
+			hi = mid - 1
+		}
+	}
+
+	// xp[hi] <= x < xp[lo], so interpolate between hi and lo
+	i := hi
+	x0, x1 := xp[i], xp[i+1]
+	y0, y1 := fp[i], fp[i+1]
+
+	// Linear interpolation
+	ret y0 + (x-x0)*(y1-y0)/(x1-x0)
+}

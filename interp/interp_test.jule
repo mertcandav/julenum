@@ -1,0 +1,53 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct testInterp {
+	x:    f64
+	xp:   []f64
+	fp:   []f64
+	want: f64
+}
+
+let testsLinear: []testInterp = [
+	// Basic linear interpolation
+	{x: 1.5, xp: [0, 1, 2], fp: [0, 10, 20], want: 15},
+	{x: 0.5, xp: [0, 1], fp: [0, 10], want: 5},
+	{x: 2.5, xp: [2, 3], fp: [20, 30], want: 25},
+
+	// Clipping behavior
+	{x: -1, xp: [0, 1, 2], fp: [0, 10, 20], want: 0},
+	{x: 3, xp: [0, 1, 2], fp: [0, 10, 20], want: 20},
+
+	// Edge points
+	{x: 0, xp: [0, 1, 2], fp: [0, 10, 20], want: 0},
+	{x: 2, xp: [0, 1, 2], fp: [0, 10, 20], want: 20},
+
+	// Two-point interpolation
+	{x: 0.25, xp: [0, 1], fp: [0, 100], want: 25},
+	{x: 1.75, xp: [1, 2], fp: [20, 40], want: 35},
+
+	// Non-zero starting xp
+	{x: 3.5, xp: [3, 4, 5], fp: [30, 40, 50], want: 35},
+
+	// Flat function
+	{x: 1.2, xp: [0, 2], fp: [7, 7], want: 7},
+
+	// Precision and rounding
+	{x: 0.3333, xp: [0, 1], fp: [0, 1], want: 0.3333},
+
+	// Single point (constant return)
+	{x: 999, xp: [42], fp: [17], want: 17},
+]
+
+#test
+fn testLinear(t: &testing::T) {
+	for _, test in testsLinear {
+		got := Linear(test.x, test.xp, test.fp)
+		if got != test.want {
+			t.Errorf("Linear({}, {}, {}) = {}, expected {}", test.x, test.xp, test.fp, got, test.want)
+		}
+	}
+}
