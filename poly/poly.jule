@@ -56,6 +56,16 @@ impl Polynomial {
 		ret make(Polynomial, n)
 	}
 
+	// Reports whether polynomial is zero within tolerance.
+	fn Zero(*self, tol: f64): bool {
+		for _, term in *self {
+			if jn::Tolerance(term.Coef, 0, tol) {
+				ret false
+			}
+		}
+		ret true
+	}
+
 	// Returns the degree of the polynomial (highest exponent).
 	// Returns -1 for the zero polynomial.
 	fn Degree(*self): int {
@@ -82,7 +92,7 @@ impl Polynomial {
 	//
 	// If self have enough capacity, Negate will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn Copy(mut *self, x: *Polynomial) {
+	fn Copy(mut *self, &x: *Polynomial) {
 		// self is an x for self, return immediately.
 		if self == x {
 			ret
