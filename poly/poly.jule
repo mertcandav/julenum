@@ -54,6 +54,15 @@ impl Polynomial {
 		ret make(Polynomial, n)
 	}
 
+	// Returns the degree of the polynomial (highest exponent).
+	// Returns -1 for the zero polynomial.
+	fn Degree(*self): int {
+		if len(*self) == 0 {
+			ret -1
+		}
+		ret (*self)[0].Exp
+	}
+
 	// Sets self to negated coefficients of the polynomial x.
 	// For example, (3x^2 - 4x + 1) becomes (-3x^2 + 4x - 1).
 	//
