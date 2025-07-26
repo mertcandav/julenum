@@ -82,3 +82,13 @@ fn testLagrange(t: &testing::T) {
 		}
 	}
 }
+
+#test
+fn testNewton(t: &testing::T) {
+	for _, test in testsLagrange {
+		got := Newton(test.x, test.xp, test.fp)
+		if got != test.want {
+			t.Errorf("Newton({}, {}, {}) = {}, expected {}", test.x, test.xp, test.fp, got, test.want)
+		}
+	}
+}

@@ -59,8 +59,9 @@ fn Linear(x: f64, xp: []f64, fp: []f64): f64 {
 //
 // Mathematically, the Lagrange interpolation polynomial is defined as:
 //
-//	P(x) = ∑_{j=0}^{n-1} [ fⱼ * Lⱼ(x) ], where;
+//	P(x) = ∑_{j=0}^{n-1} [ fⱼ * Lⱼ(x) ], where:
 //	Lⱼ(x) = ∏_{m=0, m≠j}^{n-1} [ (x - xₘ) / (xⱼ - xₘ) ]
+#disable boundary
 fn Lagrange(x: f64, xp: []f64, fp: []f64): f64 {
 	n := len(xp)
 	if n == 0 || len(fp) != n {
@@ -80,5 +81,46 @@ fn Lagrange(x: f64, xp: []f64, fp: []f64): f64 {
 		}
 		result += term
 	}
+	ret result
+}
+
+// Computes Newton polynomial interpolation for given
+// points (xp, fp) and evaluates the polynomial at x.
+//
+// xp and fp slices must be of the same length > 0, and xp points should be distinct.
+//
+// Mathematically, the Newton interpolation polynomial is defined as:
+//
+//	P(x) = f₀ + ∑_{j=1}^{n-1} [ f[x₀, x₁, ..., xⱼ] * ∏_{m=0}^{j-1} (x - xₘ) ], where:
+//  - f[x₀, x₁, ..., xⱼ] are the divided differences computed recursively by:
+//		f[xⱼ] = fⱼ,
+//		f[xᵢ, ..., x_{i+k}] = (f[x_{i+1}, ..., x_{i+k}] - f[xᵢ, ..., x_{i+k-1}]) / (x_{i+k} - xᵢ)
+#disable boundary
+fn Newton(x: f64, xp: []f64, fp: []f64): f64 {
+	n := len(xp)
+	if n == 0 || len(fp) != n {
+		panic("interp: xp and fp must be of same non-zero length")
+	}
+
+	// Copy fp to avoid mutating input
+	mut divDiff := make([]f64, n)
+	copy(divDiff, fp)
+
+	// Compute divided differences in-place
+	mut level := 1
+	for level < n; level++ {
+		mut i := n - 1
+		for i >= level; i-- {
+			divDiff[i] = (divDiff[i] - divDiff[i-1]) / (xp[i] - xp[i-level])
+		}
+	}
+
+	// Evaluate polynomial at x using nested multiplication
+	mut result := divDiff[n-1]
+	mut i := n - 2
+	for i >= 0; i-- {
+		result = result*(x-xp[i]) + divDiff[i]
+	}
+
 	ret result
 }
