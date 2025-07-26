@@ -118,9 +118,9 @@ let testsAdd: []testPolyCS = [
 fn testAdd(t: &testing::T) {
 	for _, test in testsAdd {
 		let mut r: Polynomial
-		r.Add(&test.x, &test.y)
+		r.Add(&test.x, &test.y, 0)
 		if !slices::Equal([]Term(r), []Term(test.want)) {
-			t.Errorf("Add({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
+			t.Errorf("Add({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
 }
@@ -172,9 +172,9 @@ let testsSub: []testPolyCS = [
 fn testSub(t: &testing::T) {
 	for _, test in testsSub {
 		let mut r: Polynomial
-		r.Sub(&test.x, &test.y)
+		r.Sub(&test.x, &test.y, 0)
 		if !slices::Equal([]Term(r), []Term(test.want)) {
-			t.Errorf("Sub({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
+			t.Errorf("Sub({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
 }
@@ -212,9 +212,9 @@ let testsScale: []scaleTest = [
 fn testScale(t: &testing::T) {
 	for _, test in testsScale {
 		let mut r: Polynomial
-		r.Scale(&test.p, test.k)
+		r.Scale(&test.p, test.k, 0)
 		if !slices::Equal([]Term(r), []Term(test.want)) {
-			t.Errorf("Scale({}, {}) = {}, expected {}", test.p, test.k, r, test.want)
+			t.Errorf("Scale({}, {}, 0) = {}, expected {}", test.p, test.k, r, test.want)
 		}
 	}
 }
@@ -917,6 +917,96 @@ fn testInterpolateLinear(t: &testing::T) {
 		r.InterpolateLinear(test.x0, test.y0, test.x1, test.y1)
 		if !slices::Equal([]Term(r), []Term(test.want)) {
 			t.Errorf("InterpolateLinear({}, {}, {}, {}) = {}, expected {}", test.x0, test.y0, test.x1, test.y1, r, test.want)
+		}
+	}
+}
+
+struct interpolateLagrangeTest {
+	xs:   []f64
+	ys:   []f64
+	want: Polynomial
+}
+
+let testsInterpolateLagrange: []interpolateLagrangeTest = [
+	// f(x) = x^2 → (0,0), (1,1), (2,4)
+	{
+		xs: [0, 1, 2],
+		ys: [0, 1, 4],
+		want: [{1, 2}],
+	},
+	// f(x) = x^3 → (0,0), (1,1), (2,8), (3,27)
+	{
+		xs: [0, 1, 2, 3],
+		ys: [0, 1, 8, 27],
+		want: [{1, 3}],
+	},
+	// Linear f(x) = 2x + 1
+	{
+		xs: [-1, 1],
+		ys: [-1, 3],
+		want: [{2, 1}, {1, 0}],
+	},
+	// constant function f(x) = 5
+	{
+		xs: [-2, 0, 1],
+		ys: [5, 5, 5],
+		want: [{5, 0}],
+	},
+	// deg 2: f(x) = 2x^2 + x + 1
+	{
+		xs: [-1, 0, 1],
+		ys: [2, 1, 4],
+		want: [{2, 2}, {1, 1}, {1, 0}],
+	},
+	// deg 3: f(x) = x^3 - x
+	{
+		xs: [-1, 0, 1, 2],
+		ys: [-2, 0, 0, 6],
+		want: [{1.3333333333333333, 3}, {-1, 2}, {-0.3333333333333333, 1}],
+	},
+	// deg 4: f(x) = x^4
+	{
+		xs: [-2, -1, 0, 1, 2],
+		ys: [16, 1, 0, 1, 16],
+		want: [{1, 4}],
+	},
+	// non-monic quadratic: f(x) = -2x^2 + 4x - 1
+	{
+		xs: [0, 1, 2],
+		ys: [-1, 1, -1],
+		want: [{-2, 2}, {4, 1}, {-1, 0}],
+	},
+	// deg 5: f(x) = x^5
+	{
+		xs: [-2, -1, 0, 1, 2, 3],
+		ys: [-32, -1, 0, 1, 32, 243],
+		want: [{1, 5}],
+	},
+	// scaled Chebyshev T2(x) = 2x^2 - 1
+	{
+		xs: [-1, 0, 1],
+		ys: [1, -1, 1],
+		want: [{2, 2}, {-1, 0}],
+	},
+]
+
+#test
+fn testInterpolateLagrange(t: &testing::T) {
+	for _, test in testsInterpolateLagrange {
+		let mut r: Polynomial
+		r.InterpolateLagrange(test.xs, test.ys, 1e-14)
+		if len(r) != len(test.want) {
+			t.Errorf("InterpolateLagrange({}, {}, 1e-14) = {}, expected {}", test.xs, test.ys, r, test.want)
+			ret
+		}
+		mut i := 0
+		for i < len(r); i++ {
+			want := test.want[i]
+			if !jn::Close(r[i].Coef, want.Coef) ||
+				!jn::Close(f64(r[i].Exp), f64(want.Exp)) {
+				t.Errorf("InterpolateLagrange({}, {}, 1e-14) = {}, expected {}", test.xs, test.ys, r, test.want)
+				break
+			}
 		}
 	}
 }

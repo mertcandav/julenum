@@ -154,7 +154,7 @@ impl Polynomial {
 	// If self have enough capacity, Add will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Add(mut *self, &x: *Polynomial, &y: *Polynomial) {
+	fn Add(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
 		// If y is empty, just copy x.
 		if len(*y) == 0 {
 			// self is an x for self, return immediately.
@@ -192,7 +192,7 @@ impl Polynomial {
 			xi, yj := (*x)[i], (*y)[j]
 			if xi.Exp == yj.Exp {
 				sumCoef := xi.Coef + yj.Coef
-				if sumCoef != 0 {
+				if !jn::Tolerance(sumCoef, 0, tol) {
 					r[k] = Term{Coef: sumCoef, Exp: xi.Exp}
 					k++
 				}
@@ -226,7 +226,7 @@ impl Polynomial {
 	// If self have enough capacity, Sub will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Sub(mut *self, &x: *Polynomial, &y: *Polynomial) {
+	fn Sub(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
 		// If y is empty, just copy x.
 		if len(*y) == 0 {
 			// self is an x for self, return immediately.
@@ -263,7 +263,7 @@ impl Polynomial {
 			xi, mut yj := (*x)[i], (*y)[j]
 			if xi.Exp == yj.Exp {
 				diffCoef := xi.Coef - yj.Coef
-				if diffCoef != 0 {
+				if !jn::Tolerance(diffCoef, 0, tol) {
 					r[k] = Term{Coef: diffCoef, Exp: xi.Exp}
 					k++
 				}
@@ -299,7 +299,7 @@ impl Polynomial {
 	// If self have enough capacity, Scale will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Scale(mut *self, &x: *Polynomial, k: f64) {
+	fn Scale(mut *self, &x: *Polynomial, k: f64, tol: f64) {
 		if len(*x) == 0 || k == 1 {
 			// self is an alias for x, return immediately.
 			if self == x {
@@ -314,12 +314,21 @@ impl Polynomial {
 			ret
 		}
 		*self = self.make(len(*x))
-		for i, term in *x {
-			(*self)[i] = Term{
-				Coef: term.Coef * k,
-				Exp: term.Exp,
+		mut i := 0
+		for _, term in *x {
+			coef := term.Coef * k
+			if !jn::Tolerance(coef, 0, tol) {
+				(*self)[i] = Term{
+					Coef: coef,
+					Exp: term.Exp,
+				}
+				i++
 			}
 		}
+
+		// Trim to actual length.
+		// Zero coefficients ignored, so final length may be different.
+		*self = (*self)[:i]
 	}
 
 	// Sets self to product x*y.
@@ -583,7 +592,7 @@ impl Polynomial {
 				ret
 			}
 
-			self.Scale(&X, 1/lc)
+			self.Scale(&X, 1/lc, tol)
 		} else {
 			*self = (*self)[:0]
 		}
@@ -610,7 +619,7 @@ impl Polynomial {
 		if !self.Zero(tol) {
 			lc := self.LeadingCoef()
 			if !jn::Tolerance(lc, 0, tol) {
-				self.Scale(self, 1/lc)
+				self.Scale(self, 1/lc, tol)
 			}
 		} else {
 			*self = (*self)[:0]
@@ -700,6 +709,50 @@ impl Polynomial {
 		*self = self.make(2)
 		(*self)[0] = Term{Coef: slope, Exp: 1}     // m * x
 		(*self)[1] = Term{Coef: intercept, Exp: 0} // b
+	}
+
+	// Sets self to the unique degree-(n-1) polynomial that passes through the
+	// given points using the Lagrange interpolation formula.
+	// Panics if input lengths differ or have duplicate x values.
+	//
+	// If self have enough capacity, InterpolateLagrance will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn InterpolateLagrange(mut *self, xs: []f64, ys: []f64, tol: f64) {
+		if len(xs) != len(ys) {
+			panic("poly: InterpolateLagrange: xs and ys must be the same length")
+		}
+		n := len(xs)
+		if n == 0 {
+			*self = (*self)[:0]
+			ret
+		}
+
+		mut i := 0
+		for i < n; i++ {
+			// Start with constant polynomial 1
+			mut basis := Polynomial([{1, 0}])
+			mut denom := 1.0
+
+			mut j := 0
+			for j < n; j++ {
+				if i == j {
+					continue
+				}
+				if math::Abs(xs[i]-xs[j]) < tol {
+					panic("poly: InterpolateLagrange: duplicate x values")
+				}
+				// Multiply by (x - xj)
+				mut tmp := Polynomial([{1, 1}, {-xs[j], 0}])
+				basis.MulTol(&basis, &tmp, tol)
+
+				// Denominator: (xi - xj)
+				denom *= xs[i] - xs[j]
+			}
+
+			basis.Scale(&basis, ys[i]/denom, tol) // Scale basis polynomial by yi / denom
+			self.Add(self, &basis, tol)
+		}
 	}
 }
 
@@ -835,7 +888,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 				Exp: dterm.Exp + expDiff,
 			}
 		}
-		rem.Sub(rem, &subtrahend)
+		rem.Sub(rem, &subtrahend, 0)
 	}
 
 	// Trim to actual length.
@@ -897,7 +950,7 @@ fn inverse(mut &inv: *Polynomial, &c: *Polynomial, k: int) {
 	truncate(&temp, k)
 
 	two := Polynomial([{Coef: 2, Exp: 0}])
-	temp.Sub(&two, &temp)
+	temp.Sub(&two, &temp, 0)
 
 	inv.Mul(&d_prev, &temp)
 	truncate(inv, k)
@@ -954,7 +1007,7 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 	basicMul(&qb, q, b)
 
 	// r = a - qb
-	r.Sub(a, &qb)
+	r.Sub(a, &qb, 0)
 
 	truncate(r, degB)
 }
