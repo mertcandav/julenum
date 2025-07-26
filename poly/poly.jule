@@ -76,6 +76,54 @@ impl Polynomial {
 		}
 	}
 
+	// Sets self to simplified form of the polynomial p.
+	// IT merges like terms and removes zero coefficients with tolerance.
+	//
+	// Result is sorted by decreasing exponent.
+	// If the Polynomial manually modified, this function may help to follow internal
+	// polynomial representation rules as described in Polynomial type.
+	//
+	// If self have enough capacity, Simplify will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn Simplify(mut *self, &p: *Polynomial, tol: f64) {
+		if len(*p) <= 1 {
+			ret // Already simplified.
+		}
+
+		// Group terms by exponent using a map.
+		mut m := map[int]f64{}
+		for _, term in *p {
+			if !jn::Tolerance(term.Coef, 0, tol) {
+				m[term.Exp] += term.Coef
+			}
+		}
+
+		*self = self.make(len(m))
+		mut k := 0
+		for exp, coef in m {
+			if !jn::Tolerance(coef, 0, tol) {
+				(*self)[k] = Term{Coef: coef, Exp: exp}
+				k++
+			}
+		}
+
+		// Trim to actual length.
+		// Zero coefficients ignored, so final length may be different.
+		*self = (*self)[:k]
+
+		// Sort by descending exponent.
+		slices::SortFunc([]Term(*self), fn|i, j| {
+			match {
+			| i.Exp == j.Exp:
+				ret 0
+			| i.Exp > j.Exp:
+				ret -1
+			|:
+				ret +1
+			}
+		})
+	}
+
 	// Sets self to sum x+y.
 	//
 	// If self have enough capacity, Add will use it to avoid making allocation.
