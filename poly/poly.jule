@@ -180,7 +180,7 @@ impl Polynomial {
 		let mut r: Polynomial
 		if self == x || self == y || alias(self, x) || alias(self, y) {
 			// self is an alias for x or y - cannot reuse.
-			// We have to allocate new Matrix to compute properly.
+			// We have to allocate new Polynomial to compute properly.
 			r = make(Polynomial, len(*x)+len(*y))
 		} else {
 			r = self.make(len(*x) + len(*y))
@@ -251,7 +251,7 @@ impl Polynomial {
 		let mut r: Polynomial
 		if self == x || self == y || alias(self, x) || alias(self, y) {
 			// self is an alias for x or y - cannot reuse.
-			// We have to allocate new Matrix to compute properly.
+			// We have to allocate new Polynomial to compute properly.
 			r = make(Polynomial, len(*x)+len(*y))
 		} else {
 			r = self.make(len(*x) + len(*y))
@@ -588,6 +588,34 @@ impl Polynomial {
 			*self = (*self)[:0]
 		}
 	}
+
+	// Sets self to the least common multiple of two polynomials x and y.
+	// Leading coefficient is normalized to 1 (if not zero).
+	//
+	// If self have enough capacity, LCM will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn LCM(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+		if x.Zero(tol) || y.Zero(tol) {
+			*self = (*self)[:0]
+			ret
+		}
+
+		let mut product: Polynomial
+		product.MulTol(x, y, tol)
+		let mut gcd: Polynomial
+		gcd.GCD(x, y, tol)
+		self.DivMod(&product, &gcd, nil)
+
+		// Normalize leading coefficient to 1
+		if !self.Zero(tol) {
+			lc := self.LeadingCoef()
+			if !jn::Tolerance(lc, 0, tol) {
+				self.Scale(self, 1/lc)
+			}
+		} else {
+			*self = (*self)[:0]
+		}
+	}
 }
 
 #disable boundary
@@ -698,7 +726,16 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 	}
 
 	k := degX - degY + 1
-	*quot = quot.make(k)
+
+	let mut zquot: Polynomial
+
+	if quot == y || alias(quot, y) {
+		// self is an alias y - cannot reuse.
+		// We have to allocate new Polynomial to compute properly.
+		zquot = make(Polynomial, k)
+	} else {
+		zquot = quot.make(k)
+	}
 
 	mut k := 0
 	mut subtrahend := make(Polynomial, len(*y))
@@ -706,7 +743,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 		leadRem := (*rem)[0]
 		expDiff := leadRem.Exp - degDiv
 		coefQuot := leadRem.Coef / coefDiv
-		(*quot)[k] = Term{Coef: coefQuot, Exp: expDiff}
+		zquot[k] = Term{Coef: coefQuot, Exp: expDiff}
 		for i, dterm in *y {
 			subtrahend[i] = Term{
 				Coef: dterm.Coef * coefQuot,
@@ -718,7 +755,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 
 	// Trim to actual length.
 	// Zero coefficients ignored, so final length may be different.
-	*quot = (*quot)[:k]
+	*quot = zquot[:k]
 }
 
 // p(x) -> x^degree * p(1/x)
