@@ -14,11 +14,9 @@ use "std/slices"
 // It has a coefficient and an exponent (degree).
 //
 // Mathematically, a term is expressed as:
-//	coef * x^exp
-//
-// where:
-// - coef ∈ ℝ (coefficient, a real number)
-// - exp ∈ ℕ₀ (non-negative integer exponent)
+//	coef * x^exp, where:
+//		- coef ∈ ℝ (coefficient, a real number)
+//		- exp ∈ ℕ₀ (non-negative integer exponent)
 //
 // For example:
 //	the term 3x² is represented as Term{Coef: 3, Exp: 2}.
@@ -484,7 +482,8 @@ impl Polynomial {
 
 	// Sets self to the first derivative of polynomial x.
 	//
-	// If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
+	//	If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
+	//
 	// Constant terms (exp = 0) are omitted.
 	//
 	// If self have enough capacity, Derivative will use it to avoid making allocation.
