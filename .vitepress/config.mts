@@ -43,6 +43,7 @@ export default defineConfig({
   },
 
   base: "/julenum/",
+  outDir: "docs",
 
   head: [],
   themeConfig: {
