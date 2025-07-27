@@ -1,0 +1,150 @@
+/**
+ * Fonts
+ * -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: CascadiaMono;
+  src: url(fonts/CascadiaMono.ttf);
+}
+
+:root {
+  --vp-font-family-mono: CascadiaMono;
+}
+
+/**
+ * Colors
+ * -------------------------------------------------------------------------- */
+
+:root {
+  --vp-c-brand: #7896b6;
+  --vp-c-brand-light: #7896b6;
+  --vp-c-brand-lighter: rgb(174, 178, 255);
+  --vp-c-brand-lightest: #d1d4fd;
+  --vp-c-brand-dark: #7896b6;
+  --vp-c-brand-darker: #3f556c;
+  --vp-c-brand-dimm: rgba(100, 108, 255, 0.08);
+  --vp-custom-block-info-bg: rgba(84, 110, 155, 0.1);
+  --vp-custom-block-info-border: #3686b1;
+  --vp-custom-block-info-text: #52b0e3;
+  --vp-custom-block-info-text-deep: #00b7ff;
+  --vp-custom-block-tip-bg: rgba(51, 130, 118, 0.1);
+  --vp-custom-block-tip-border: rgba(4, 120, 87, 1);
+  --vp-custom-block-tip-text: rgb(25, 190, 129);
+  --vp-custom-block-tip-text-deep: rgba(52, 211, 153, 1);
+  --vp-custom-block-warning-bg: rgba(253, 224, 71, .1);
+  --vp-custom-block-warning-border: rgba(202, 138, 4, 1);
+  --vp-custom-block-warning-text: rgba(234, 179, 8, 1);
+  --vp-custom-block-warning-text-deep: rgba(250, 204, 21, 1);
+  --vp-custom-block-danger-bg: rgba(239, 68, 68, .1);
+  --vp-custom-block-danger-border: rgba(127, 29, 29, 1);
+  --vp-custom-block-danger-text: rgba(248, 113, 113, 1);
+  --vp-custom-block-danger-text-deep: rgba(248, 113, 113, 1);
+  --vp-code-line-number-color: white;
+  --vp-code-block-divider-color: rgb(134, 134, 134);
+  --vp-code-lang-color: #7896b6;
+  --vp-code-block-bg: #363636;
+}
+
+.dark {
+  --vp-code-block-bg: #161618;
+  --vp-c-bg: #19191e;
+  --vp-code-line-number-color: rgb(165, 165, 165);
+  --vp-code-block-divider-color: rgb(56, 56, 56);
+}
+
+table td {
+  background: rgb(250, 250, 250);
+}
+
+.dark table td {
+  background-color: rgb(20, 20, 20);
+}
+
+::-moz-selection,
+::selection {
+  background-color: var(--vp-c-brand);
+  color: white;
+}
+
+/**
+ * Styles
+ * -------------------------------------------------------------------------- */
+
+li {
+  margin-left: 15px;
+}
+
+/**
+ * Component: Button
+ * -------------------------------------------------------------------------- */
+
+:root {
+  --vp-button-brand-border: var(--vp-c-brand-light);
+  --vp-button-brand-text: var(--vp-c-white);
+  --vp-button-brand-bg: var(--vp-c-brand);
+  --vp-button-brand-hover-border: var(--vp-c-brand-light);
+  --vp-button-brand-hover-text: var(--vp-c-white);
+  --vp-button-brand-hover-bg: var(--vp-c-brand-light);
+  --vp-button-brand-active-border: var(--vp-c-brand-light);
+  --vp-button-brand-active-text: var(--vp-c-white);
+  --vp-button-brand-active-bg: var(--vp-button-brand-bg);
+}
+
+/**
+ * Component: Custom Block
+ * -------------------------------------------------------------------------- */
+
+:root {
+  --vp-custom-block-tip-border: var(--vp-c-brand);
+  --vp-custom-block-tip-text: var(--vp-c-brand-darker);
+  --vp-custom-block-tip-bg: var(--vp-c-brand-dimm);
+}
+
+.dark {
+  --vp-custom-block-tip-border: var(--vp-c-brand);
+  --vp-custom-block-tip-text: var(--vp-c-brand-lightest);
+  --vp-custom-block-tip-bg: var(--vp-c-brand-dimm);
+}
+
+/**
+ * Component: Algolia
+ * -------------------------------------------------------------------------- */
+
+.DocSearch {
+  --docsearch-primary-color: var(--vp-c-brand) !important;
+}
+
+.green {
+  color: yellowgreen;
+  font-weight: bold;
+}
+
+.orange {
+  color: orange;
+  font-weight: bold;
+}
+
+.warning-badge {
+  color: white;
+  border-radius: 999999999999999999px;
+  padding-left: 10px;
+  padding-right: 10px;
+  background: rgb(188, 118, 25);
+  width: fit-content;
+  text-align: center;
+  display: inline;
+}
+
+summary {
+  font-weight: bold;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+summary:hover {
+  cursor: pointer;
+}

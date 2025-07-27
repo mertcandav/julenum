@@ -12,6 +12,10 @@ julec
 dist/
 !std/**
 !stat/**
+cache
+
+# Node modules
+node_modules
 
 # Bin
 bin/
