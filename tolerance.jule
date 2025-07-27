@@ -63,8 +63,8 @@ fn Alike(a: f64, b: f64): bool {
 }
 
 // Reports whether two values a and b are approximately equal,
-// within a relative tolerance e. This is useful for comparing floating-point values
-// where exact equality is unreliable due to rounding errors.
+// within a relative tolerance e. This is useful for comparing complex values
+// where exact equality is unreliable due to floating-point rounding errors.
 //
 // It returns true if the absolute difference between a and b
 // is less than the tolerance threshold scaled by the expected value b,
