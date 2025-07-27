@@ -1,5 +1,8 @@
 # julenum
 
+[Manual](https://mertcandav.github.io/julenum/) |
+[Contributing](./CONTRIBUTING.md)
+
 A high-performance library for numerical methods and scientific computing, written in [Jule](https://github.com/julelang/jule).
 
 It provides core components for scientific computing, numerical analysis, statistics, algebra, and more.
