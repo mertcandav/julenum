@@ -42,6 +42,8 @@ export default defineConfig({
     theme: "dracula-soft",
   },
 
+  base: "/julenum/",
+
   head: [],
   themeConfig: {
     search: {

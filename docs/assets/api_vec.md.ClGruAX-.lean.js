@@ -1,1 +1,0 @@
-import{_ as a,c as n,o as e,ah as l}from"./chunks/framework.CvtUal3J.js";const d=JSON.parse('{"title":"julenum/vec","description":"","frontmatter":{},"headers":[],"relativePath":"api/vec.md","filePath":"api/vec.md"}'),o={name:"api/vec.md"};function p(r,s,t,c,F,i){return e(),n("div",null,s[0]||(s[0]=[l("",102)]))}const u=a(o,[["render",p]]);export{d as __pageData,u as default};

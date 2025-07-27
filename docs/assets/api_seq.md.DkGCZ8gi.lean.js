@@ -1,1 +1,0 @@
-import{_ as s,c as e,o as n,ah as l}from"./chunks/framework.CvtUal3J.js";const F=JSON.parse('{"title":"julenum/seq","description":"","frontmatter":{},"headers":[],"relativePath":"api/seq.md","filePath":"api/seq.md"}'),r={name:"api/seq.md"};function o(p,a,c,t,i,u){return n(),e("div",null,a[0]||(a[0]=[l("",28)]))}const b=s(r,[["render",o]]);export{F as __pageData,b as default};

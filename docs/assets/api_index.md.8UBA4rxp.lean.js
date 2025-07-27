@@ -1,1 +1,0 @@
-import{_ as a,c as n,o as l,ah as e}from"./chunks/framework.CvtUal3J.js";const d=JSON.parse('{"title":"API","description":"","frontmatter":{},"headers":[],"relativePath":"api/index.md","filePath":"api/index.md"}'),p={name:"api/index.md"};function o(r,s,t,c,i,F){return l(),n("div",null,s[0]||(s[0]=[e("",282)]))}const u=a(p,[["render",o]]);export{d as __pageData,u as default};
