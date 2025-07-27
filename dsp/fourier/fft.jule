@@ -1,0 +1,32 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum/internal/fourier"
+
+// Computes the discrete Fourier transform (DFT) of the given complex-valued slice
+// using the in-place Cooley–Tukey radix-2 algorithm.
+//
+// If invert is true, it computes the inverse FFT (IFFT) instead.
+// The input length must be a power of two; otherwise, the behavior is undefined.
+//
+// This function modifies the input slice in-place.
+// For inverse FFT, results are scaled by 1/len.
+fn FFT(mut a: []cmplx128, invert: bool) {
+	fourier::FFT(a, invert)
+}
+
+// Computes the discrete Fourier transform (DFT) of the given complex-valued slices
+// using the in-place Cooley–Tukey radix-2 algorithm.
+//
+// Computes FFT for a and b, this is efficient than calling FFT for a and b separately;
+//	{ FFT(a, invert); FFT(b, invert) } == FuseFFT(a, b, invert)
+//
+// If invert is true, it computes the inverse FFT (IFFT) instead.
+// Length of the input slices must be equal and a power of two; otherwise, the behavior is undefined.
+//
+// This function modifies the input slices in-place.
+// For inverse FFT, results are scaled by 1/len.
+fn FuseFFT(mut a: []cmplx128, mut b: []cmplx128, invert: bool) {
+	fourier::FuseFFT(a, b, invert)
+}

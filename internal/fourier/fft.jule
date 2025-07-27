@@ -1,0 +1,141 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/math/cmplx"
+
+// pi*2
+const pi2 = 6.28318530717958647692528676655900576839433879875021164194988918 // https://oeis.org/A000796
+
+// Computes the discrete Fourier transform (DFT) of the given complex-valued slice
+// using the in-place Cooley–Tukey radix-2 algorithm.
+//
+// If invert is true, it computes the inverse FFT (IFFT) instead.
+// The input length must be a power of two; otherwise, the behavior is undefined.
+//
+// This function modifies the input slice in-place.
+// For inverse FFT, results are scaled by 1/len.
+#disable boundary
+fn FFT(mut a: []cmplx128, invert: bool) {
+	n := len(a)
+	if n == 1 {
+		ret
+	}
+
+	// Bit reversal permutation.
+	mut j := 0
+	mut i := 1
+	for i < n; i++ {
+		mut bit := n >> 1
+		for j&bit != 0; bit >>= 1 {
+			j ^= bit
+		}
+		j ^= bit
+		if i < j {
+			a[i], a[j] = a[j], a[i]
+		}
+	}
+
+	mut length := 2
+	for length <= n; length <<= 1 {
+		mut angle := pi2 / f64(length)
+		if invert {
+			angle = -angle
+		}
+		wlen := cmplx::Exp(cmplx(0, angle))
+		i = 0
+
+		for i < n; i += length {
+			mut w := cmplx(1, 0)
+			j = 0
+			for j < length>>1; j++ {
+				u := a[i+j]
+				v := a[i+j+length>>1] * w
+				a[i+j] = u + v
+				a[i+j+length>>1] = u - v
+				w *= wlen
+			}
+		}
+	}
+
+	if invert {
+		i = 0
+		denom := cmplx(f64(n), 0)
+		for i < len(a); i++ {
+			a[i] /= denom
+		}
+	}
+}
+
+// Computes the discrete Fourier transform (DFT) of the given complex-valued slices
+// using the in-place Cooley–Tukey radix-2 algorithm.
+//
+// Computes FFT for a and b, this is efficient than calling FFT for a and b separately;
+//	{ FFT(a, invert); FFT(b, invert) } == FuseFFT(a, b, invert)
+//
+// If invert is true, it computes the inverse FFT (IFFT) instead.
+// Length of the input slices must be equal and a power of two; otherwise, the behavior is undefined.
+//
+// This function modifies the input slices in-place.
+// For inverse FFT, results are scaled by 1/len.
+#disable boundary
+fn FuseFFT(mut a: []cmplx128, mut b: []cmplx128, invert: bool) {
+	n := len(a)
+	if n == 1 {
+		ret
+	}
+
+	// Bit reversal permutation.
+	mut j := 0
+	mut i := 1
+	for i < n; i++ {
+		mut bit := n >> 1
+		for j&bit != 0; bit >>= 1 {
+			j ^= bit
+		}
+		j ^= bit
+		if i < j {
+			a[i], a[j] = a[j], a[i]
+			b[i], b[j] = b[j], b[i]
+		}
+	}
+
+	mut length := 2
+	for length <= n; length <<= 1 {
+		mut angle := pi2 / f64(length)
+		if invert {
+			angle = -angle
+		}
+		wlen := cmplx::Exp(cmplx(0, angle))
+		i = 0
+
+		for i < n; i += length {
+			mut w := cmplx(1, 0)
+			j = 0
+			for j < length>>1; j++ {
+				{
+					u := a[i+j]
+					v := a[i+j+length>>1] * w
+					a[i+j] = u + v
+					a[i+j+length>>1] = u - v
+				}
+				{
+					u := b[i+j]
+					v := b[i+j+length>>1] * w
+					b[i+j] = u + v
+					b[i+j+length>>1] = u - v
+				}
+				w *= wlen
+			}
+		}
+	}
+
+	if invert {
+		i = 0
+		denom := cmplx(f64(n), 0)
+		for i < len(a); i++ {
+			a[i] /= denom
+			b[i] /= denom
+		}
+	}
+}

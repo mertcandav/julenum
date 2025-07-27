@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "julenum/internal/fourier"
 use "julenum/internal/ibits"
 use "julenum/internal/imem"
 use "std/math"
@@ -1055,113 +1056,6 @@ fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
 	ret ibits::NextPowerOfTwo(maxExpX + maxExpY + 1)
 }
 
-// FFT implementation (Cooley-Tukey).
-// Inplace transform.
-#disable boundary
-fn fft(mut a: []cmplx128, invert: bool) {
-	n := len(a)
-	if n == 1 {
-		ret
-	}
-
-	// Bit reversal permutation.
-	mut j := 0
-	mut i := 1
-	for i < n; i++ {
-		mut bit := n >> 1
-		for j&bit != 0; bit >>= 1 {
-			j ^= bit
-		}
-		j ^= bit
-		if i < j {
-			a[i], a[j] = a[j], a[i]
-		}
-	}
-
-	mut length := 2
-	for length <= n; length <<= 1 {
-		mut angle := 2 * jn::Pi / f64(length)
-		if invert {
-			angle = -angle
-		}
-		wlen := cmplx::Exp(cmplx(0, angle))
-		i = 0
-
-		for i < n; i += length {
-			mut w := cmplx(1, 0)
-			j = 0
-			for j < length>>1; j++ {
-				u := a[i+j]
-				v := a[i+j+length>>1] * w
-				a[i+j] = u + v
-				a[i+j+length>>1] = u - v
-				w *= wlen
-			}
-		}
-	}
-
-	if invert {
-		i = 0
-		denom := cmplx(f64(n), 0)
-		for i < len(a); i++ {
-			a[i] /= denom
-		}
-	}
-}
-
-// FFT implementation (Cooley-Tukey).
-// Inplace transform.
-// This is faster than calling fft(x, false) for a and b separately.
-#disable boundary
-fn fft2(mut a: []cmplx128, mut b: []cmplx128) {
-	n := len(a)
-	if n == 1 {
-		ret
-	}
-
-	// Bit reversal permutation.
-	mut j := 0
-	mut i := 1
-	for i < n; i++ {
-		mut bit := n >> 1
-		for j&bit != 0; bit >>= 1 {
-			j ^= bit
-		}
-		j ^= bit
-		if i < j {
-			a[i], a[j] = a[j], a[i]
-			b[i], b[j] = b[j], b[i]
-		}
-	}
-
-	mut length := 2
-	for length <= n; length <<= 1 {
-		angle := 2 * jn::Pi / f64(length)
-		wlen := cmplx::Exp(cmplx(0, angle))
-		i = 0
-
-		for i < n; i += length {
-			mut w := cmplx(1, 0)
-			j = 0
-			for j < length>>1; j++ {
-				{
-					u := a[i+j]
-					v := a[i+j+length>>1] * w
-					a[i+j] = u + v
-					a[i+j+length>>1] = u - v
-				}
-				{
-					u := b[i+j]
-					v := b[i+j+length>>1] * w
-					b[i+j] = u + v
-					b[i+j+length>>1] = u - v
-				}
-				w *= wlen
-			}
-		}
-	}
-}
-
 // z = x*y, using FFT.
 #disable boundary
 fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol: f64) {
@@ -1176,7 +1070,7 @@ fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol:
 	polyToCoeffs(&fb, y)
 
 	// Forward FFT.
-	fft2(fa, fb)
+	fourier::FuseFFT(fa, fb, false)
 
 	// Point-wise multiply.
 	for i in fa {
@@ -1184,7 +1078,7 @@ fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol:
 	}
 
 	// Inverse FFT.
-	fft(fa, true)
+	fourier::FFT(fa, true)
 
 	// Convert to Polynomial and assign to z.
 	coeffsToPoly(z, fa, tol)
