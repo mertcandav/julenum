@@ -16,6 +16,11 @@ dist/
 # Bin
 bin/
 
+# Pages Related
+docs
+node_modules
+.vitepress
+
 # Should ignore.
 __*
 
