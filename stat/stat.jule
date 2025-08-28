@@ -736,10 +736,10 @@ fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 		}
 	}
 	mut maxCount, mut max := 0.0, 0.0
-	for val, count in m {
-		if count > maxCount {
-			maxCount = count
-			max = val
+	for z, n in m {
+		if n > maxCount {
+			maxCount = n
+			max = z
 		}
 	}
 	ret max, maxCount

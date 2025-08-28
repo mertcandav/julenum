@@ -862,7 +862,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 		ret
 	}
 
-	k := degX - degY + 1
+	mut k := degX - degY + 1
 
 	let mut zquot: Polynomial
 
@@ -874,7 +874,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 		zquot = quot.make(k)
 	}
 
-	mut k := 0
+	k = 0
 	mut subtrahend := make(Polynomial, len(*y))
 	for len(*rem) > 0 && (*rem)[0].Exp >= degDiv; k++ {
 		leadRem := (*rem)[0]

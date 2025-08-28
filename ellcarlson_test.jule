@@ -37,7 +37,7 @@ fn testEllipticF(t: &testing::T) {
 	for test < 100; test++ {
 		alpha := rand.F64() * Pi / 4
 		beta := rand.F64() * Pi / 4
-		mut mi := 0
+		mi = 0
 		for mi < 9999; mi++ {
 			m := f64(mi) / 10000
 			Fa := EllipticF(alpha, m)
@@ -87,7 +87,7 @@ fn testEllipticE(t: &testing::T) {
 	for test < 100; test++ {
 		alpha := rand.F64() * Pi / 4
 		beta := rand.F64() * Pi / 4
-		mut mi := 0
+		mi = 0
 		for mi < 9999; mi++ {
 			m := f64(mi) / 10000
 			Ea := EllipticE(alpha, m)

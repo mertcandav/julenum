@@ -94,7 +94,7 @@ let mut testsVectorCS: []vectorCSTest = [
 fn testVectorCS(t: &testing::T, name: str, f: fn(mut vectorCSTest): (Vector[f64], Vector[f64])) {
 	for (_, mut test) in testsVectorCS {
 		got, want := f(test)
-		if !slices::Equal([]f64(got), []f64(want)) {
+		if !slices::Equal(got, want) {
 			t.Errorf("{}({}, {}) = {}, expected {}", name, test.x, test.y, got, want)
 		}
 	}

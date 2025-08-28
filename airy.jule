@@ -2291,7 +2291,7 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 		acz = cmplx::Abs(cz)
 	}
 	mut NN := n
-	ck := cmplx::Log(hz)
+	mut ck := cmplx::Log(hz)
 	let mut ak1: cmplx128
 	for {
 		dfnu := fnu + f64(NN-1)
@@ -2419,7 +2419,7 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 	mut K := NN - 3
 	for K >= 0; K-- {
 		s1, s2 = s2, s1+cmplx(f64(K+1)+fnu, 0)*(rz*s2)
-		ck := s2 * cmplx(crscr, 0)
+		ck = s2 * cmplx(crscr, 0)
 		y[K] = ck
 		if cmplx::Abs(ck) > scale {
 			for K >= 0; K-- {

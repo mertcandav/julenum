@@ -819,10 +819,10 @@ let testsQuatAsinh: []testQuatQuat = [
 	{q: sinh({X: 1}), r: {X: 1}},
 	{q: sinh({X: 1, Y: 1}), r: {X: 1, Y: 1}},
 	{q: sinh({W: 1, X: 1, Y: 1}), r: {W: 1, X: 1, Y: 1}},
+	// The following fails:
+	// {q: sinh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+	// but this passes...
 	{q: sinh({1, 1, 1, 1}), r: fn(): Quat {
-			// The following fails:
-			// {q: sinh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
-			// but this passes...
 			mut p := Quat{W: 1}
 			mut q := sinh({1, 1, 1, 1})
 			q.Mul(&q, &q)
@@ -944,12 +944,11 @@ let testsQuatAtanh: []testQuatQuat = [
 	{q: tanh({X: 1}), r: {X: 1}},
 	{q: tanh({X: 1, Y: 1}), r: {X: 1, Y: 1}},
 	{q: tanh({W: 1, X: 1, Y: 1}), r: {W: 1, X: 1, Y: 1}},
+	// The following fails
+	// {q: tanh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
+	// but...
 	{
 		q: tanh({1, 1, 1, 1}), r: fn(): Quat {
-			// The following fails
-			// {q: tanh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
-			// but...
-
 			mut q := tanh({1, 1, 1, 1})
 			mut p := Quat{W: 1}
 			p.Sub(&p, &q)

@@ -32,7 +32,7 @@ fn testNegate(t: &testing::T) {
 	for _, test in testsNegate {
 		let mut r: Polynomial
 		r.Negate(&test.input)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Negate({}) = {}, expected {}", test.input, r, test.want)
 		}
 	}
@@ -58,8 +58,7 @@ fn testSimplify(t: &testing::T) {
 	for _, test in testsSimplify {
 		let mut r: Polynomial
 		r.Simplify(&test.input, 0)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
-			t.Logf("{} | {}", []Term(r), []Term(test.want))
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Simplify({}, 0) = {}, expected {}", test.input, r, test.want)
 		}
 	}
@@ -119,7 +118,7 @@ fn testAdd(t: &testing::T) {
 	for _, test in testsAdd {
 		let mut r: Polynomial
 		r.Add(&test.x, &test.y, 0)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Add({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
@@ -173,7 +172,7 @@ fn testSub(t: &testing::T) {
 	for _, test in testsSub {
 		let mut r: Polynomial
 		r.Sub(&test.x, &test.y, 0)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Sub({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
@@ -213,7 +212,7 @@ fn testScale(t: &testing::T) {
 	for _, test in testsScale {
 		let mut r: Polynomial
 		r.Scale(&test.p, test.k, 0)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Scale({}, {}, 0) = {}, expected {}", test.p, test.k, r, test.want)
 		}
 	}
@@ -597,7 +596,7 @@ fn testDerivative(t: &testing::T) {
 	for _, test in testsDerivative {
 		let mut r: Polynomial
 		r.Derivative(&test.input)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Derivative({}) = {}, expected {}", test.input, r, test.want)
 		}
 	}
@@ -638,7 +637,7 @@ fn testIntegral(t: &testing::T) {
 	for _, test in testsIntegral {
 		let mut r: Polynomial
 		r.Integral(&test.p, test.k)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Integral({}, {}) = {}, expected {}", test.p, test.k, r, test.want)
 		}
 	}
@@ -712,8 +711,8 @@ let testsGCD: []testPolyCS = [
 		want: [{1, 2}, {-5, 1}, {6, 0}],        // (x-2)(x-3)
 	},
 	{
-		x: [{-1, 1}, {1, 0}],    // -x + 1 = -(x -1)
-		y: [{1, 1}, {-1, 0}],    // x - 1
+		x: [{-1, 1}, {1, 0}], // -x + 1 = -(x -1)
+		y: [{1, 1}, {-1, 0}], // x - 1
 		want: [{1, 1}, {-1, 0}],
 	},
 	{
@@ -722,7 +721,7 @@ let testsGCD: []testPolyCS = [
 		want: [{1, 0}],
 	},
 	{
-		x: [{1, 2}, {-1, 0}],    // x^2 - 1
+		x: [{1, 2}, {-1, 0}], // x^2 - 1
 		y: [{1, 2}, {-1, 0}],
 		want: [{1, 2}, {-1, 0}],
 	},
@@ -733,7 +732,7 @@ fn testGCD(t: &testing::T) {
 	for _, test in testsGCD {
 		let mut r: Polynomial
 		r.GCD(&test.x, &test.y, 0)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("GCD({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
@@ -787,7 +786,7 @@ fn testLCM(t: &testing::T) {
 	for _, test in testsLCM {
 		let mut r: Polynomial
 		r.LCM(&test.x, &test.y, 0)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("LCM({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
@@ -803,7 +802,7 @@ let testsPow: []powTest = [
 	{
 		p: [{2, 1}, {3, 0}], // 2x + 3
 		n: 0,
-		want: [{1, 0}],      // 1
+		want: [{1, 0}], // 1
 	},
 	{
 		p: [{2, 1}, {3, 0}],
@@ -811,17 +810,17 @@ let testsPow: []powTest = [
 		want: [{2, 1}, {3, 0}],
 	},
 	{
-		p: [{1, 1}, {1, 0}],            // x + 1
+		p: [{1, 1}, {1, 0}], // x + 1
 		n: 2,
 		want: [{1, 2}, {2, 1}, {1, 0}], // x^2 + 2x + 1
 	},
 	{
-		p: [{1, 1}, {1, 0}],                    // x + 1
+		p: [{1, 1}, {1, 0}], // x + 1
 		n: 3,
 		want: [{1, 3}, {3, 2}, {3, 1}, {1, 0}], // (x + 1)^3
 	},
 	{
-		p: [],    // 0
+		p: [], // 0
 		n: 5,
 		want: [], // 0
 	},
@@ -832,7 +831,7 @@ fn testPow(t: &testing::T) {
 	for _, test in testsPow {
 		let mut r: Polynomial
 		r.Pow(&test.p, test.n)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Pow({}, {}) = {}, expected {}", test.p, test.n, r, test.want)
 		}
 	}
@@ -868,7 +867,7 @@ fn testNormalize(t: &testing::T) {
 	for _, test in testsNormalize {
 		let mut r: Polynomial
 		r.Normalize(&test.input, test.tol)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("Normalize({}, {}) = {}, expected {}", test.input, test.tol, r, test.want)
 		}
 	}
@@ -915,7 +914,7 @@ fn testInterpolateLinear(t: &testing::T) {
 	for _, test in testsInterpolateLinear {
 		let mut r: Polynomial
 		r.InterpolateLinear(test.x0, test.y0, test.x1, test.y1)
-		if !slices::Equal([]Term(r), []Term(test.want)) {
+		if !slices::Equal(r, test.want) {
 			t.Errorf("InterpolateLinear({}, {}, {}, {}) = {}, expected {}", test.x0, test.y0, test.x1, test.y1, r, test.want)
 		}
 	}
