@@ -27,3 +27,9 @@ There are some points to be considered for an understandable PR:
 - The PR title should be short and concise and give information about the PR.
 - Changes should be noted in the PR statement, reviewers should understand the purpose of PR.
 - If there are, possible errors and conflicts that may occur in the case of combining the PR should be mentioned.
+
+## Tests
+
+Tests are written according to the default compilation mode.
+Compiling with any optimizations enabled may cause some tests to fail.
+Newly added tests should also be written according to the default compilation mode.
