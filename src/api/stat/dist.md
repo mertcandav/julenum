@@ -4,7 +4,7 @@ Package for probability distributions.
 
 ## Index
 
-[struct Beta](#beta)\
+[struct Normal](#normal)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn NumParams\(\*self\): int](#numparams)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn CDF\(\*self, x: f64\): f64](#cdf)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn PDF\(\*self, x: f64\): f64](#pdf)\
@@ -16,15 +16,11 @@ Package for probability distributions.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mean\(\*self\): f64](#mean)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mode\(\*self\): f64](#mode)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Rand\(\*self\): f64](#rand)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Variance\(\*self\): f64](#variance)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn StdDev\(\*self\): f64](#stddev)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Fit\(mut \*self, samples: \[\]f64\)](#fit)\
-[struct Gamma](#gamma)\
+[struct Beta](#beta)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn NumParams\(\*self\): int](#numparams-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn CDF\(\*self, x: f64\): f64](#cdf-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn PDF\(\*self, x: f64\): f64](#pdf-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn LogPDF\(\*self, x: f64\): f64](#logpdf-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn MGF\(\*self, t: f64\): f64](#mgf)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Survival\(\*self, x: f64\): f64](#survival-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Quantile\(\*self, p: f64\): f64](#quantile-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Entropy\(\*self\): f64](#entropy-1)\
@@ -32,31 +28,167 @@ Package for probability distributions.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mean\(\*self\): f64](#mean-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mode\(\*self\): f64](#mode-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Rand\(\*self\): f64](#rand-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Skewness\(\*self\): f64](#skewness)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Variance\(\*self\): f64](#variance-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn StdDev\(\*self\): f64](#stddev-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Fit\(mut \*self, samples: \[\]f64\)](#fit-1)\
-[struct Bernoulli](#bernoulli)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Variance\(\*self\): f64](#variance)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn StdDev\(\*self\): f64](#stddev)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Fit\(mut \*self, samples: \[\]f64\)](#fit)\
+[struct Gamma](#gamma)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn NumParams\(\*self\): int](#numparams-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn CDF\(\*self, x: f64\): f64](#cdf-2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn PMF\(\*self, x: f64\): f64](#pmf)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn LogPMF\(\*self, x: f64\): f64](#logpmf)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn MGF\(\*self, t: f64\): f64](#mgf-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn PDF\(\*self, x: f64\): f64](#pdf-2)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn LogPDF\(\*self, x: f64\): f64](#logpdf-2)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn MGF\(\*self, t: f64\): f64](#mgf)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Survival\(\*self, x: f64\): f64](#survival-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Quantile\(\*self, p: f64\): f64](#quantile-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Entropy\(\*self\): f64](#entropy-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn ExcessKurtosis\(\*self\): f64](#excesskurtosis-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mean\(\*self\): f64](#mean-2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Median\(\*self\): f64](#median)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mode\(\*self\): f64](#mode-2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Support\(\*self\): \(min: f64, max: f64\)](#support)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Rand\(\*self\): f64](#rand-2)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Skewness\(\*self\): f64](#skewness)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Variance\(\*self\): f64](#variance-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn StdDev\(\*self\): f64](#stddev-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Fit\(mut \*self, samples: \[\]f64\)](#fit-1)\
+[struct Bernoulli](#bernoulli)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn NumParams\(\*self\): int](#numparams-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn CDF\(\*self, x: f64\): f64](#cdf-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn PMF\(\*self, x: f64\): f64](#pmf)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn LogPMF\(\*self, x: f64\): f64](#logpmf)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn MGF\(\*self, t: f64\): f64](#mgf-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Survival\(\*self, x: f64\): f64](#survival-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Quantile\(\*self, p: f64\): f64](#quantile-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Entropy\(\*self\): f64](#entropy-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn ExcessKurtosis\(\*self\): f64](#excesskurtosis-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Mean\(\*self\): f64](#mean-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Median\(\*self\): f64](#median)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Mode\(\*self\): f64](#mode-3)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Support\(\*self\): \(min: f64, max: f64\)](#support)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Rand\(\*self\): f64](#rand-3)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Skewness\(\*self\): f64](#skewness-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Variance\(\*self\): f64](#variance-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn StdDev\(\*self\): f64](#stddev-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Fit\(mut \*self, samples: \[\]f64\)](#fit-2)
 
 
+
+## Normal
+```jule
+struct Normal {
+	Mu:    f64 // Mean (μ)
+	Sigma: f64 // Standard Deviation (σ)
+	RNG:   &rand::Rand
+}
+```
+Represents a Normal \(Gaussian\) distribution\. It is a continuous probability distribution that is symmetric about its mean, with a bell\-shaped probability density function\. It is parameterized by its mean \(μ\) and standard deviation \(σ\)\.
+
+Uses the RNG for randomness\. It may be nil\. Implementation will use global random functions if RNG is nil\.
+
+Parameters:<br>
+
+- Mu \(μ\): The mean of the distribution, representing the central tendency\.
+- Sigma \(σ\): The standard deviation of the distribution, representing the spread\. Must be greater than 0\.
+
+### NumParams
+```jule
+fn NumParams(*self): int
+```
+Returns the number of parameters required to define the distribution\.
+
+### CDF
+```jule
+fn CDF(*self, x: f64): f64
+```
+Computes the Cumulative Distribution Function \(CDF\) at x\. The CDF is the probability that a random variable X is less than or equal to a given value x\.
+
+Formula:<br>
+```
+CDF(x) = P(X ≤ x) = 1/2 * [1 + erf((x - μ) / (σ√2))]
+```
+
+
+### PDF
+```jule
+fn PDF(*self, x: f64): f64
+```
+Computes the Probability Density Function \(PDF\) for the Gamma distribution\. The PDF gives the relative likelihood for this continuous random variable to take on a given value\.
+
+Formula:<br>
+```
+PDF(x) = (1 / (σ√(2π))) * exp(-((x-μ)²) / (2σ²))
+```
+
+
+### LogPDF
+```jule
+fn LogPDF(*self, x: f64): f64
+```
+Computes the natural logarithm of the Probability Density Function \(PDF\) at x\. This is often used in maximum likelihood estimation to avoid underflow with very small probabilities\.
+
+Formula:<br>
+```
+log(PDF(x)) = -log(σ√(2π)) - (x-μ)²/(2σ²)
+```
+
+
+### Survival
+```jule
+fn Survival(*self, x: f64): f64
+```
+Computes the Survival Function \(SF\), also known as the Complementary Cumulative Distribution Function \(CCDF\)\. The Survival Function is the probability that a random variable X is greater than a given value x\. SF\(x\) = 1 \- CDF\(x\)
+
+### Quantile
+```jule
+fn Quantile(*self, p: f64): f64
+```
+Computes the Quantile Function \(inverse CDF\) for the distribution\.
+
+Formula:<br>
+```
+Q(p) = μ + σ Φ⁻¹(p)
+where Φ⁻¹(p) is the quantile function (inverse CDF) of the distribution.
+```
+Special cases:<br>
+
+- Q\(0\)   = \-∞
+- Q\(0\.5\) = μ \(the median\)
+- Q\(1\)   = \+∞
+
+Panics if p ∉ \[0, 1\]\.
+
+### Entropy
+```jule
+fn Entropy(*self): f64
+```
+Returns the differential entropy of the distribution\.
+
+Formula:<br>
+```
+Entropy = 0.5 * (log(2π) + 1 + 2 log σ)
+```
+
+
+### ExcessKurtosis
+```jule
+fn ExcessKurtosis(*self): f64
+```
+Computes the excess kurtosis of the distribution\. Excess kurtosis measures the &#34;tailedness&#34; of the distribution relative to a normal distribution\. Returns zero\.
+
+### Mean
+```jule
+fn Mean(*self): f64
+```
+Computes the mean \(expected value\) of the distribution\.
+
+### Mode
+```jule
+fn Mode(*self): f64
+```
+Computes the mode of the distribution\. The mode is the value at which the probability density function \(PDF\) is maximized\.
+
+### Rand
+```jule
+fn Rand(*self): f64
+```
+Generates a random number from the distribution\.
 
 ## Beta
 ```jule
@@ -187,7 +319,7 @@ Formula:<br>
 - If α &lt; 1 and β = 1: Mode = 0\.
 - If α = 1 and β &lt; 1: Mode = 1\.
 - If α &lt; 1 and β &lt; 1: Bimodal, modes at 0 and 1\. Conventionally, returns NaN or one of the modes\. ```
-    Here, we'll return NaN for non-unique modes, or the boundary mode.
+	Here, we'll return NaN for non-unique modes, or the boundary mode.
 ```
 
 
