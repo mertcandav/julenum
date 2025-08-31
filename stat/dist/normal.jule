@@ -1,0 +1,127 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/math"
+use "std/math/rand"
+
+const (
+	log2Pi        = 1.8378770664093454835606594728112352797227949472755668
+	logRoot2Pi    = 0.91893853320467274178032973640561763986139747363778341281715154048276569592726039769474329863595419762200564662463433744
+	negLogRoot2Pi = -logRoot2Pi
+)
+
+// Represents a Normal (Gaussian) distribution.
+// It is a continuous probability distribution that is symmetric about its mean,
+// with a bell-shaped probability density function.
+// It is parameterized by its mean (μ) and standard deviation (σ).
+//
+// Uses the RNG for randomness. It may be nil.
+// Implementation will use global random functions if RNG is nil.
+//
+// Parameters:
+//	- Mu (μ): The mean of the distribution, representing the central tendency.
+//	- Sigma (σ): The standard deviation of the distribution, representing the spread. Must be greater than 0.
+struct Normal {
+	Mu:    f64 // Mean (μ)
+	Sigma: f64 // Standard Deviation (σ)
+	RNG:   &rand::Rand
+}
+
+impl Normal {
+	// Returns the number of parameters required to define the distribution.
+	fn NumParams(*self): int {
+		ret 2
+	}
+
+	// Computes the Cumulative Distribution Function (CDF) at x.
+	// The CDF is the probability that a random variable X is less than or equal to a given value x.
+	//
+	// Formula:
+	//	CDF(x) = P(X ≤ x) = 1/2 * [1 + erf((x - μ) / (σ√2))]
+	fn CDF(*self, x: f64): f64 {
+		ret 0.5 * math::Erfc(-(x-self.Mu)/(self.Sigma*jn::Sqrt2))
+	}
+
+	// Computes the Probability Density Function (PDF) for the Gamma distribution.
+	// The PDF gives the relative likelihood for this continuous random variable to take on a given value.
+	//
+	// Formula:
+	//	PDF(x) = (1 / (σ√(2π))) * exp(-((x-μ)²) / (2σ²))
+	fn PDF(*self, x: f64): f64 {
+		ret math::Exp(self.LogPDF(x))
+	}
+
+	// Computes the natural logarithm of the Probability Density Function (PDF) at x.
+	// This is often used in maximum likelihood estimation to avoid underflow with very small probabilities.
+	//
+	// Formula:
+	//	log(PDF(x)) = -log(σ√(2π)) - (x-μ)²/(2σ²)
+	fn LogPDF(*self, x: f64): f64 {
+		ret negLogRoot2Pi - math::Log(self.Sigma) - (x-self.Mu)*(x-self.Mu)/(2*self.Sigma*self.Sigma)
+	}
+
+	// Computes the Survival Function (SF), also known as the Complementary Cumulative Distribution Function (CCDF).
+	// The Survival Function is the probability that a random variable X is greater than a given value x.
+	// SF(x) = 1 - CDF(x)
+	fn Survival(*self, x: f64): f64 {
+		ret 0.5 * (1 - math::Erf((x-self.Mu)/(self.Sigma*jn::Sqrt2)))
+	}
+
+	// Computes the Quantile Function (inverse CDF) for the distribution.
+	//
+	// Formula:
+	//	Q(p) = μ + σ Φ⁻¹(p)
+	//	where Φ⁻¹(p) is the quantile function (inverse CDF) of the distribution.
+	//
+	// Special cases:
+	//	- Q(0)   = -∞
+	//	- Q(0.5) = μ (the median)
+	//	- Q(1)   = +∞
+	//
+	// Panics if p ∉ [0, 1].
+	fn Quantile(*self, p: f64): f64 {
+		if p < 0 || p > 1 {
+			panic("percentile out of bounds")
+		}
+		ret self.Mu + self.Sigma*jn::NormalQuantile(p)
+	}
+
+	// Returns the differential entropy of the distribution.
+	//
+	// Formula:
+	//	Entropy = 0.5 * (log(2π) + 1 + 2 log σ)
+	fn Entropy(*self): f64 {
+		ret 0.5 * (log2Pi + 1 + 2*math::Log(self.Sigma))
+	}
+
+	// Computes the excess kurtosis of the distribution.
+	// Excess kurtosis measures the "tailedness" of the distribution relative to a normal distribution.
+	// Returns zero.
+	fn ExcessKurtosis(*self): f64 {
+		ret 0
+	}
+
+	// Computes the mean (expected value) of the distribution.
+	fn Mean(*self): f64 {
+		ret self.Mu
+	}
+
+	// Computes the mode of the distribution.
+	// The mode is the value at which the probability density function (PDF) is maximized.
+	fn Mode(*self): f64 {
+		ret self.Mu
+	}
+
+	// Generates a random number from the distribution.
+	fn Rand(*self): f64 {
+		let mut rnd: f64
+		if self.RNG == nil {
+			rnd = rand::NormF64()
+		} else {
+			rnd = self.RNG.NormF64()
+		}
+		ret rnd*self.Sigma + self.Mu
+	}
+}

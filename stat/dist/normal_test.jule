@@ -1,0 +1,121 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/math"
+use "std/testing"
+
+let testsNormalCDF: []commonDistCase = [
+	{-1, 0.47840118891295763},
+	{0.0, 0.49501335135596203},
+	{0.5, 0.5033244805255169},
+	{1.0, 0.5116341669681255},
+	{2.0, 0.5282347988596761},
+]
+
+#test
+fn testNormalCDF(t: &testing::T) {
+	n := Normal{Mu: 0.3, Sigma: 24}
+	for _, test in testsNormalCDF {
+		got := n.CDF(test.x)
+		if !jn::Tolerance(got, test.want, 1e-10) {
+			t.Errorf("CDF({}): got {}, want {}", test.x, got, test.want)
+		}
+	}
+}
+
+let testsNormalEntropy: []commonDistCase = [
+	{0, math::Inf(-1)},
+	{1, 1.4189385332046727},
+	{0.5, 0.7257913526447274},
+	{18.24, 4.322555517850859},
+	{98, 6.0039060118752445},
+	{34.34, 4.955249388674002},
+]
+
+#test
+fn testNormalEntropy(t: &testing::T) {
+	for _, test in testsNormalEntropy {
+		n := Normal{Sigma: test.x}
+		got := n.Entropy()
+		if !jn::Tolerance(got, test.want, 1e-10) {
+			t.Errorf("Entropy({}): got {}, want {}", test.x, got, test.want)
+		}
+	}
+}
+
+let testsNormalLogPMF: []commonDistCase = [
+	{-1, -4.0984593774415075},
+	{0, -4.097070488552618},
+	{0.5, -4.09702708577484},
+	{1, -4.097417710774841},
+	{2, -4.099501044108174},
+	{0.8, -4.097209377441508},
+	{34, -5.0828343774415075},
+	{98, -12.382834377441508},
+]
+
+#test
+fn testNormalLogPDF(t: &testing::T) {
+	n := Normal{Mu: 0.3, Sigma: 24}
+	for _, test in testsNormalLogPMF {
+		got := n.LogPDF(test.x)
+		if !jn::Tolerance(got, test.want, 1e-10) &&
+			!(math::IsInf(got, -1) && math::IsInf(test.want, -1)) {
+			t.Errorf("LogPDF({}): got {}, want {}", test.x, got, test.want)
+		}
+	}
+}
+
+#test
+fn testNormalNumParams(t: &testing::T) {
+	n := Normal{Mu: 0.2, Sigma: 34}
+	got := n.NumParams()
+	if got != 2 {
+		t.Errorf("NumParams: got {}, want 2", got)
+	}
+}
+
+let testsNormalQuantile: []commonDistCase = [
+	{0.0, math::Inf(-1)},
+	{0.7, 0.4573201538124122},
+	{0.71, 0.4660154158667018},
+	{1.0, math::Inf(+1)},
+	{0.1, -0.08446546966338025},
+	{0.5, 0.3},
+]
+
+#test
+fn testNormalQuantile(t: &testing::T) {
+	n := Normal{Mu: 0.3, Sigma: 0.3}
+	for _, test in testsNormalQuantile {
+		got := n.Quantile(test.x)
+		if math::IsNaN(test.want) {
+			if !math::IsNaN(got) {
+				t.Errorf("Quantile({}): expected NaN, got {}", test.x, got)
+			}
+		} else if got != test.want {
+			t.Errorf("Quantile({}): got {}, want {}", test.x, got, test.want)
+		}
+	}
+}
+
+let testsNormalSurvival: []commonDistCase = [
+	{-1, 0.5014171145838978},
+	{0.0, 0.5004048906630902},
+	{0.5, 0.49989877731793625},
+	{0.7, 0.4996963319798746},
+	{1.0, 0.4993926641356943},
+]
+
+#test
+fn testNormalSurvival(t: &testing::T) {
+	n := Normal{Mu: 0.4, Sigma: 394.1234}
+	for _, test in testsNormalSurvival {
+		got := n.Survival(test.x)
+		if !jn::Tolerance(got, test.want, 1e-10) {
+			t.Errorf("Survival({}): got {}, want {}", test.x, got, test.want)
+		}
+	}
+}
