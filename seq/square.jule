@@ -5,18 +5,21 @@
 use "std/math/big"
 
 struct seqSquare {
-	mut n: big::Int
+	mut n:      big::Int // current n
+	mut result: big::Int // reusable result buffer
+	mut one:    big::Int // constant 1 (cached)
 }
 
 impl Seq for seqSquare {
 	fn Reset(*self) {
-		self.n = big::Int.FromI64(1)
+		self.n.SetU64(1)
+		self.one.SetU64(1)
 	}
 
 	fn Next(*self): big::Int {
-		result := self.n.Mul(self.n)             // n²
-		self.n = self.n.Add(big::Int.FromI64(1)) // n++
-		ret result
+		self.result.Mul(&self.n, &self.n) // result = n * n
+		self.n.Add(&self.n, &self.one)    // n++
+		ret self.result
 	}
 }
 

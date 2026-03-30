@@ -5,18 +5,28 @@
 use "std/math/big"
 
 struct seqCube {
-	mut n: big::Int
+	mut n:      big::Int // current n
+	mut tmp:    big::Int // reusable temp: n^2
+	mut result: big::Int // reusable result: n^3
 }
 
 impl Seq for seqCube {
 	fn Reset(*self) {
-		self.n = big::Int.FromI64(1)
+		self.n.SetU64(1)
 	}
 
 	fn Next(*self): big::Int {
-		result := self.n.Exp(big::Int.FromI64(3)) // n³
-		self.n = self.n.Add(big::Int.FromI64(1))  // n++
-		ret result
+		// tmp = n * n        (n^2)
+		self.tmp.Mul(&self.n, &self.n)
+
+		// result = tmp * n  (n^3)
+		self.result.Mul(&self.tmp, &self.n)
+
+		// n++
+		one := big::Int.New(1)
+		self.n.Add(&self.n, &one)
+
+		ret self.result
 	}
 }
 

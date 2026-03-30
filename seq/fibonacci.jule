@@ -5,26 +5,38 @@
 use "std/math/big"
 
 struct seqFibonacci {
-	mut prev: big::Int // term (n-2)
-	mut curr: big::Int // term (n-1)
+	mut prev: big::Int // F(n-2)
+	mut curr: big::Int // F(n-1)
+	mut next: big::Int // reusable temp for prev+curr
+	mut out:  big::Int // stable return buffer
 }
 
 impl Seq for seqFibonacci {
 	fn Reset(*self) {
-		self.prev = big::Int.FromI64(0)
-		self.curr = big::Int.FromI64(0)
+		self.prev.SetU64(0)
+		self.curr.SetU64(0)
+		self.next.SetU64(0)
+		self.out.SetU64(0)
 	}
 
 	fn Next(*self): big::Int {
+		// Initial state: return 0, set curr = 1
 		if self.prev.BitLen() == 0 && self.curr.BitLen() == 0 {
-			self.curr = big::Int.FromI64(1)
-			ret self.prev
+			self.out.Set(&self.prev) // return 0
+			self.curr.SetU64(1)
+			ret self.out
 		}
+
 		// next = prev + curr
-		next := self.prev.Add(self.curr)
-		self.prev = self.curr
-		self.curr = next
-		ret self.prev // term (n-1)
+		self.next.Add(&self.prev, &self.curr)
+
+		// shift window: prev <- curr, curr <- next
+		self.prev.Set(&self.curr)
+		self.curr.Set(&self.next)
+
+		// return prev (F(n-1))
+		self.out.Set(&self.prev)
+		ret self.out
 	}
 }
 

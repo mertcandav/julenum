@@ -5,22 +5,29 @@
 use "std/math/big"
 
 struct seqFactorial {
-	mut n: i64 // n!
-	mut z: big::Int
+	mut n:   i64      // current n
+	mut z:   big::Int // current factorial value (n!)
+	mut tmp: big::Int // reusable temp for multiplying by n
 }
 
 impl Seq for seqFactorial {
 	fn Reset(*self) {
-		self.z = big::Int.FromI64(0)
 		self.n = 0
+		self.z.SetU64(0) // will be corrected on first Next()
 	}
 
 	fn Next(*self): big::Int {
-		if self.n == 0 { // 0! = 1
-			self.z = big::Int.FromI64(1)
+		if self.n == 0 {
+			// 0! = 1
+			self.z.SetU64(1)
 		} else {
-			self.z = self.z.Mul(big::Int.FromI64(self.n))
+			// tmp = n
+			self.tmp.SetI64(self.n)
+
+			// z = z * n
+			self.z.Mul(&self.z, &self.tmp)
 		}
+
 		self.n++
 		ret self.z
 	}
@@ -28,5 +35,7 @@ impl Seq for seqFactorial {
 
 // Returns a sequence representing factorials from 0!, then 1!, 2!, and so on.
 fn Factorial(): Seq {
-	ret new(seqFactorial)
+	mut seq := new(seqFactorial)
+	seq.Reset()
+	ret seq
 }

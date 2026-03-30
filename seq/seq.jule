@@ -9,6 +9,9 @@ trait Seq {
 	// Resets sequence.
 	fn Reset(*self)
 
-	// Returns the next value of sequence in big::Int.
+	// Returns the next value of sequence in big integer.
+	// The result may be mutable reference to the internal detail.
+	// Any mutation on the result may corrupt the internal computation of Seq.
+	// Get immutable copy of the result in need.
 	fn Next(*self): big::Int
 }

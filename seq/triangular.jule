@@ -5,21 +5,33 @@
 use "std/math/big"
 
 struct seqTriangular {
-	mut n: big::Int
+	mut n:       big::Int // current n
+	mut tmp:     big::Int // reusable temp: n+1
+	mut product: big::Int // reusable temp: n*(n+1)
+	mut result:  big::Int // reusable result
 }
 
 impl Seq for seqTriangular {
 	fn Reset(*self) {
-		self.n = big::Int.FromI64(1)
+		self.n.SetU64(1)
 	}
 
 	fn Next(*self): big::Int {
-		n := self.n                          // n
-		nPlus1 := n.Add(big::Int.FromI64(1)) // n+1
-		product := n.Mul(nPlus1)             // n*(n+1)
-		triangular := product.Rsh(1)         // product/2
-		self.n = n.Add(big::Int.FromI64(1))  // n++
-		ret triangular
+		one := big::Int.New(1)
+
+		// tmp = n + 1
+		self.tmp.Add(&self.n, &one)
+
+		// product = n * (n + 1)
+		self.product.Mul(&self.n, &self.tmp)
+
+		// result = product >> 1  (divide by 2)
+		self.result.Rsh(&self.product, 1)
+
+		// n++
+		self.n.Set(&self.tmp)
+
+		ret self.result
 	}
 }
 

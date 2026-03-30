@@ -5,49 +5,49 @@
 use "std/math/big"
 
 struct seqCatalan {
-	mut n: big::Int
+	mut n:    i64      // current n
+	mut c:    big::Int // current Catalan number C_n
+	mut out:  big::Int // buffer to return stable pointer without allocations
+	mut tmp1: big::Int // reusable temp
+	mut tmp2: big::Int // reusable temp
 }
 
 impl Seq for seqCatalan {
 	fn Reset(*self) {
-		self.n = big::Int.FromI64(0)
+		self.n = 0
+		self.c.SetU64(1)
+		self.out.SetU64(0)
+		self.tmp1.SetU64(0)
+		self.tmp2.SetU64(0)
 	}
 
 	fn Next(*self): big::Int {
-		factN := factorial(self.n) // n!
+		// copy current value into out so returned pointer is stable
+		self.out.Set(&self.c)
 
-		// (n+1)! = (n+1) * n!
-		nPlus1 := self.n.Add(big::Int.FromI64(1))
-		factNPlus1 := nPlus1.Mul(factN)
+		// compute next: c = c * (4n + 2) / (n + 2)
+		// tmp1 = 4*n + 2
+		self.tmp1.SetI64(4*self.n + 2)
 
-		// (2n)! = n! * (n+1) * (n+2) * ... * (2n)
-		mut fact2N := factN
-		mut i := nPlus1
-		for i.Cmp(self.n.Mul(big::Int.FromI64(2))) <= 0; i = i.Add(big::Int.FromI64(1)) {
-			fact2N = fact2N.Mul(i)
-		}
+		// c = c * tmp1  (in-place)
+		self.c.Mul(&self.c, &self.tmp1)
 
-		denom := factNPlus1.Mul(factN)
-		catalan := fact2N.Div(denom)
+		// tmp2 = n + 2
+		self.tmp2.SetI64(self.n + 2)
 
-		self.n = self.n.Add(big::Int.FromI64(1)) // n++
+		// c = c / tmp2  (exact division)
+		self.c.Div(&self.c, &self.tmp2)
 
-		ret catalan
+		// advance index
+		self.n++
+
+		ret self.out
 	}
-}
-
-fn factorial(n: big::Int): big::Int {
-	one := big::Int.FromI64(1)
-	mut result := one
-	mut i := n
-	for i.Sign() > 0 {
-		result = result.Mul(i)
-		i = i.Sub(one)
-	}
-	ret result
 }
 
 // Returns a sequence representing catalan numbers from C₀, then C₁, C₂, and so on.
 fn Catalan(): Seq {
-	ret new(seqCatalan)
+	mut seq := new(seqCatalan)
+	seq.Reset()
+	ret seq
 }

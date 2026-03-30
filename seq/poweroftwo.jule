@@ -10,14 +10,16 @@ struct seqPowerOfTwo {
 
 impl Seq for seqPowerOfTwo {
 	fn Reset(*self) {
-		self.z = big::Int.FromI64(0)
+		self.z.SetU64(0)
 	}
 
 	fn Next(*self): big::Int {
-		if self.z.BitLen() == 0 { // 2⁰ = 1
-			self.z = big::Int.FromI64(1)
+		if self.z.BitLen() == 0 {
+			// 2⁰ = 1
+			self.z.SetU64(1)
 		} else {
-			self.z = self.z.Lsh(1)
+			// z = z << 1
+			self.z.Lsh(&self.z, 1)
 		}
 		ret self.z
 	}

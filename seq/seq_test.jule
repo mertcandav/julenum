@@ -8,7 +8,8 @@ use "std/testing"
 fn testSeq(t: &testing::T, name: str, seq: Seq, wantseq: []i64) {
 	for i, want in wantseq {
 		got := seq.Next()
-		if got.Cmp(big::Int.FromI64(want)) != 0 {
+		wantInt := big::Int.New(want)
+		if big::CmpInt(&got, &wantInt) != 0 {
 			t.Errorf("{}: sequence value {} = {}, expected {}", name, i, got.Str(), want)
 		}
 	}
