@@ -9,7 +9,7 @@ fn testSeq(t: &testing::T, name: str, seq: Seq, wantseq: []i64) {
 	for i, want in wantseq {
 		got := seq.Next()
 		wantInt := big::Int.New(want)
-		if big::CmpInt(&got, &wantInt) != 0 {
+		if got.Cmp(&wantInt) != 0 {
 			t.Errorf("{}: sequence value {} = {}, expected {}", name, i, got.Str(), want)
 		}
 	}
