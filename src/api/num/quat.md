@@ -8,6 +8,14 @@ Package for quaternion numbers.
 [fn Inf\(sign: int\): Quat](#inf)\
 [fn AxisAngle\(x: f64, y: f64, z: f64, radians: f64\): Quat](#axisangle)\
 [struct Quat](#quat)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Zero\(\*self\): bool](#zero)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Add\(mut \*self, &amp;x: \*Quat, &amp;y: \*Quat\)](#add)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Sub\(mut \*self, &amp;x: \*Quat, &amp;y: \*Quat\)](#sub)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Mul\(mut \*self, &amp;x: \*Quat, &amp;y: \*Quat\)](#mul)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Scale\(mut \*self, &amp;q: \*Quat, k: f64\)](#scale)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Norm\(\*self\): f64](#norm)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Normalize\(mut \*self, &amp;q: \*Quat\)](#normalize)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Conj\(mut \*self, &amp;q: \*Quat\)](#conj)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn NaN\(\*self\): bool](#nan-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Inf\(\*self\): bool](#inf-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Inv\(mut \*self, &amp;q: \*Quat\)](#inv)\
@@ -28,15 +36,7 @@ Package for quaternion numbers.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Acosh\(mut \*self, &amp;q: \*Quat\)](#acosh)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Atan\(mut \*self, &amp;q: \*Quat\)](#atan)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Atanh\(mut \*self, &amp;q: \*Quat\)](#atanh)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Abs\(\*self\): f64](#abs)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Zero\(\*self\): bool](#zero)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Add\(mut \*self, &amp;x: \*Quat, &amp;y: \*Quat\)](#add)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Sub\(mut \*self, &amp;x: \*Quat, &amp;y: \*Quat\)](#sub)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Mul\(mut \*self, &amp;x: \*Quat, &amp;y: \*Quat\)](#mul)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Scale\(mut \*self, &amp;q: \*Quat, k: f64\)](#scale)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Norm\(\*self\): f64](#norm)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Normalize\(mut \*self, &amp;q: \*Quat\)](#normalize)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Conj\(mut \*self, &amp;q: \*Quat\)](#conj)
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Abs\(\*self\): f64](#abs)
 
 
 
@@ -70,6 +70,54 @@ struct Quat {
 }
 ```
 Quaternion with floating\-point precision\.
+
+### Zero
+```jule
+fn Zero(*self): bool
+```
+Reports whether all fields of quaternion are zero\.
+
+### Add
+```jule
+fn Add(mut *self, &x: *Quat, &y: *Quat)
+```
+Sets self to the sum of x\+y\.
+
+### Sub
+```jule
+fn Sub(mut *self, &x: *Quat, &y: *Quat)
+```
+Sets self to the difference x\-y\.
+
+### Mul
+```jule
+fn Mul(mut *self, &x: *Quat, &y: *Quat)
+```
+Sets self to the Hamiltonian product x\*y\.
+
+### Scale
+```jule
+fn Scale(mut *self, &q: *Quat, k: f64)
+```
+Sets self to q scaled by k\.
+
+### Norm
+```jule
+fn Norm(*self): f64
+```
+Returns the norm \(magnitude or length\) of the quaternion\.
+
+### Normalize
+```jule
+fn Normalize(mut *self, &q: *Quat)
+```
+Sets self to normalized quaternion q\.
+
+### Conj
+```jule
+fn Conj(mut *self, &q: *Quat)
+```
+Sets self to the quaternion conjugate of q\.
 
 ### NaN
 ```jule
@@ -110,7 +158,7 @@ Sets self to the product q\*\*r, the base\-q exponential of r\. For generalized 
 ```
 Pow(0, ±0) returns 1+0i+0j+0k
 Pow(0, r) for W(r)<0 returns Inf+0i+0j+0k if X(r), Y(r), Z(r) are zero,
-    otherwise Inf+Inf i+Inf j+Inf k.
+	 otherwise Inf+Inf i+Inf j+Inf k.
 ```
 
 
@@ -215,52 +263,3 @@ Special cases are:<br>
 Abs() = +Inf, if quaternion is ±Inf.
 Abs() = NaN, if quaternion is NaN
 ```
-
-
-### Zero
-```jule
-fn Zero(*self): bool
-```
-Reports whether all fields of quaternion are zero\.
-
-### Add
-```jule
-fn Add(mut *self, &x: *Quat, &y: *Quat)
-```
-Sets self to the sum of x\+y\.
-
-### Sub
-```jule
-fn Sub(mut *self, &x: *Quat, &y: *Quat)
-```
-Sets self to the difference x\-y\.
-
-### Mul
-```jule
-fn Mul(mut *self, &x: *Quat, &y: *Quat)
-```
-Sets self to the Hamiltonian product x\*y\.
-
-### Scale
-```jule
-fn Scale(mut *self, &q: *Quat, k: f64)
-```
-Sets self to q scaled by k\.
-
-### Norm
-```jule
-fn Norm(*self): f64
-```
-Returns the norm \(magnitude or length\) of the quaternion\.
-
-### Normalize
-```jule
-fn Normalize(mut *self, &q: *Quat)
-```
-Sets self to normalized quaternion q\.
-
-### Conj
-```jule
-fn Conj(mut *self, &q: *Quat)
-```
-Sets self to the quaternion conjugate of q\.

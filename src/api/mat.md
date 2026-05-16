@@ -8,6 +8,9 @@ Package for matrices.
 [fn New\[T: numeric\]\(m: int, n: int\): Matrix\[T\]](#new)\
 [fn NewFrom\[T: numeric\]\(values: \[\]\[\]T\): Matrix\[T\]](#newfrom)\
 [struct Matrix\[T: numeric\]](#matrix)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Format\(\*self, wsn: int\): string](#format)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn AppendFormat\(\*self, mut buf: \[\]byte, wsn: int\): \[\]byte](#appendformat)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn String\(\*self\): string](#string)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Dims\(\*self\): \(m: int, n: int\)](#dims)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Size\(\*self\): int](#size)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Zero\(\*self\): bool](#zero)\
@@ -31,10 +34,7 @@ Package for matrices.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mul\(mut \*self, &amp;x: \*Matrix\[T\], &amp;y: \*Matrix\[T\]\)](#mul)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Det\(\*self\): T](#det)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Slogdet\(\*self\): \(sign: T, logdet: f64\)](#slogdet)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Inv\(mut \*self, &amp;a: \*Matrix\[T\]\)](#inv)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Format\(\*self, wsn: int\): str](#format)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn AppendFormat\(\*self, mut buf: \[\]byte, wsn: int\): \[\]byte](#appendformat)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Str\(\*self\): str](#str)
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Inv\(mut \*self, &amp;a: \*Matrix\[T\]\)](#inv)
 
 
 
@@ -79,7 +79,7 @@ mat::NewFrom([
 
 Equals to:
 	A = ⎡1 2 4⎤
-	    ⎣3 4 5⎦(2×3)
+		 ⎣3 4 5⎦(2×3)
 ```
 
 
@@ -90,6 +90,24 @@ struct Matrix[T: numeric] {
 }
 ```
 A matrix for type T\. Uses internal mutable slice to store data\. Matrix computations may use available capacity of the underlying slice to avoid making new allocation\. So shared data needs extra attention\. Any mutable operation may be reflected to shared common data\. If you need to share same Matrix instance, use smart pointers\. If you need to have guaranteed independent copy, use Copy with empty Matrix\.
+
+### Format
+```jule
+fn Format(*self, wsn: int): string
+```
+Returns string form of the matrix\. wsn represents number of whitespaces between matrix elements\. wsn will be considired as zero if wsn &lt; 1\. Default wsn value is 1\.
+
+### AppendFormat
+```jule
+fn AppendFormat(*self, mut buf: []byte, wsn: int): []byte
+```
+Appends string form of the matrix to buf and returns\. wsn represents number of whitespaces between matrix elements\. wsn will be considired as zero if wsn &lt; 1\. Default wsn value is 1\.
+
+### String
+```jule
+fn String(*self): string
+```
+Returns string form of the matrix\.
 
 ### Dims
 ```jule
@@ -269,15 +287,13 @@ NOTICE \(floating\-point types\)<br>
 ```
 Let (sign, logdet) = Slogdet()
 - Mathematically: Det() = sign * exp(logdet)
-- In practice:    Det() ≈ sign * exp(logdet)
-                  due to floating-point rounding.
+- In practice:    Det() ≈ sign * exp(logdet) due to floating-point rounding.
 ```
 NOTICE \(complex types\)<br>
 ```
 Let (sign, logdet) = Slogdet()
 - Mathematically: Det() = cmplx(real(sign)*exp(logdet), imag(sign)*exp(logdet))
-- In practive:    Det() ≈ cmplx(real(sign)*exp(logdet), imag(sign)*exp(logdet))
-                  due to floating-point rounding.
+- In practive:    Det() ≈ cmplx(real(sign)*exp(logdet), imag(sign)*exp(logdet)) due to floating-point rounding.
 ```
 
 
@@ -288,21 +304,3 @@ fn Inv(mut *self, &a: *Matrix[T])
 Sets self to A⁻¹, inverse of the matrix a\. This function only supports square matrices \(M == N &amp;&amp; N &gt; 0\)\. If self have enough capacity, Mul will use it to avoid making allocation\. It panics if matrix a is singular\.
 
 For integer and floating\-point types, computations are performed using 64\-bit floating\-point precision\. For complex types, computations use 128\-bit complex precision\. The result is handled as type T, which may cause rounding errors or loss of precision\. To preserve exact results, use an f64 or cmplx128 matrix\.
-
-### Format
-```jule
-fn Format(*self, wsn: int): str
-```
-Returns string form of the matrix\. wsn represents number of whitespaces between matrix elements\. wsn will be considired as zero if wsn &lt; 1\. Default wsn value is 1\.
-
-### AppendFormat
-```jule
-fn AppendFormat(*self, mut buf: []byte, wsn: int): []byte
-```
-Appends string form of the matrix to buf and returns\. wsn represents number of whitespaces between matrix elements\. wsn will be considired as zero if wsn &lt; 1\. Default wsn value is 1\.
-
-### Str
-```jule
-fn Str(*self): str
-```
-Returns string form of the matrix\.

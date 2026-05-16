@@ -6,6 +6,8 @@ Package for polynomials.
 
 [struct Term](#term)\
 [type Polynomial](#polynomial)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn AppendFormat\(\*self, mut buf: \[\]byte\): \[\]byte](#appendformat)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn String\(\*self\): string](#string)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn LeadingCoef\(\*self\): f64](#leadingcoef)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Zero\(\*self, tol: f64\): bool](#zero)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Degree\(\*self\): int](#degree)\
@@ -29,9 +31,7 @@ Package for polynomials.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Pow\(mut \*self, &amp;x: \*Polynomial, mut n: int\)](#pow)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Normalize\(mut \*self, &amp;x: \*Polynomial, tol: f64\)](#normalize)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn InterpolateLinear\(mut \*self, x0: f64, y0: f64, x1: f64, y1: f64\)](#interpolatelinear)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn InterpolateLagrange\(mut \*self, xs: \[\]f64, ys: \[\]f64, tol: f64\)](#interpolatelagrange)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn AppendFormat\(\*self, mut buf: \[\]byte\): \[\]byte](#appendformat)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Str\(\*self\): str](#str)
+&nbsp;&nbsp;&nbsp;&nbsp;[fn InterpolateLagrange\(mut \*self, xs: \[\]f64, ys: \[\]f64, tol: f64\)](#interpolatelagrange)
 
 
 
@@ -46,13 +46,10 @@ Represents a single term \(monomial\) of a polynomial\. It has a coefficient and
 
 Mathematically, a term is expressed as:<br>
 ```
-coef * x^exp
+coef * x^exp, where:
+	- coef ∈ ℝ (coefficient, a real number)
+	- exp ∈ ℕ₀ (non-negative integer exponent)
 ```
-where:<br>
-
-- coef ∈ ℝ \(coefficient, a real number\)
-- exp ∈ ℕ₀ \(non\-negative integer exponent\)
-
 For example:<br>
 ```
 the term 3x² is represented as Term{Coef: 3, Exp: 2}.
@@ -77,6 +74,18 @@ where each Term is stored as an element of the Terms slice\.
 Terms are expected to be stored in descending order of exponent \(Exp\), i\.e\., Terms\[0\]\.Exp &gt; Terms\[1\]\.Exp &gt; \.\.\. &gt; Terms\[n\-1\]\.Exp, which simplifies polynomial operations like addition and multiplication\. Any corruption in this order is undefined behavior\.
 
 Capacity of underlying slices is never changed for values; i\.e\. that there are no 3\-operand slice expressions\. Any corruption of this rule is undefined behavior\.
+
+### AppendFormat
+```jule
+fn AppendFormat(*self, mut buf: []byte): []byte
+```
+Appends a human\-readable string representation of the polynomial to buf and returns\.
+
+### String
+```jule
+fn String(*self): string
+```
+Returns a human\-readable string representation of the polynomial\.
 
 ### LeadingCoef
 ```jule
@@ -226,7 +235,10 @@ fn Derivative(mut *self, &x: *Polynomial)
 ```
 Sets self to the first derivative of polynomial x\.
 
-If x = ∑ᵢ \[ aᵢ \* xⁱ \], then self = ∑ᵢ \[ \(i\*aᵢ\)·xⁱ⁻¹ \] for i ≥ 1\. Constant terms \(exp = 0\) are omitted\.
+```
+If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
+```
+Constant terms \(exp = 0\) are omitted\.
 
 If self have enough capacity, Derivative will use it to avoid making allocation\. If length is zero, self will be zero\-length\. But keeps internal allocation\.
 
@@ -296,15 +308,3 @@ fn InterpolateLagrange(mut *self, xs: []f64, ys: []f64, tol: f64)
 Sets self to the unique degree\-\(n\-1\) polynomial that passes through the given points using the Lagrange interpolation formula\. Panics if input lengths differ or have duplicate x values\.
 
 If self have enough capacity, InterpolateLagrance will use it to avoid making allocation\. If length is zero, self will be zero\-length\. But keeps internal allocation\.
-
-### AppendFormat
-```jule
-fn AppendFormat(*self, mut buf: []byte): []byte
-```
-Appends a human\-readable string representation of the polynomial to buf and returns\.
-
-### Str
-```jule
-fn Str(*self): str
-```
-Returns a human\-readable string representation of the polynomial\.

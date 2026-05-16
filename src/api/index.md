@@ -8,33 +8,11 @@ Provides common numerical functions.
 [Variables](#variables)\
 [fn AiryAi\(z: cmplx128\): cmplx128](#airyai)\
 [fn AiryAiDeriv\(z: cmplx128\): cmplx128](#airyaideriv)\
-[fn CompleteK\(m: f64\): f64](#completek)\
-[fn CompleteE\(m: f64\): f64](#completee)\
-[fn CompleteB\(m: f64\): f64](#completeb)\
-[fn CompleteD\(m: f64\): f64](#completed)\
-[fn EllipticRF\(x: f64, y: f64, z: f64\): f64](#ellipticrf)\
-[fn EllipticRD\(x: f64, y: f64, z: f64\): f64](#ellipticrd)\
-[fn EllipticF\(phi: f64, m: f64\): f64](#ellipticf)\
-[fn EllipticE\(phi: f64, m: f64\): f64](#elliptice)\
-[fn NaN\(payload: u64\): f64](#nan)\
-[fn NaNPayload\(f: f64\): \(payload: u64, ok: bool\)](#nanpayload)\
-[fn MvLgamma\(v: f64, dim: int\): f64](#mvlgamma)\
-[fn Prime\(x: u64\): bool](#prime)\
 [fn Beta\(a: f64, b: f64\): f64](#beta)\
 [fn Lbeta\(a: f64, b: f64\): f64](#lbeta)\
-[fn Equal\(a: f64, b: f64\): bool](#equal)\
-[fn Same\(a: f64, b: f64\): bool](#same)\
-[fn Clamp\(x: f64, min: f64, max: f64\): f64](#clamp)\
+[fn RegIncBeta\(a: f64, b: f64, x: f64\): f64](#regincbeta)\
+[fn InvRegIncBeta\(a: f64, b: f64, y: f64\): f64](#invregincbeta)\
 [fn Zeta\(x: f64, q: f64\): f64](#zeta)\
-[fn Tolerance\(a: f64, b: f64, mut e: f64\): bool](#tolerance)\
-[fn Close\(a: f64, b: f64\): bool](#close)\
-[fn VeryClose\(a: f64, b: f64\): bool](#veryclose)\
-[fn Alike\(a: f64, b: f64\): bool](#alike)\
-[fn CmplxTolerance\(a: cmplx128, b: cmplx128, mut e: f64\): bool](#cmplxtolerance)\
-[fn CmplxClose\(a: cmplx128, b: cmplx128\): bool](#cmplxclose)\
-[fn CmplxVeryClose\(a: cmplx128, b: cmplx128\): bool](#cmplxveryclose)\
-[fn CmplxAlike\(a: cmplx128, b: cmplx128\): bool](#cmplxalike)\
-[fn NormalQuantile\(p: f64\): f64](#normalquantile)\
 [fn RadiansToDegrees\(rad: f64\): f64](#radianstodegrees)\
 [fn DegreesToRadians\(deg: f64\): f64](#degreestoradians)\
 [fn DegreesToGradians\(deg: f64\): f64](#degreestogradians)\
@@ -49,10 +27,29 @@ Provides common numerical functions.
 [fn NormalizeRAHours\(hours: f64\): f64](#normalizerahours)\
 [fn CartesianToSpherical\(x: f64, y: f64, z: f64\): \(r: f64, theta: f64, phi: f64\)](#cartesiantospherical)\
 [fn SphericalToCartesian\(r: f64, theta: f64, phi: f64\): \(x: f64, y: f64, z: f64\)](#sphericaltocartesian)\
+[fn Digamma\(mut x: f64\): \(result: f64\)](#digamma)\
+[fn EllipticRF\(x: f64, y: f64, z: f64\): f64](#ellipticrf)\
+[fn EllipticRD\(x: f64, y: f64, z: f64\): f64](#ellipticrd)\
+[fn EllipticF\(phi: f64, m: f64\): f64](#ellipticf)\
+[fn EllipticE\(phi: f64, m: f64\): f64](#elliptice)\
+[fn CompleteK\(m: f64\): f64](#completek)\
+[fn CompleteE\(m: f64\): f64](#completee)\
+[fn CompleteB\(m: f64\): f64](#completeb)\
+[fn CompleteD\(m: f64\): f64](#completed)\
+[fn NormalQuantile\(p: f64\): f64](#normalquantile)\
 [fn GammaIncReg\(a: f64, x: f64\): f64](#gammaincreg)\
 [fn GammaIncRegComp\(a: f64, x: f64\): f64](#gammaincregcomp)\
 [fn GammaIncRegInv\(a: f64, y: f64\): f64](#gammaincreginv)\
 [fn GammaIncRegCompInv\(a: f64, y: f64\): f64](#gammaincregcompinv)\
+[fn MvLgamma\(v: f64, dim: int\): f64](#mvlgamma)\
+[fn NaN\(payload: u64\): f64](#nan)\
+[fn NaNPayload\(f: f64\): \(payload: u64, ok: bool\)](#nanpayload)\
+[fn Equal\(a: f64, b: f64\): bool](#equal)\
+[fn Same\(a: f64, b: f64\): bool](#same)\
+[fn Clamp\(x: f64, min: f64, max: f64\): f64](#clamp)\
+[fn Prime\(x: u64\): bool](#prime)\
+[fn Round\(mut x: f64, prec: int\): f64](#round)\
+[fn RoundEven\(mut x: f64, prec: int\): f64](#roundeven)\
 [fn Max\[T: integer \| float\]\(s: \.\.\.T\): T](#max)\
 [fn Min\[T: integer \| float\]\(s: \.\.\.T\): T](#min)\
 [fn MinMax\[T: integer \| float\]\(s: \.\.\.T\): \(min: T, max: T\)](#minmax)\
@@ -61,11 +58,14 @@ Provides common numerical functions.
 [fn Logspace\[T: integer \| float\]\(start: T, stop: T, n: int, base: f64\): \[\]T](#logspace)\
 [fn Geomspace\[T: integer \| float\]\(mut start: T, mut stop: T, n: int\): \[\]T](#geomspace)\
 [fn Range\[T: integer \| float\]\(mut start: T, stop: T, step: T\): \[\]T](#range)\
-[fn Digamma\(mut x: f64\): \(result: f64\)](#digamma)\
-[fn Round\(mut x: f64, prec: int\): f64](#round)\
-[fn RoundEven\(mut x: f64, prec: int\): f64](#roundeven)\
-[fn RegIncBeta\(a: f64, b: f64, x: f64\): f64](#regincbeta)\
-[fn InvRegIncBeta\(a: f64, b: f64, y: f64\): f64](#invregincbeta)
+[fn Tolerance\(a: f64, b: f64, mut e: f64\): bool](#tolerance)\
+[fn Close\(a: f64, b: f64\): bool](#close)\
+[fn VeryClose\(a: f64, b: f64\): bool](#veryclose)\
+[fn Alike\(a: f64, b: f64\): bool](#alike)\
+[fn CmplxTolerance\(a: cmplx128, b: cmplx128, mut e: f64\): bool](#cmplxtolerance)\
+[fn CmplxClose\(a: cmplx128, b: cmplx128\): bool](#cmplxclose)\
+[fn CmplxVeryClose\(a: cmplx128, b: cmplx128\): bool](#cmplxveryclose)\
+[fn CmplxAlike\(a: cmplx128, b: cmplx128\): bool](#cmplxalike)
 
 ## Variables
 
@@ -99,7 +99,7 @@ const (
 	Avogadro                = 6.02214076 * 1e+23                                                // https://physics.nist.gov/cgi-bin/cuu/Value?na, https://oeis.org/A322578
 	Chaitin                 = 0.0078749969978123844                                             // https://oeis.org/A100264
 	Planck                  = 6.62607015 * 1e-34                                                // https://physics.nist.gov/cgi-bin/cuu/Value?h, https://oeis.org/A003676
-	ReducedPlanck           = 1.054571817 * 1e-34                                               // https://physics.nist.gov/cgi-bin/cuu/Value?mpsme, https://oeis.org/A254181
+	ReducedPlanck           = 1.054571817 * 1e-34                                               // https://physics.nist.gov/cgi-bin/cuu/Value?hbar, https://oeis.org/A254181
 	Rydberg                 = 10973731.568157                                                   // https://physics.nist.gov/cgi-bin/cuu/Value?ryd, https://oeis.org/A081821
 	Boltzmann               = 1.380649 * 1e-23                                                  // https://physics.nist.gov/cgi-bin/cuu/Value?k, https://oeis.org/A070063
 	StefanBoltzmann         = 5.670374419 * 1e-8                                                // https://physics.nist.gov/cgi-bin/cuu/Value?sigma, https://oeis.org/A081820
@@ -149,48 +149,6 @@ const (
 ```
 Mathematical constants\.
 
----
-
-```jule
-let P0: [5]f64 = [ ... ]
-```
-approximation for 0 &lt;= \|y \- 0\.5\| &lt;= 3/8
-
----
-
-```jule
-let Q0: [8]f64 = [ ... ]
-```
-
-
----
-
-```jule
-let P1: [9]f64 = [ ... ]
-```
-Approximation for interval z = math\.Sqrt\(\-2 log y \) between 2 and 8 i\.e\., y between exp\(\-2\) = \.135 and exp\(\-32\) = 1\.27e\-14\.
-
----
-
-```jule
-let Q1: [8]f64 = [ ... ]
-```
-
-
----
-
-```jule
-let P2: [9]f64 = [ ... ]
-```
-Approximation for interval z = math\.Sqrt\(\-2 log y \) between 8 and 64 i\.e\., y between exp\(\-32\) = 1\.27e\-14 and exp\(\-2048\) = 3\.67e\-890\.
-
----
-
-```jule
-let Q2: [8]f64 = [ ... ]
-```
-
-
 ## AiryAi
 ```jule
 fn AiryAi(z: cmplx128): cmplx128
@@ -212,144 +170,6 @@ Returns the value of the derivative of the Airy function at z\. The Airy functio
 y′′ - y*z = 0.
 ```
 See http://mathworld\.wolfram\.com/AiryFunctions\.html for more detailed information\.
-
-## CompleteK
-```jule
-fn CompleteK(m: f64): f64
-```
-Computes the complete elliptic integral of the 1st kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
-```
-K(m) = \int_{0}^{π/2} 1/{\sqrt{1-m{\sin^2θ}}} dθ
-```
-
-
-## CompleteE
-```jule
-fn CompleteE(m: f64): f64
-```
-Computes the complete elliptic integral of the 2nd kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
-```
-E(m) = \int_{0}^{π/2} {\sqrt{1-m{\sin^2θ}}} dθ
-```
-
-
-## CompleteB
-```jule
-fn CompleteB(m: f64): f64
-```
-Computes an associate complete elliptic integral of the 2nd kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
-```
-B(m) = \int_{0}^{π/2} {\cos^2θ} / {\sqrt{1-m{\sin^2θ}}} dθ
-```
-
-
-## CompleteD
-```jule
-fn CompleteD(m: f64): f64
-```
-Computes an associate complete elliptic integral of the 2nd kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
-```
-D(m) = \int_{0}^{π/2} {\sin^2θ} / {\sqrt{1-m{\sin^2θ}}} dθ
-```
-
-
-## EllipticRF
-```jule
-fn EllipticRF(x: f64, y: f64, z: f64): f64
-```
-Computes the symmetric elliptic integral R\_F\(x,y,z\):<br>
-```
-R_F(x,y,z) = (1/2)\int_{0}^{\infty}{1/s(t)} dt,
-s(t) = \sqrt{(t+x)(t+y)(t+z)}.
-```
-The arguments x, y, z must satisfy the following conditions, otherwise the function returns math\.NaN\(\):<br>
-```
-0 ≤ x,y,z ≤ upper,
-lower ≤ x+y,y+z,z+x,
-```
-where:<br>
-```
-lower = 5/(2^1022) = 1.112536929253601e-307,
-upper = (2^1022)/5 = 8.988465674311580e+306.
-```
-The definition of the symmetric elliptic integral R\_F can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.16\.E1\)\.
-
-## EllipticRD
-```jule
-fn EllipticRD(x: f64, y: f64, z: f64): f64
-```
-Computes the symmetric elliptic integral R\_D\(x,y,z\):
-
-```
-R_D(x,y,z) = (1/2)\int_{0}^{\infty}{1/(s(t)(t+z))} dt,
-s(t) = \sqrt{(t+x)(t+y)(t+z)}.
-```
-The arguments x, y, z must satisfy the following conditions, otherwise the function returns math\.NaN\(\):<br>
-```
-0 ≤ x,y ≤ upper,
-lower ≤ z ≤ upper,
-lower ≤ x+y,
-```
-where:<br>
-```
-lower = (5/(2^1022))^(1/3) = 4.809554074311679e-103,
-upper = ((2^1022)/5)^(1/3) = 2.079194837087086e+102.
-```
-The definition of the symmetric elliptic integral R\_D can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.16\.E5\)\.
-
-## EllipticF
-```jule
-fn EllipticF(phi: f64, m: f64): f64
-```
-Computes the Legendre&#39;s elliptic integral of the 1st kind F\(phi,m\), 0≤m&lt;1:<br>
-```
-F(\phi,m) = \int_{0}^{\phi} 1 / \sqrt{1-m\sin^2(\theta)} d\theta
-```
-Legendre&#39;s elliptic integrals can be expressed as symmetric elliptic integrals, in this case:<br>
-```
-F(\phi,m) = \sin\phi R_F(\cos^2\phi,1-m\sin^2\phi,1)
-```
-The definition of F\(phi,k\) where k=sqrt\(m\) can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.2\.E4\)\.
-
-## EllipticE
-```jule
-fn EllipticE(phi: f64, m: f64): f64
-```
-Computes the Legendre&#39;s elliptic integral of the 2nd kind E\(phi,m\), 0≤m&lt;1:<br>
-```
-E(\phi,m) = \int_{0}^{\phi} \sqrt{1-m\sin^2(\theta)} d\theta
-```
-Legendre&#39;s elliptic integrals can be expressed as symmetric elliptic integrals, in this case:<br>
-```
-E(\phi,m) = \sin\phi R_F(\cos^2\phi,1-m\sin^2\phi,1)-(m/3)\sin^3\phi R_D(\cos^2\phi,1-m\sin^2\phi,1)
-```
-The definition of E\(phi,k\) where k=sqrt\(m\) can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.2\.E5\)\.
-
-## NaN
-```jule
-fn NaN(payload: u64): f64
-```
-Returns an IEEE 754 &#34;quiet not\-a\-number&#34; value with the payload specified in the low 51 bits of payload\. The NaN returned by math::NaN has a bit pattern equal to NaN\(1\)\.
-
-## NaNPayload
-```jule
-fn NaNPayload(f: f64): (payload: u64, ok: bool)
-```
-Returns the lowest 51 bits payload of an IEEE 754 &#34;quiet not\-a\-number&#34;\. Returns zero and false, if f is not a &#34;quiet not\-a\-number&#34;\.
-
-## MvLgamma
-```jule
-fn MvLgamma(v: f64, dim: int): f64
-```
-Returns the log of the multivariate Gamma function\. Dim must be greater than zero, and MvLgamma will return NaN if v &lt; \(dim\-1\)/2\.
-
-See https://en\.wikipedia\.org/wiki/Multivariate\_gamma\_function for more information\.
-
-## Prime
-```jule
-fn Prime(x: u64): bool
-```
-Reports whether x is prime\. It is 100% accurate for all inputs\.
 
 ## Beta
 ```jule
@@ -389,23 +209,28 @@ Lbeta(a,b) = +Inf, if a xor b is 0.
 ```
 
 
-## Equal
+## RegIncBeta
 ```jule
-fn Equal(a: f64, b: f64): bool
+fn RegIncBeta(a: f64, b: f64, x: f64): f64
 ```
-Reports whether two values a and b are considered equal, allowing NaNs\.
+Returns the value of the regularized incomplete beta function I\(x;a,b\)\. It is defined as
 
-## Same
-```jule
-fn Same(a: f64, b: f64): bool
 ```
-Reports whether two values a and b are considered same\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\. If both are NaN, if guarantees payload equality for the quiet\-NaNs\.
+I(x;a,b) = B(x;a,b) / B(a,b)
+			= Γ(a+b) / (Γ(a)*Γ(b)) * int_0^x u^(a-1) * (1-u)^(b-1) du.
+```
+The domain of definition is 0 &lt;= x &lt;= 1, and the parameters a and b must be positive\. For other values of x, a, and b, it will panic\.
 
-## Clamp
+## InvRegIncBeta
 ```jule
-fn Clamp(x: f64, min: f64, max: f64): f64
+fn InvRegIncBeta(a: f64, b: f64, y: f64): f64
 ```
-Clamps x to the range \[min, max\]\.
+Computes the inverse of the regularized incomplete beta function\. It returns the x for which
+
+```
+y = I(x;a,b)
+```
+The domain of definition is 0 &lt;= y &lt;= 1, and the parameters a and b must be positive\. For other values of x, a, and b, it will panic\.
 
 ## Zeta
 ```jule
@@ -418,64 +243,6 @@ Zeta(x,q) = \sum_{k=0}^{\infty} (k+q)^{-x}
 Note that it returns \+Inf if x is 1 and will panic if x is less than 1, q is either zero or a negative integer, or q is negative and x is not an integer\.
 
 See http://mathworld\.wolfram\.com/HurwitzZetaFunction\.html or https://en\.wikipedia\.org/wiki/Multiple\_zeta\_function\#Two\_parameters\_case for more detailed information\.
-
-## Tolerance
-```jule
-fn Tolerance(a: f64, b: f64, mut e: f64): bool
-```
-Reports whether two values a and b are approximately equal, within a relative tolerance e\. This is useful for comparing floating\-point values where exact equality is unreliable due to rounding errors\.
-
-It returns true if the absolute difference between a and b is less than the tolerance threshold scaled by the expected value b, or if a and b are exactly equal\.
-
-## Close
-```jule
-fn Close(a: f64, b: f64): bool
-```
-Reports whether two values a and b are approximately equal within a very tight default relative tolerance of 1e\-14\.
-
-## VeryClose
-```jule
-fn VeryClose(a: f64, b: f64): bool
-```
-Reports whether two values a and b are approximately equal within an extremely tight default relative tolerance of 4e\-16\.
-
-## Alike
-```jule
-fn Alike(a: f64, b: f64): bool
-```
-Reports whether two values a and b are considered alike\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\.
-
-## CmplxTolerance
-```jule
-fn CmplxTolerance(a: cmplx128, b: cmplx128, mut e: f64): bool
-```
-Reports whether two values a and b are approximately equal, within a relative tolerance e\. This is useful for comparing floating\-point values where exact equality is unreliable due to rounding errors\.
-
-It returns true if the absolute difference between a and b is less than the tolerance threshold scaled by the expected value b, or if a and b are exactly equal\.
-
-## CmplxClose
-```jule
-fn CmplxClose(a: cmplx128, b: cmplx128): bool
-```
-Reports whether two values a and b are approximately equal within a very tight default relative tolerance of 1e\-14\.
-
-## CmplxVeryClose
-```jule
-fn CmplxVeryClose(a: cmplx128, b: cmplx128): bool
-```
-Reports whether two values a and b are approximately equal within an extremely tight default relative tolerance of 4e\-16\.
-
-## CmplxAlike
-```jule
-fn CmplxAlike(a: cmplx128, b: cmplx128): bool
-```
-Reports whether two values a and b are considered alike\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\.
-
-## NormalQuantile
-```jule
-fn NormalQuantile(p: f64): f64
-```
-Computes the quantile function \(inverse CDF\) of the standard normal\. It panics if the input p is less than 0 or greater than 1\.
 
 ## RadiansToDegrees
 ```jule
@@ -570,6 +337,135 @@ Converts spherical coordinates \(r, theta, phi\) in radians to Cartesian coordin
 
 theta: polar angle in radians \(0 ≤ θ ≤ π\) phi: azimuthal angle in radians \(0 ≤ φ &lt; 2π\)
 
+## Digamma
+```jule
+fn Digamma(mut x: f64): (result: f64)
+```
+Returns the logorithmic derivative of the gamma function at x\.
+
+```
+ψ(x) = d/dx (Ln (Γ(x)).
+```
+
+
+## EllipticRF
+```jule
+fn EllipticRF(x: f64, y: f64, z: f64): f64
+```
+Computes the symmetric elliptic integral R\_F\(x,y,z\):<br>
+```
+R_F(x,y,z) = (1/2)\int_{0}^{\infty}{1/s(t)} dt,
+s(t) = \sqrt{(t+x)(t+y)(t+z)}.
+```
+The arguments x, y, z must satisfy the following conditions, otherwise the function returns math\.NaN\(\):<br>
+```
+0 ≤ x,y,z ≤ upper,
+lower ≤ x+y,y+z,z+x,
+```
+where:<br>
+```
+lower = 5/(2^1022) = 1.112536929253601e-307,
+upper = (2^1022)/5 = 8.988465674311580e+306.
+```
+The definition of the symmetric elliptic integral R\_F can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.16\.E1\)\.
+
+## EllipticRD
+```jule
+fn EllipticRD(x: f64, y: f64, z: f64): f64
+```
+Computes the symmetric elliptic integral R\_D\(x,y,z\):
+
+```
+R_D(x,y,z) = (1/2)\int_{0}^{\infty}{1/(s(t)(t+z))} dt,
+s(t) = \sqrt{(t+x)(t+y)(t+z)}.
+```
+The arguments x, y, z must satisfy the following conditions, otherwise the function returns math\.NaN\(\):<br>
+```
+0 ≤ x,y ≤ upper,
+lower ≤ z ≤ upper,
+lower ≤ x+y,
+```
+where:<br>
+```
+lower = (5/(2^1022))^(1/3) = 4.809554074311679e-103,
+upper = ((2^1022)/5)^(1/3) = 2.079194837087086e+102.
+```
+The definition of the symmetric elliptic integral R\_D can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.16\.E5\)\.
+
+## EllipticF
+```jule
+fn EllipticF(phi: f64, m: f64): f64
+```
+Computes the Legendre&#39;s elliptic integral of the 1st kind F\(phi,m\), 0≤m&lt;1:<br>
+```
+F(\phi,m) = \int_{0}^{\phi} 1 / \sqrt{1-m\sin^2(\theta)} d\theta
+```
+Legendre&#39;s elliptic integrals can be expressed as symmetric elliptic integrals, in this case:<br>
+```
+F(\phi,m) = \sin\phi R_F(\cos^2\phi,1-m\sin^2\phi,1)
+```
+The definition of F\(phi,k\) where k=sqrt\(m\) can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.2\.E4\)\.
+
+## EllipticE
+```jule
+fn EllipticE(phi: f64, m: f64): f64
+```
+Computes the Legendre&#39;s elliptic integral of the 2nd kind E\(phi,m\), 0≤m&lt;1:<br>
+```
+E(\phi,m) = \int_{0}^{\phi} \sqrt{1-m\sin^2(\theta)} d\theta
+```
+Legendre&#39;s elliptic integrals can be expressed as symmetric elliptic integrals, in this case:<br>
+```
+E(\phi,m) = \sin\phi R_F(\cos^2\phi,1-m\sin^2\phi,1)-(m/3)\sin^3\phi R_D(\cos^2\phi,1-m\sin^2\phi,1)
+```
+The definition of E\(phi,k\) where k=sqrt\(m\) can be found in NIST Digital Library of Mathematical Functions \(http://dlmf\.nist\.gov/19\.2\.E5\)\.
+
+## CompleteK
+```jule
+fn CompleteK(m: f64): f64
+```
+Computes the complete elliptic integral of the 1st kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
+```
+K(m) = \int_{0}^{π/2} 1/{\sqrt{1-m{\sin^2θ}}} dθ
+```
+
+
+## CompleteE
+```jule
+fn CompleteE(m: f64): f64
+```
+Computes the complete elliptic integral of the 2nd kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
+```
+E(m) = \int_{0}^{π/2} {\sqrt{1-m{\sin^2θ}}} dθ
+```
+
+
+## CompleteB
+```jule
+fn CompleteB(m: f64): f64
+```
+Computes an associate complete elliptic integral of the 2nd kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
+```
+B(m) = \int_{0}^{π/2} {\cos^2θ} / {\sqrt{1-m{\sin^2θ}}} dθ
+```
+
+
+## CompleteD
+```jule
+fn CompleteD(m: f64): f64
+```
+Computes an associate complete elliptic integral of the 2nd kind, 0≤m≤1\. It returns math\.NaN\(\) if m is not in \[0,1\]\.<br>
+```
+D(m) = \int_{0}^{π/2} {\sin^2θ} / {\sqrt{1-m{\sin^2θ}}} dθ
+```
+
+
+## NormalQuantile
+```jule
+fn NormalQuantile(p: f64): f64
+```
+Computes the quantile function \(inverse CDF\) of the standard normal\. It panics if the input p is less than 0 or greater than 1\.
+
 ## GammaIncReg
 ```jule
 fn GammaIncReg(a: f64, x: f64): f64
@@ -591,7 +487,7 @@ Computes the complemented regularized incomplete Gamma integral\.
 
 ```
 GammaIncRegComp(a,x) = 1 - GammaIncReg(a,x)
-                     = (1/ Γ(a)) \int_x^\infty e^{-t} t^{a-1} dt
+							= (1/ Γ(a)) \int_x^\infty e^{-t} t^{a-1} dt
 ```
 The input argument a must be positive and x must be non\-negative or it will panic\.
 
@@ -616,6 +512,78 @@ Computes the inverse of the complemented regularized incomplete Gamma integral\.
 GammaIncRegComp(a, x) = y
 ```
 The input argument a must be positive and y must be between 0 and 1 inclusive or it will panic\. It should return a positive number, but can return 0 even with non\-zero y due to underflow\.
+
+## MvLgamma
+```jule
+fn MvLgamma(v: f64, dim: int): f64
+```
+Returns the log of the multivariate Gamma function\. Dim must be greater than zero, and MvLgamma will return NaN if v &lt; \(dim\-1\)/2\.
+
+See https://en\.wikipedia\.org/wiki/Multivariate\_gamma\_function for more information\.
+
+## NaN
+```jule
+fn NaN(payload: u64): f64
+```
+Returns an IEEE 754 &#34;quiet not\-a\-number&#34; value with the payload specified in the low 51 bits of payload\. The NaN returned by math::NaN has a bit pattern equal to NaN\(1\)\.
+
+## NaNPayload
+```jule
+fn NaNPayload(f: f64): (payload: u64, ok: bool)
+```
+Returns the lowest 51 bits payload of an IEEE 754 &#34;quiet not\-a\-number&#34;\. Returns zero and false, if f is not a &#34;quiet not\-a\-number&#34;\.
+
+## Equal
+```jule
+fn Equal(a: f64, b: f64): bool
+```
+Reports whether two values a and b are considered equal, allowing NaNs\.
+
+## Same
+```jule
+fn Same(a: f64, b: f64): bool
+```
+Reports whether two values a and b are considered same\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\. If both are NaN, if guarantees payload equality for the quiet\-NaNs\.
+
+## Clamp
+```jule
+fn Clamp(x: f64, min: f64, max: f64): f64
+```
+Clamps x to the range \[min, max\]\.
+
+## Prime
+```jule
+fn Prime(x: u64): bool
+```
+Reports whether x is prime\. It is 100% accurate for all inputs\.
+
+## Round
+```jule
+fn Round(mut x: f64, prec: int): f64
+```
+Returns the half away from zero rounded value of x with precision\.
+
+Special cases are:<br>
+```
+Round(±0, prec) = +0
+Round(±Inf, prec) = ±Inf
+Round(NaN, prec) = NaN
+```
+
+
+## RoundEven
+```jule
+fn RoundEven(mut x: f64, prec: int): f64
+```
+Returns the half even rounded value of x with precision\.
+
+Special cases are:<br>
+```
+RoundEven(±0, prec) = +0
+RoundEven(±Inf, prec) = ±Inf
+RoundEven(NaN, prec) = NaN
+```
+
 
 ## Max
 ```jule
@@ -732,64 +700,54 @@ Range(start, stop, ±Inf) = undefined, may cause panic
 ```
 
 
-## Digamma
+## Tolerance
 ```jule
-fn Digamma(mut x: f64): (result: f64)
+fn Tolerance(a: f64, b: f64, mut e: f64): bool
 ```
-Returns the logorithmic derivative of the gamma function at x\.
+Reports whether two values a and b are approximately equal, within a relative tolerance e\. This is useful for comparing floating\-point values where exact equality is unreliable due to rounding errors\.
 
-```
-ψ(x) = d/dx (Ln (Γ(x)).
-```
+It returns true if the absolute difference between a and b is less than the tolerance threshold scaled by the expected value b, or if a and b are exactly equal\.
 
-
-## Round
+## Close
 ```jule
-fn Round(mut x: f64, prec: int): f64
+fn Close(a: f64, b: f64): bool
 ```
-Returns the half away from zero rounded value of x with precision\.
+Reports whether two values a and b are approximately equal within a very tight default relative tolerance of 1e\-14\.
 
-Special cases are:<br>
-```
-Round(±0, prec) = +0
-Round(±Inf, prec) = ±Inf
-Round(NaN, prec) = NaN
-```
-
-
-## RoundEven
+## VeryClose
 ```jule
-fn RoundEven(mut x: f64, prec: int): f64
+fn VeryClose(a: f64, b: f64): bool
 ```
-Returns the half even rounded value of x with precision\.
+Reports whether two values a and b are approximately equal within an extremely tight default relative tolerance of 4e\-16\.
 
-Special cases are:<br>
-```
-RoundEven(±0, prec) = +0
-RoundEven(±Inf, prec) = ±Inf
-RoundEven(NaN, prec) = NaN
-```
-
-
-## RegIncBeta
+## Alike
 ```jule
-fn RegIncBeta(a: f64, b: f64, x: f64): f64
+fn Alike(a: f64, b: f64): bool
 ```
-Returns the value of the regularized incomplete beta function I\(x;a,b\)\. It is defined as
+Reports whether two values a and b are considered alike\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\.
 
-```
-I(x;a,b) = B(x;a,b) / B(a,b)
-         = Γ(a+b) / (Γ(a)*Γ(b)) * int_0^x u^(a-1) * (1-u)^(b-1) du.
-```
-The domain of definition is 0 &lt;= x &lt;= 1, and the parameters a and b must be positive\. For other values of x, a, and b, it will panic\.
-
-## InvRegIncBeta
+## CmplxTolerance
 ```jule
-fn InvRegIncBeta(a: f64, b: f64, y: f64): f64
+fn CmplxTolerance(a: cmplx128, b: cmplx128, mut e: f64): bool
 ```
-Computes the inverse of the regularized incomplete beta function\. It returns the x for which
+Reports whether two values a and b are approximately equal, within a relative tolerance e\. This is useful for comparing complex values where exact equality is unreliable due to floating\-point rounding errors\.
 
+It returns true if the absolute difference between a and b is less than the tolerance threshold scaled by the expected value b, or if a and b are exactly equal\.
+
+## CmplxClose
+```jule
+fn CmplxClose(a: cmplx128, b: cmplx128): bool
 ```
-y = I(x;a,b)
+Reports whether two values a and b are approximately equal within a very tight default relative tolerance of 1e\-14\.
+
+## CmplxVeryClose
+```jule
+fn CmplxVeryClose(a: cmplx128, b: cmplx128): bool
 ```
-The domain of definition is 0 &lt;= y &lt;= 1, and the parameters a and b must be positive\. For other values of x, a, and b, it will panic\.
+Reports whether two values a and b are approximately equal within an extremely tight default relative tolerance of 4e\-16\.
+
+## CmplxAlike
+```jule
+fn CmplxAlike(a: cmplx128, b: cmplx128): bool
+```
+Reports whether two values a and b are considered alike\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\.
