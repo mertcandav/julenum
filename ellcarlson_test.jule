@@ -29,7 +29,7 @@ fn testEllipticF(t: &testing::T) {
 		delta := math::Abs(EllipticF(phi, mf) - vF[mi-1])
 		if delta > 1e-14 {
 			t.Errorf("EllipticF(pi/3,m) test fail for m={}", mf)
-			ret
+			return
 		}
 	}
 
@@ -50,7 +50,7 @@ fn testEllipticF(t: &testing::T) {
 			delta := math::Abs(Fa + Fb - Fg)
 			if delta > 1e-14 {
 				t.Errorf("EllipticF test fail for m={}, alpha={}, beta={}", m, alpha, beta)
-				ret
+				return
 			}
 		}
 	}
@@ -79,7 +79,7 @@ fn testEllipticE(t: &testing::T) {
 		delta := math::Abs(EllipticE(phi, mf) - vF[mi-1])
 		if delta > 1e-14 {
 			t.Errorf("EllipticE(pi/3,m) test fail for m={}", mf)
-			ret
+			return
 		}
 	}
 
@@ -100,7 +100,7 @@ fn testEllipticE(t: &testing::T) {
 			delta := math::Abs(Ea + Eb - Eg - m*sina*sinb*math::Sin(gamma))
 			if delta > 1e-14 {
 				t.Errorf("EllipticE test fail for m={}, alpha={}, beta={}", m, alpha, beta)
-				ret
+				return
 			}
 		}
 	}

@@ -68,7 +68,7 @@ fn _Igam(a: f64, x: f64): f64 {
 
 	// Check zero integration limit first
 	if x == 0 {
-		ret 0
+		return 0
 	}
 
 	if x < 0 || a <= 0 {
@@ -79,14 +79,14 @@ fn _Igam(a: f64, x: f64): f64 {
 	absxmaA := math::Abs(x-a) / a
 	if (igamSmall < a && a < igamLarge && absxmaA < igamSmallRatio) ||
 		(igamLarge < a && absxmaA < igamLargeRatio/math::Sqrt(a)) {
-		ret asymptoticSeries(a, x, igam)
+		return asymptoticSeries(a, x, igam)
 	}
 
 	if x > 1 && x > a {
-		ret 1 - _IgamC(a, x)
+		return 1 - _IgamC(a, x)
 	}
 
-	ret igamSeries(a, x)
+	return igamSeries(a, x)
 }
 
 // Computes the complemented incomplete Gamma integral.
@@ -107,35 +107,35 @@ fn _IgamC(a: f64, x: f64): f64 {
 	| x < 0 || a <= 0:
 		panic(paramOutOfBounds)
 	| x == 0:
-		ret 1
+		return 1
 	| math::IsInf(x, 0):
-		ret 0
+		return 0
 	}
 
 	// Asymptotic regime where a ~ x; see [2].
 	absxmaA := math::Abs(x-a) / a
 	if (igamSmall < a && a < igamLarge && absxmaA < igamSmallRatio) ||
 		(igamLarge < a && absxmaA < igamLargeRatio/math::Sqrt(a)) {
-		ret asymptoticSeries(a, x, igamC)
+		return asymptoticSeries(a, x, igamC)
 	}
 
 	// Everywhere else; see [2].
 	if x > 1.1 {
 		if x < a {
-			ret 1 - igamSeries(a, x)
+			return 1 - igamSeries(a, x)
 		}
-		ret igamCContinuedFraction(a, x)
+		return igamCContinuedFraction(a, x)
 	} else if x <= 0.5 {
 		if -0.4/math::Log(x) < a {
-			ret 1 - igamSeries(a, x)
+			return 1 - igamSeries(a, x)
 		}
-		ret igamCSeries(a, x)
+		return igamCSeries(a, x)
 	}
 
 	if x*1.1 < a {
-		ret 1 - igamSeries(a, x)
+		return 1 - igamSeries(a, x)
 	}
-	ret igamCSeries(a, x)
+	return igamCSeries(a, x)
 }
 
 // computes
@@ -152,7 +152,7 @@ fn _IgamC(a: f64, x: f64): f64 {
 fn igamFac(a: f64, x: f64): f64 {
 	if math::Abs(a-x) > 0.4*math::Abs(a) {
 		ax := a*math::Log(x) - x - lgam(a)
-		ret math::Exp(ax)
+		return math::Exp(ax)
 	}
 
 	fac := a + lanczosG - 0.5
@@ -165,14 +165,14 @@ fn igamFac(a: f64, x: f64): f64 {
 		res *= math::Exp(a*log1pmx(num/fac) + x*(0.5-lanczosG)/fac)
 	}
 
-	ret res
+	return res
 }
 
 // Computes _IgamC using DLMF 8.9.2.
 fn igamCContinuedFraction(a: f64, x: f64): f64 {
 	ax := igamFac(a, x)
 	if ax == 0 {
-		ret 0
+		return 0
 	}
 
 	// Continued fraction
@@ -216,14 +216,14 @@ fn igamCContinuedFraction(a: f64, x: f64): f64 {
 		}
 	}
 
-	ret ans * ax
+	return ans * ax
 }
 
 // Computes _Igam using DLMF 8.11.4.
 fn igamSeries(a: f64, x: f64): f64 {
 	ax := igamFac(a, x)
 	if ax == 0 {
-		ret 0
+		return 0
 	}
 
 	// Power series
@@ -240,7 +240,7 @@ fn igamSeries(a: f64, x: f64): f64 {
 		}
 	}
 
-	ret ans * ax / a
+	return ans * ax / a
 }
 
 // Computes _IgamC using DLMF 8.7.3. This is related to the series
@@ -261,7 +261,7 @@ fn igamCSeries(a: f64, x: f64): f64 {
 
 	logx := math::Log(x)
 	term := -expm1(a*logx - lgam1p(a))
-	ret term - math::Exp(a*logx-lgam(a))*sum
+	return term - math::Exp(a*logx-lgam(a))*sum
 }
 
 // Computes _Igam/_IgamC using DLMF 8.12.3/8.12.4.
@@ -320,5 +320,5 @@ fn asymptoticSeries(a: f64, x: f64, fun: int): f64 {
 	}
 	res += sgn * math::Exp(-0.5*a*eta*eta) * sum / math::Sqrt(Pi2*a)
 
-	ret res
+	return res
 }

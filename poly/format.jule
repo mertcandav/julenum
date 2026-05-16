@@ -62,17 +62,17 @@ fn appendFormatPolynomial(&p: *Polynomial, mut buf: []byte): []byte {
 		buf = append(buf, '0')
 	}
 
-	ret buf
+	return buf
 }
 
 impl Polynomial {
 	// Appends a human-readable string representation of the polynomial to buf and returns.
 	fn AppendFormat(*self, mut buf: []byte): []byte {
-		ret appendFormatPolynomial(self, buf)
+		return appendFormatPolynomial(self, buf)
 	}
 
 	// Returns a human-readable string representation of the polynomial.
-	fn Str(*self): str {
-		ret unsafe::StrFromBytes(appendFormatPolynomial(self, nil))
+	fn String(*self): string {
+		return unsafe::StringFromBytes(appendFormatPolynomial(self, nil))
 	}
 }

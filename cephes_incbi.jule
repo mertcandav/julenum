@@ -38,10 +38,10 @@ fn incbi(aa: f64, bb: f64, yy0: f64): f64 {
 	let mut nflg: int
 
 	if yy0 <= 0 {
-		ret 0.0
+		return 0.0
 	}
 	if yy0 >= 1.0 {
-		ret 1.0
+		return 1.0
 	}
 	x0 = 0.0
 	yl = 0.0
@@ -261,10 +261,10 @@ done:
 			x = 1.0 - x
 		}
 	}
-	ret x
+	return x
 }
 
 fn lgam(a: f64): f64 {
 	lg, _ := math::Lgamma(a)
-	ret lg
+	return lg
 }

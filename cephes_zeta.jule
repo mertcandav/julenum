@@ -52,7 +52,7 @@ fn Zeta(x: f64, q: f64): f64 {
 	// REFERENCE: Gradshteyn, I. S., and I. M. Ryzhik, Tables of Integrals, Series,
 	// and Products, p. 1073; Academic Press, 1980.
 	if x == 1 {
-		ret math::Inf(1)
+		return math::Inf(1)
 	}
 
 	if x < 1 {
@@ -70,7 +70,7 @@ fn Zeta(x: f64, q: f64): f64 {
 
 	// Asymptotic expansion: http://dlmf.nist.gov/25.11#E43
 	if q > 1e8 {
-		ret (1/(x-1) + 1/(2*q)) * math::Pow(q, 1-x)
+		return (1/(x-1) + 1/(2*q)) * math::Pow(q, 1-x)
 	}
 
 	// The Euler-Maclaurin summation formula is used to obtain the expansion:
@@ -91,7 +91,7 @@ fn Zeta(x: f64, q: f64): f64 {
 		b = math::Pow(a, -x)
 		s += b
 		if math::Abs(b/s) < machEp {
-			ret s
+			return s
 		}
 	}
 
@@ -107,12 +107,12 @@ fn Zeta(x: f64, q: f64): f64 {
 		s = s + t
 		t = math::Abs(t / s)
 		if t < machEp {
-			ret s
+			return s
 		}
 		k += 1.0
 		a *= x + k
 		b /= w
 		k += 1.0
 	}
-	ret s
+	return s
 }

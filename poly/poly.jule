@@ -49,9 +49,9 @@ impl Polynomial {
 	fn make(mut *self, n: int): Polynomial {
 		// Reuse self capacity, if there is enough space.
 		if n <= cap(*self) {
-			ret (*self)[:n]
+			return (*self)[:n]
 		}
-		ret make(Polynomial, n)
+		return make(Polynomial, n)
 	}
 
 	// Returns the leading coefficient of the polynomial.
@@ -60,26 +60,26 @@ impl Polynomial {
 		if len(*self) == 0 {
 			panic("poly: LeadingCoef called on zero polynomial")
 		}
-		ret (*self)[0].Coef
+		return (*self)[0].Coef
 	}
 
 	// Reports whether polynomial is zero within tolerance.
 	fn Zero(*self, tol: f64): bool {
 		for _, term in *self {
 			if !jn::Tolerance(term.Coef, 0, tol) {
-				ret false
+				return false
 			}
 		}
-		ret true
+		return true
 	}
 
 	// Returns the degree of the polynomial (highest exponent).
 	// Returns -1 for the zero polynomial.
 	fn Degree(*self): int {
 		if len(*self) == 0 {
-			ret -1
+			return -1
 		}
-		ret (*self)[0].Exp
+		return (*self)[0].Exp
 	}
 
 	// Sets self to negated coefficients of the polynomial x.
@@ -102,7 +102,7 @@ impl Polynomial {
 	fn Copy(mut *self, &x: *Polynomial) {
 		// self is an x for self, return immediately.
 		if self == x {
-			ret
+			return
 		}
 		*self = self.make(len(*x))
 		copy(*self, *x)
@@ -120,7 +120,7 @@ impl Polynomial {
 	#disable boundary
 	fn Simplify(mut *self, &p: *Polynomial, tol: f64) {
 		if len(*p) <= 1 {
-			ret // Already simplified.
+			return // Already simplified.
 		}
 
 		// Group terms by exponent using a map.
@@ -157,21 +157,21 @@ impl Polynomial {
 		if len(*y) == 0 {
 			// self is an x for self, return immediately.
 			if self == x {
-				ret
+				return
 			}
 			*self = self.make(len(*x))
 			copy(*self, *x)
-			ret
+			return
 		}
 		// If x is empty, just copy y.
 		if len(*x) == 0 {
 			// self is an alias for y, return immediately.
 			if self == y {
-				ret
+				return
 			}
 			*self = self.make(len(*y))
 			copy(*self, *y)
-			ret
+			return
 		}
 
 		// Allocate result Polynomial.
@@ -229,11 +229,11 @@ impl Polynomial {
 		if len(*y) == 0 {
 			// self is an x for self, return immediately.
 			if self == x {
-				ret
+				return
 			}
 			*self = self.make(len(*x))
 			copy(*self, *x)
-			ret
+			return
 		}
 		// If x is empty, just copy y.
 		if len(*x) == 0 {
@@ -242,7 +242,7 @@ impl Polynomial {
 				p.Coef = -p.Coef
 				(*self)[i] = p
 			}
-			ret
+			return
 		}
 
 		// Allocate result Polynomial.
@@ -301,15 +301,15 @@ impl Polynomial {
 		if len(*x) == 0 || k == 1 {
 			// self is an alias for x, return immediately.
 			if self == x {
-				ret
+				return
 			}
 			*self = self.make(len(*x))
 			copy(*self, *x)
-			ret
+			return
 		}
 		if k == 0 {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 		*self = self.make(len(*x))
 		mut i := 0
@@ -318,7 +318,7 @@ impl Polynomial {
 			if !jn::Tolerance(coef, 0, tol) {
 				(*self)[i] = Term{
 					Coef: coef,
-					Exp: term.Exp,
+					Exp:  term.Exp,
 				}
 				i++
 			}
@@ -349,7 +349,7 @@ impl Polynomial {
 		// Early return: x or y is zero.
 		if n == 0 {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 
 		if n < fftThreshold {
@@ -373,7 +373,7 @@ impl Polynomial {
 		// Early return: x or y is zero.
 		if len(*x)*len(*y) == 0 {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 		basicMul(self, x, y)
 	}
@@ -394,7 +394,7 @@ impl Polynomial {
 		// Early return: x or y is zero.
 		if n == 0 {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 
 		if n < fftThreshold {
@@ -418,7 +418,7 @@ impl Polynomial {
 		// Early return: x or y is zero.
 		if n == 0 {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 
 		size := fftSize(x, y)
@@ -497,7 +497,7 @@ impl Polynomial {
 			if term.Exp != 0 {
 				(*self)[k] = Term{
 					Coef: term.Coef * f64(term.Exp),
-					Exp: term.Exp - 1,
+					Exp:  term.Exp - 1,
 				}
 				k++
 			}
@@ -537,13 +537,13 @@ impl Polynomial {
 	fn Eval(*self, x: f64): f64 {
 		match len(*self) {
 		| 0:
-			ret 0
+			return 0
 		| 1:
 			t := (*self)[0]
 			if t.Exp == 0 {
-				ret t.Coef
+				return t.Coef
 			}
-			ret t.Coef * math::Pow(x, f64(t.Exp))
+			return t.Coef * math::Pow(x, f64(t.Exp))
 		}
 
 		// For general case: cache powers of x on the fly.
@@ -561,7 +561,7 @@ impl Polynomial {
 			}
 			result += term.Coef * px
 		}
-		ret result
+		return result
 	}
 
 	// Sets self to the greatest common divisor of two polynomials x and y.
@@ -588,7 +588,7 @@ impl Polynomial {
 			lc := X.LeadingCoef()
 			if jn::Tolerance(lc, 0, tol) {
 				*self = (*self)[:0]
-				ret
+				return
 			}
 
 			self.Scale(&X, 1/lc, tol)
@@ -605,7 +605,7 @@ impl Polynomial {
 	fn LCM(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
 		if x.Zero(tol) || y.Zero(tol) {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 
 		let mut product: Polynomial
@@ -640,16 +640,16 @@ impl Polynomial {
 			*self = self.make(1)
 			(*self)[0].Coef = 1
 			(*self)[0].Exp = 0
-			ret
+			return
 		}
 		if n == 1 {
 			// self is an alias for x, return immediately.
 			if self == x {
-				ret
+				return
 			}
 			*self = self.make(len(*x))
 			copy(*self, *x)
-			ret
+			return
 		}
 
 		let mut base: Polynomial
@@ -678,13 +678,13 @@ impl Polynomial {
 	fn Normalize(mut *self, &x: *Polynomial, tol: f64) {
 		if len(*x) == 0 {
 			*self = (*self)[:0]
-			ret // zero polynomial, do nothing
+			return // zero polynomial, do nothing
 		}
 
 		lc := (*x)[0].Coef
 		if jn::Tolerance(lc, 0, tol) {
 			*self = (*self)[:0]
-			ret // avoid division by near-zero
+			return // avoid division by near-zero
 		}
 
 		*self = self.make(len(*x))
@@ -724,7 +724,7 @@ impl Polynomial {
 		n := len(xs)
 		if n == 0 {
 			*self = (*self)[:0]
-			ret
+			return
 		}
 
 		mut i := 0
@@ -779,15 +779,15 @@ fn dynamicTolerance(&x: *Polynomial, &y: *Polynomial, size: int): f64 {
 		}
 
 		if maxCoef == 0 {
-			ret 0
+			return 0
 		}
 
 		basicTol := machineEpsilon * f64(size) * maxCoef
 		relativeTol := 1e-14 * maxCoef
 		absoluteTol := 1e-16
-		ret math::Max(basicTol, math::Max(relativeTol, absoluteTol))
+		return math::Max(basicTol, math::Max(relativeTol, absoluteTol))
 	} else {
-		ret machineEpsilon * f64(size) * math::Log2(f64(size)) * safetyFactor
+		return machineEpsilon * f64(size) * math::Log2(f64(size)) * safetyFactor
 	}
 }
 
@@ -840,7 +840,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 			*rem = rem.make(len(*y))
 			copy(*rem, *y)
 		}
-		ret
+		return
 	}
 
 	degDiv := (*y)[0].Exp
@@ -859,7 +859,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 
 	if degX < degY {
 		*quot = (*quot)[:0]
-		ret
+		return
 	}
 
 	mut k := degX - degY + 1
@@ -884,7 +884,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 		for i, dterm in *y {
 			subtrahend[i] = Term{
 				Coef: dterm.Coef * coefQuot,
-				Exp: dterm.Exp + expDiff,
+				Exp:  dterm.Exp + expDiff,
 			}
 		}
 		rem.Sub(rem, &subtrahend, 0)
@@ -922,7 +922,7 @@ fn truncate(mut &x: *Polynomial, k: int) {
 fn inverse(mut &inv: *Polynomial, &c: *Polynomial, k: int) {
 	if k == 0 {
 		*inv = (*inv)[:0]
-		ret
+		return
 	}
 	if k == 1 {
 		let mut c0: f64
@@ -937,7 +937,7 @@ fn inverse(mut &inv: *Polynomial, &c: *Polynomial, k: int) {
 		}
 		*inv = make(Polynomial, 1)
 		(*inv)[0] = Term{Coef: 1.0 / c0, Exp: 0}
-		ret
+		return
 	}
 
 	k_half := (k + 1) / 2
@@ -966,7 +966,7 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 			*r = r.make(len(*b))
 			copy(*r, *b)
 		}
-		ret
+		return
 	}
 
 	degA := (*a)[0].Exp
@@ -978,7 +978,7 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 			*r = r.make(len(*a))
 			copy(*r, *a)
 		}
-		ret
+		return
 	}
 
 	k := degA - degB + 1
@@ -1052,7 +1052,7 @@ fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
 	}
 	maxExpX = ibits::Max(maxExpX, len(*x))
 	maxExpY = ibits::Max(maxExpY, len(*y))
-	ret ibits::NextPowerOfTwo(maxExpX + maxExpY + 1)
+	return ibits::NextPowerOfTwo(maxExpX + maxExpY + 1)
 }
 
 // z = x*y, using FFT.
@@ -1088,11 +1088,11 @@ fn sortByExp(mut &p: *Polynomial) {
 	slices::SortFunc([]Term(*p), fn|i, j| {
 		match {
 		| i.Exp == j.Exp:
-			ret 0
+			return 0
 		| i.Exp > j.Exp:
-			ret -1
+			return -1
 		|:
-			ret +1
+			return +1
 		}
 	})
 }
@@ -1104,5 +1104,5 @@ fn sortByExp(mut &p: *Polynomial) {
 // no 3-operand slice expressions in this code (or worse,
 // reflect-based operations to the same effect).
 fn alias(&x: *Polynomial, &y: *Polynomial): bool {
-	ret imem::Alias([]Term(*x), []Term(*y))
+	return imem::Alias([]Term(*x), []Term(*y))
 }

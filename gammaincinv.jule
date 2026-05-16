@@ -19,7 +19,7 @@ const (
 )
 
 fn gammaIncReg(x: f64, params: []f64): f64 {
-	ret _Igam(params[0], x) - params[1]
+	return _Igam(params[0], x) - params[1]
 }
 
 // Inverse of the regularized incomplete Gamma integral. That is, it returns x such that:
@@ -35,7 +35,7 @@ fn gammaIncRegInv(a: f64, y: f64): f64 {
 	// (inverse of the complemented incomplete Gamma integral). For y small,
 	// however, 1-y is about 1, and we lose digits.
 	if a <= 0 || y <= 0 || y >= 0.25 {
-		ret _IgamI(a, 1-y)
+		return _IgamI(a, 1-y)
 	}
 
 	mut lo := 0.0
@@ -53,5 +53,5 @@ fn gammaIncRegInv(a: f64, y: f64): f64 {
 		bestX = math::NaN()
 	}
 
-	ret bestX
+	return bestX
 }

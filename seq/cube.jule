@@ -26,7 +26,7 @@ impl Seq for seqCube {
 		one := big::Int.New(1)
 		self.n.Add(&self.n, &one)
 
-		ret self.result
+		return self.result
 	}
 }
 
@@ -34,5 +34,5 @@ impl Seq for seqCube {
 fn Cube(): Seq {
 	mut seq := new(seqCube)
 	seq.Reset()
-	ret seq
+	return seq
 }

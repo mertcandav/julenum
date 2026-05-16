@@ -22,7 +22,7 @@ fn Max[T: integer | float](s: ...T): T {
 			max = x
 		}
 	}
-	ret max
+	return max
 }
 
 // Returns the minimum value of the slice.
@@ -43,7 +43,7 @@ fn Min[T: integer | float](s: ...T): T {
 			min = x
 		}
 	}
-	ret min
+	return min
 }
 
 // Returns the minimum and maximum value of the slice.
@@ -69,7 +69,7 @@ fn MinMax[T: integer | float](s: ...T): (min: T, max: T) {
 			max = x
 		}
 	}
-	ret
+	return
 }
 
 // Returns the sum of all values of the slice.
@@ -83,7 +83,7 @@ fn Sum[T: numeric](s: ...T): T {
 	for _, x in s {
 		sum += x
 	}
-	ret sum
+	return sum
 }
 
 #disable boundary
@@ -102,7 +102,7 @@ fn linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
 			start -= step
 		}
 	}
-	ret r
+	return r
 }
 
 // Returns a slice of n evenly spaced values between start and stop, inclusive.
@@ -119,12 +119,12 @@ fn linspace[T: integer | float](mut start: T, stop: T, n: int): []T {
 //	Linspace(start, ±Inf, n) = [start, ±Inf, ±Inf, ±Inf, ...]
 fn Linspace[T: integer | float](start: T, stop: T, n: int): []T {
 	if n == 0 {
-		ret make([]T, 0)
+		return make([]T, 0)
 	}
 	if n < 0 {
 		panic("julenum: Linspace: n < 0")
 	}
-	ret linspace(start, stop, n)
+	return linspace(start, stop, n)
 }
 
 fn logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
@@ -132,7 +132,7 @@ fn logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
 	for i in r {
 		r[i] = T(math::Pow(base, f64(r[i])))
 	}
-	ret r
+	return r
 }
 
 // Returns a slice of n values spaced evenly on a log scale (with given base)
@@ -148,12 +148,12 @@ fn logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
 // To preserve exact results, use 64-bit floating-point type.
 fn Logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
 	if n == 0 {
-		ret make([]T, 0)
+		return make([]T, 0)
 	}
 	if n < 0 {
 		panic("julenum: Logspace: n < 0")
 	}
-	ret logspace(start, stop, n, base)
+	return logspace(start, stop, n, base)
 }
 
 // Returns a slice of n values spaced evenly on a log scale (base 10) between start and stop,
@@ -171,7 +171,7 @@ fn Logspace[T: integer | float](start: T, stop: T, n: int, base: f64): []T {
 #disable boundary
 fn Geomspace[T: integer | float](mut start: T, mut stop: T, n: int): []T {
 	if n == 0 {
-		ret make([]T, 0)
+		return make([]T, 0)
 	}
 	if n < 0 {
 		panic("julenum: Geomspace: n < 0")
@@ -197,7 +197,7 @@ fn Geomspace[T: integer | float](mut start: T, mut stop: T, n: int): []T {
 		r[i] = r[i] * sign
 	}
 
-	ret r
+	return r
 }
 
 // Returns a slice of evenly spaced values within a given interval.
@@ -221,12 +221,12 @@ fn Range[T: integer | float](mut start: T, stop: T, step: T): []T {
 	let mut r: []T
 	if start < stop {
 		if step < 0 {
-			ret make([]T, 0)
+			return make([]T, 0)
 		}
 		r = make([]T, nor1(int(math::Ceil(f64((stop-start)/step)))))
 	} else {
 		if step > 0 {
-			ret make([]T, 0)
+			return make([]T, 0)
 		}
 		r = make([]T, nor1(int(math::Ceil(f64((start-stop)/-step)))))
 	}
@@ -234,13 +234,13 @@ fn Range[T: integer | float](mut start: T, stop: T, step: T): []T {
 		r[i] = start
 		start += step
 	}
-	ret r
+	return r
 }
 
 // Makes n guaranteed to be n > 0.
 fn nor1(n: int): int {
 	if n > 0 {
-		ret n
+		return n
 	}
-	ret 1
+	return 1
 }

@@ -24,7 +24,7 @@ impl Seq for seqFibonacci {
 		if self.prev.BitLen() == 0 && self.curr.BitLen() == 0 {
 			self.out.Set(&self.prev) // return 0
 			self.curr.SetU64(1)
-			ret self.out
+			return self.out
 		}
 
 		// next = prev + curr
@@ -36,11 +36,11 @@ impl Seq for seqFibonacci {
 
 		// return prev (F(n-1))
 		self.out.Set(&self.prev)
-		ret self.out
+		return self.out
 	}
 }
 
 // Returns a sequence representing fibonacci numbers from 0, then 1, 1, and so on.
 fn Fibonacci(): Seq {
-	ret new(seqFibonacci)
+	return new(seqFibonacci)
 }

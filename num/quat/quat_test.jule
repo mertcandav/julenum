@@ -20,43 +20,48 @@ struct quatArithTest {
 
 let testsQuatArith: []quatArithTest = [
 	{
-		x: {1, 1, 1, 1}, y: {1, 1, 1, 1},
-		f: 2,
-		rAdd: {2, 2, 2, 2},
-		rSub: {0, 0, 0, 0},
-		rMul: {-2, 2, 2, 2},
+		x:      {1, 1, 1, 1},
+		y:      {1, 1, 1, 1},
+		f:      2,
+		rAdd:   {2, 2, 2, 2},
+		rSub:   {0, 0, 0, 0},
+		rMul:   {-2, 2, 2, 2},
 		rScale: {2, 2, 2, 2},
 	},
 	{
-		x: {1, 1, 1, 1}, y: {2, -1, 1, -1},
-		f: -2,
-		rAdd: {3, 0, 2, 0},
-		rSub: {-1, 2, 0, 2},
-		rMul: {3, -1, 3, 3},
+		x:      {1, 1, 1, 1},
+		y:      {2, -1, 1, -1},
+		f:      -2,
+		rAdd:   {3, 0, 2, 0},
+		rSub:   {-1, 2, 0, 2},
+		rMul:   {3, -1, 3, 3},
 		rScale: {-2, -2, -2, -2},
 	},
 	{
-		x: {1, 2, 3, 4}, y: {4, -3, 2, -1},
-		f: 2,
-		rAdd: {5, -1, 5, 3},
-		rSub: {-3, 5, 1, 5},
-		rMul: {8, -6, 4, 28},
+		x:      {1, 2, 3, 4},
+		y:      {4, -3, 2, -1},
+		f:      2,
+		rAdd:   {5, -1, 5, 3},
+		rSub:   {-3, 5, 1, 5},
+		rMul:   {8, -6, 4, 28},
 		rScale: {2, 4, 6, 8},
 	},
 	{
-		x: {1, 2, 3, 4}, y: {-4, 3, -2, 1},
-		f: -2,
-		rAdd: {-3, 5, 1, 5},
-		rSub: {5, -1, 5, 3},
-		rMul: {-8, 6, -4, -28},
+		x:      {1, 2, 3, 4},
+		y:      {-4, 3, -2, 1},
+		f:      -2,
+		rAdd:   {-3, 5, 1, 5},
+		rSub:   {5, -1, 5, 3},
+		rMul:   {-8, 6, -4, -28},
 		rScale: {-2, -4, -6, -8},
 	},
 	{
-		x: {-4, 3, -2, 1}, y: {1, 2, 3, 4},
-		f: 0.5,
-		rAdd: {-3, 5, 1, 5},
-		rSub: {-5, 1, -5, -3},
-		rMul: {-8, -16, -24, -2},
+		x:      {-4, 3, -2, 1},
+		y:      {1, 2, 3, 4},
+		f:      0.5,
+		rAdd:   {-3, 5, 1, 5},
+		rSub:   {-5, 1, -5, -3},
+		rMul:   {-8, -16, -24, -2},
 		rScale: {-2, 1.5, -1, 0.5},
 	},
 ]
@@ -348,75 +353,93 @@ let testsQuatPow: []quatPowTest = [
 	// Expected velues below are from pyquaternion.
 	// pyquaternion does not support quaternion powers.
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: {W: 2},
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: {W: 2},
 		w: {W: -2, X: 2, Y: 2, Z: 2},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: {W: 2},
+		q: {W: 1, X: 0, Y: 1, Z: 1},
+		r: {W: 2},
 		w: {W: -1, X: 0, Y: 2, Z: 2},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: {W: 2},
+		q: {W: 1, X: 0, Y: 0, Z: 1},
+		r: {W: 2},
 		w: {W: 0, X: 0, Y: 0, Z: 2},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: {W: 2},
+		q: {W: 0, X: 1, Y: 1, Z: 1},
+		r: {W: 2},
 		w: {W: -3, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: {W: 2},
+		q: {W: 0, X: 0, Y: 1, Z: 1},
+		r: {W: 2},
 		w: {W: -2, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: {W: 2},
+		q: {W: 0, X: 0, Y: 0, Z: 1},
+		r: {W: 2},
 		w: {W: -1, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: {W: jn::Pi},
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: {W: jn::Pi},
 		w: {W: -8.728144138959564, X: -0.7527136547040768, Y: -0.7527136547040768, Z: -0.7527136547040768},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: {W: jn::Pi},
+		q: {W: 1, X: 0, Y: 1, Z: 1},
+		r: {W: jn::Pi},
 		w: {W: -5.561182514695044, X: 0, Y: 0.5556661490713818, Z: 0.5556661490713818},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: {W: jn::Pi},
+		q: {W: 1, X: 0, Y: 0, Z: 1},
+		r: {W: jn::Pi},
 		w: {W: -2.320735561810013, X: 0, Y: 0, Z: 1.8544983901925216},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: {W: jn::Pi},
+		q: {W: 0, X: 1, Y: 1, Z: 1},
+		r: {W: jn::Pi},
 		w: {W: 1.2388947209955585, X: -3.162774128856231, Y: -3.162774128856231, Z: -3.162774128856231},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: {W: jn::Pi},
+		q: {W: 0, X: 0, Y: 1, Z: 1},
+		r: {W: jn::Pi},
 		w: {W: 0.6552860151073727, X: 0, Y: -2.0488506614051922, Z: -2.0488506614051922},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: {W: jn::Pi},
+		q: {W: 0, X: 0, Y: 0, Z: 1},
+		r: {W: jn::Pi},
 		w: {W: 0.22058404074969779, X: 0, Y: 0, Z: -0.9753679720836315},
 	},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: {W: 3},
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: {W: 3},
 		w: {W: -8, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: {W: 3},
+		q: {W: 1, X: 0, Y: 1, Z: 1},
+		r: {W: 3},
 		w: {W: -5, X: 0, Y: 1, Z: 1},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: {W: 3},
+		q: {W: 1, X: 0, Y: 0, Z: 1},
+		r: {W: 3},
 		w: {W: -2, X: 0, Y: 0, Z: 2},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: {W: 3},
+		q: {W: 0, X: 1, Y: 1, Z: 1},
+		r: {W: 3},
 		w: {W: 0, X: -3, Y: -3, Z: -3},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: {W: 3},
+		q: {W: 0, X: 0, Y: 1, Z: 1},
+		r: {W: 3},
 		w: {W: 0, X: 0, Y: -2, Z: -2},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: {W: 3},
+		q: {W: 0, X: 0, Y: 0, Z: 1},
+		r: {W: 3},
 		w: {W: 0, X: 0, Y: 0, Z: -1},
 	},
 ]
@@ -441,75 +464,93 @@ struct powRealTest {
 let testsQuatPowReal: []powRealTest = [
 	{q: {}, r: 0, w: {W: 1}},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: 2,
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: 2,
 		w: {W: -2, X: 2, Y: 2, Z: 2},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: 2,
+		q: {W: 1, X: 0, Y: 1, Z: 1},
+		r: 2,
 		w: {W: -1, X: 0, Y: 2, Z: 2},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: 2,
+		q: {W: 1, X: 0, Y: 0, Z: 1},
+		r: 2,
 		w: {W: 0, X: 0, Y: 0, Z: 2},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: 2,
+		q: {W: 0, X: 1, Y: 1, Z: 1},
+		r: 2,
 		w: {W: -3, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: 2,
+		q: {W: 0, X: 0, Y: 1, Z: 1},
+		r: 2,
 		w: {W: -2, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: 2,
+		q: {W: 0, X: 0, Y: 0, Z: 1},
+		r: 2,
 		w: {W: -1, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: jn::Pi,
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: jn::Pi,
 		w: {W: -8.728144138959564, X: -0.7527136547040768, Y: -0.7527136547040768, Z: -0.7527136547040768},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: jn::Pi,
+		q: {W: 1, X: 0, Y: 1, Z: 1},
+		r: jn::Pi,
 		w: {W: -5.561182514695044, X: 0, Y: 0.5556661490713818, Z: 0.5556661490713818},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: jn::Pi,
+		q: {W: 1, X: 0, Y: 0, Z: 1},
+		r: jn::Pi,
 		w: {W: -2.320735561810013, X: 0, Y: 0, Z: 1.8544983901925216},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: jn::Pi,
+		q: {W: 0, X: 1, Y: 1, Z: 1},
+		r: jn::Pi,
 		w: {W: 1.2388947209955585, X: -3.162774128856231, Y: -3.162774128856231, Z: -3.162774128856231},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: jn::Pi,
+		q: {W: 0, X: 0, Y: 1, Z: 1},
+		r: jn::Pi,
 		w: {W: 0.6552860151073727, X: 0, Y: -2.0488506614051922, Z: -2.0488506614051922},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: jn::Pi,
+		q: {W: 0, X: 0, Y: 0, Z: 1},
+		r: jn::Pi,
 		w: {W: 0.22058404074969779, X: 0, Y: 0, Z: -0.9753679720836315},
 	},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: 3,
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: 3,
 		w: {W: -8, X: 0, Y: 0, Z: 0},
 	},
 	{
-		q: {W: 1, X: 0, Y: 1, Z: 1}, r: 3,
+		q: {W: 1, X: 0, Y: 1, Z: 1},
+		r: 3,
 		w: {W: -5, X: 0, Y: 1, Z: 1},
 	},
 	{
-		q: {W: 1, X: 0, Y: 0, Z: 1}, r: 3,
+		q: {W: 1, X: 0, Y: 0, Z: 1},
+		r: 3,
 		w: {W: -2, X: 0, Y: 0, Z: 2},
 	},
 	{
-		q: {W: 0, X: 1, Y: 1, Z: 1}, r: 3,
+		q: {W: 0, X: 1, Y: 1, Z: 1},
+		r: 3,
 		w: {W: 0, X: -3, Y: -3, Z: -3},
 	},
 	{
-		q: {W: 0, X: 0, Y: 1, Z: 1}, r: 3,
+		q: {W: 0, X: 0, Y: 1, Z: 1},
+		r: 3,
 		w: {W: 0, X: 0, Y: -2, Z: -2},
 	},
 	{
-		q: {W: 0, X: 0, Y: 0, Z: 1}, r: 3,
+		q: {W: 0, X: 0, Y: 0, Z: 1},
+		r: 3,
 		w: {W: 0, X: 0, Y: 0, Z: -1},
 	},
 ]
@@ -574,16 +615,18 @@ let testsQuatSin: []testQuatQuat = [
 	{q: {Y: jn::Pi / 2}, r: {Y: imag(cmplx::Sin(cmplx(0, jn::Pi/2)))}},
 	{q: {Z: jn::Pi / 2}, r: {Z: imag(cmplx::Sin(cmplx(0, jn::Pi/2)))}},
 	{
-		q: {W: 1, X: 1, Y: 1, Z: 1}, r: fn(): Quat {
+		q: {W: 1, X: 1, Y: 1, Z: 1},
+		r: fn(): Quat {
 			p := math::Cos(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
 			// An error exists in the book's given solution for the real part.
-			ret {W: math::Sin(1) * math::Cosh(math::Sqrt(3)), X: p, Y: p, Z: p}
+			return {W: math::Sin(1) * math::Cosh(math::Sqrt(3)), X: p, Y: p, Z: p}
 		}(),
 	},
 	{
-		q: {X: -2, Y: 1}, r: fn(): Quat {
+		q: {X: -2, Y: 1},
+		r: fn(): Quat {
 			s := math::Sinh(math::Sqrt(5)) / math::Sqrt(5)
-			ret Quat{X: -2 * s, Y: s}
+			return Quat{X: -2 * s, Y: s}
 		}(),
 	},
 ]
@@ -606,7 +649,8 @@ let testsQuatSinh: []testQuatQuat = [
 	{q: {Y: jn::Pi / 2}, r: {Y: imag(cmplx::Sinh(cmplx(0, jn::Pi/2)))}},
 	{q: {Z: jn::Pi / 2}, r: {Z: imag(cmplx::Sinh(cmplx(0, jn::Pi/2)))}},
 	{
-		q: {W: 1, X: -1, Y: -1}, r: fn(): Quat {
+		q: {W: 1, X: -1, Y: -1},
+		r: fn(): Quat {
 			// This was based on the example on p118, but it too has an error.
 			mut q := Quat{W: 1, X: -1, Y: -1}
 			mut exp := q
@@ -615,11 +659,12 @@ let testsQuatSinh: []testQuatQuat = [
 			q.Exp(&q)
 			q.Sub(&exp, &q)
 			q.Scale(&q, 0.5)
-			ret q
+			return q
 		}(),
 	},
 	{
-		q: {1, 1, 1, 1}, r: fn(): Quat {
+		q: {1, 1, 1, 1},
+		r: fn(): Quat {
 			mut q := Quat{1, 1, 1, 1}
 			mut exp := q
 			exp.Exp(&exp)
@@ -627,12 +672,13 @@ let testsQuatSinh: []testQuatQuat = [
 			q.Exp(&q)
 			q.Sub(&exp, &q)
 			q.Scale(&q, 0.5)
-			ret q
+			return q
 		}(),
 	},
 	{q: asinh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
 	{
-		q: asinh({1, 1, 1, 1}), r: fn(): Quat {
+		q: asinh({1, 1, 1, 1}),
+		r: fn(): Quat {
 			mut q := asinh({1, 1, 1, 1})
 			mut exp := q
 			exp.Exp(&exp)
@@ -640,7 +686,7 @@ let testsQuatSinh: []testQuatQuat = [
 			q.Exp(&q)
 			q.Sub(&exp, &q)
 			q.Scale(&q, 0.5)
-			ret q
+			return q
 		}(),
 	},
 	{q: {W: math::Inf(1)}, r: {W: math::Inf(1)}},
@@ -669,9 +715,9 @@ let testsQuatCos: []testQuatQuat = [
 	{q: {Y: jn::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, jn::Pi/2)))}},
 	{q: {Z: jn::Pi / 2}, r: {W: real(cmplx::Cos(cmplx(0, jn::Pi/2)))}},
 	{q: {W: 1, X: 1, Y: 1, Z: 1}, r: fn(): Quat {
-			p := math::Sin(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
-			ret Quat{W: math::Cos(1) * math::Cosh(math::Sqrt(3)), X: -p, Y: -p, Z: -p}
-		}()},
+		p := math::Sin(1) * math::Sinh(math::Sqrt(3)) / math::Sqrt(3)
+		return Quat{W: math::Cos(1) * math::Cosh(math::Sqrt(3)), X: -p, Y: -p, Z: -p}
+	}()},
 ]
 
 #test
@@ -692,25 +738,25 @@ let testsQuatCosh: []testQuatQuat = [
 	{q: {Y: jn::Pi / 2}, r: {Y: imag(cmplx::Cosh(cmplx(0, jn::Pi/2)))}},
 	{q: {Z: jn::Pi / 2}, r: {Z: imag(cmplx::Cosh(cmplx(0, jn::Pi/2)))}},
 	{q: {W: 1, X: -1, Y: -1}, r: fn(): Quat {
-			mut q := Quat{W: 1, X: -1, Y: -1}
-			mut t := q
-			q.Scale(&q, -1)
-			q.Exp(&q)
-			t.Exp(&t)
-			q.Add(&q, &t)
-			q.Scale(&q, 0.5)
-			ret q
-		}()},
+		mut q := Quat{W: 1, X: -1, Y: -1}
+		mut t := q
+		q.Scale(&q, -1)
+		q.Exp(&q)
+		t.Exp(&t)
+		q.Add(&q, &t)
+		q.Scale(&q, 0.5)
+		return q
+	}()},
 	{q: {1, 1, 1, 1}, r: fn(): Quat {
-			mut q := Quat{1, 1, 1, 1}
-			mut t := q
-			q.Scale(&q, -1)
-			q.Exp(&q)
-			t.Exp(&t)
-			q.Add(&q, &t)
-			q.Scale(&q, 0.5)
-			ret q
-		}()},
+		mut q := Quat{1, 1, 1, 1}
+		mut t := q
+		q.Scale(&q, -1)
+		q.Exp(&q)
+		t.Exp(&t)
+		q.Add(&q, &t)
+		q.Scale(&q, 0.5)
+		return q
+	}()},
 	{q: {W: math::Inf(1)}, r: {W: math::Inf(1)}},
 	{q: {W: math::Inf(1), X: jn::Pi / 2}, r: {W: math::Inf(1), X: math::Inf(1)}},
 	{q: {W: math::Inf(1), X: jn::Pi}, r: {W: math::Inf(-1), X: math::Inf(1)}},
@@ -805,16 +851,16 @@ let testsQuatAsinh: []testQuatQuat = [
 	{q: {Y: 1}, r: {Y: jn::Pi / 2}},
 	{q: {Z: 1}, r: {Z: jn::Pi / 2}},
 	{q: {1, 1, 1, 1}, r: fn(): Quat {
-			mut q := Quat{1, 1, 1, 1}
-			mut p := Quat{W: 1}
-			q.Mul(&q, &q)
-			q.Add(&q, &p)
-			q.Sqrt(&q)
-			p = {1, 1, 1, 1}
-			q.Add(&q, &p)
-			q.Log(&q)
-			ret q
-		}()},
+		mut q := Quat{1, 1, 1, 1}
+		mut p := Quat{W: 1}
+		q.Mul(&q, &q)
+		q.Add(&q, &p)
+		q.Sqrt(&q)
+		p = {1, 1, 1, 1}
+		q.Add(&q, &p)
+		q.Log(&q)
+		return q
+	}()},
 	{q: sinh({W: 1}), r: {W: 1}},
 	{q: sinh({X: 1}), r: {X: 1}},
 	{q: sinh({X: 1, Y: 1}), r: {X: 1, Y: 1}},
@@ -823,16 +869,16 @@ let testsQuatAsinh: []testQuatQuat = [
 	// {q: sinh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
 	// but this passes...
 	{q: sinh({1, 1, 1, 1}), r: fn(): Quat {
-			mut p := Quat{W: 1}
-			mut q := sinh({1, 1, 1, 1})
-			q.Mul(&q, &q)
-			q.Add(&q, &p)
-			q.Sqrt(&q)
-			p = sinh({1, 1, 1, 1})
-			q.Add(&q, &p)
-			q.Log(&q)
-			ret q
-		}()},
+		mut p := Quat{W: 1}
+		mut q := sinh({1, 1, 1, 1})
+		q.Mul(&q, &q)
+		q.Add(&q, &p)
+		q.Sqrt(&q)
+		p = sinh({1, 1, 1, 1})
+		q.Add(&q, &p)
+		q.Log(&q)
+		return q
+	}()},
 	// And see the Sinh tests that do the reciprocal operation.
 ]
 
@@ -875,7 +921,8 @@ let testsQuatAcosh: []testQuatQuat = [
 	{q: {Z: 1}, r: {W: real(cmplx::Acosh(1i)), Z: imag(cmplx::Acosh(1i))}},
 	{q: cosh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
 	{
-		q: {1, 1, 1, 1}, r: fn(): Quat {
+		q: {1, 1, 1, 1},
+		r: fn(): Quat {
 			mut q := Quat{1, 1, 1, 1}
 			mut p := Quat{W: 1}
 			q.Mul(&q, &q)
@@ -884,7 +931,7 @@ let testsQuatAcosh: []testQuatQuat = [
 			p = Quat{1, 1, 1, 1}
 			p.Add(&p, &q)
 			p.Log(&p)
-			ret p
+			return p
 		}(),
 	},
 ]
@@ -927,7 +974,8 @@ let testsQuatAtanh: []testQuatQuat = [
 	{q: {Y: 0.5}, r: {W: real(cmplx::Atanh(0.5i)), Y: imag(cmplx::Atanh(0.5i))}},
 	{q: {Z: 0.5}, r: {W: real(cmplx::Atanh(0.5i)), Z: imag(cmplx::Atanh(0.5i))}},
 	{
-		q: {1, 1, 1, 1}, r: fn(): Quat {
+		q: {1, 1, 1, 1},
+		r: fn(): Quat {
 			mut q := Quat{1, 1, 1, 1}
 			mut p := Quat{W: 1}
 			p.Sub(&p, &q)
@@ -937,7 +985,7 @@ let testsQuatAtanh: []testQuatQuat = [
 			q.Log(&q)
 			q.Sub(&q, &p)
 			q.Scale(&q, 0.5)
-			ret q
+			return q
 		}(),
 	},
 	{q: tanh({W: 1}), r: {W: 1}},
@@ -948,7 +996,8 @@ let testsQuatAtanh: []testQuatQuat = [
 	// {q: tanh({1, 1, 1, 1}), r: {1, 1, 1, 1}},
 	// but...
 	{
-		q: tanh({1, 1, 1, 1}), r: fn(): Quat {
+		q: tanh({1, 1, 1, 1}),
+		r: fn(): Quat {
 			mut q := tanh({1, 1, 1, 1})
 			mut p := Quat{W: 1}
 			p.Sub(&p, &q)
@@ -958,7 +1007,7 @@ let testsQuatAtanh: []testQuatQuat = [
 			q.Log(&q)
 			q.Sub(&q, &p)
 			q.Scale(&q, 0.5)
-			ret q
+			return q
 		}(),
 	},
 ]
@@ -984,32 +1033,53 @@ struct axisAngleTest {
 
 let testsAxisAngle: []axisAngleTest = [
 	{
-		x: 0, y: 1, z: 0, rad: 0,
-		r: {1, 0, 0, 0},
+		x:   0,
+		y:   1,
+		z:   0,
+		rad: 0,
+		r:   {1, 0, 0, 0},
 	},
 	{
-		x: 0, y: 1, z: 0, rad: jn::Pi,
-		r: {0, 0, 1, 0},
+		x:   0,
+		y:   1,
+		z:   0,
+		rad: jn::Pi,
+		r:   {0, 0, 1, 0},
 	},
 	{
-		x: 1, y: 0, z: 0, rad: jn::Pi / 2,
-		r: {jn::Sqrt2 / 2, jn::Sqrt2 / 2, 0, 0},
+		x:   1,
+		y:   0,
+		z:   0,
+		rad: jn::Pi / 2,
+		r:   {jn::Sqrt2 / 2, jn::Sqrt2 / 2, 0, 0},
 	},
 	{
-		x: 0, y: 0, z: 1, rad: jn::Pi / 2,
-		r: {jn::Sqrt2 / 2, 0, 0, jn::Sqrt2 / 2},
+		x:   0,
+		y:   0,
+		z:   1,
+		rad: jn::Pi / 2,
+		r:   {jn::Sqrt2 / 2, 0, 0, jn::Sqrt2 / 2},
 	},
 	{
-		x: 1 / math::Sqrt(3), y: 1 / math::Sqrt(3), z: 1 / math::Sqrt(3), rad: jn::Pi / 4,
-		r: {math::Cos(jn::Pi / 8), math::Sin(jn::Pi/8) / math::Sqrt(3), math::Sin(jn::Pi/8) / math::Sqrt(3), math::Sin(jn::Pi/8) / math::Sqrt(3)},
+		x:   1 / math::Sqrt(3),
+		y:   1 / math::Sqrt(3),
+		z:   1 / math::Sqrt(3),
+		rad: jn::Pi / 4,
+		r:   {math::Cos(jn::Pi / 8), math::Sin(jn::Pi/8) / math::Sqrt(3), math::Sin(jn::Pi/8) / math::Sqrt(3), math::Sin(jn::Pi/8) / math::Sqrt(3)},
 	},
 	{
-		x: 1, y: 0, z: 0, rad: jn::Pi * 2,
-		r: {1, 0, 0, 0},
+		x:   1,
+		y:   0,
+		z:   0,
+		rad: jn::Pi * 2,
+		r:   {1, 0, 0, 0},
 	},
 	{
-		x: 0, y: -1, z: 0, rad: jn::Pi / 2,
-		r: {jn::Sqrt2 / 2, 0, -jn::Sqrt2 / 2, 0},
+		x:   0,
+		y:   -1,
+		z:   0,
+		rad: jn::Pi / 2,
+		r:   {jn::Sqrt2 / 2, 0, -jn::Sqrt2 / 2, 0},
 	},
 ]
 
@@ -1024,7 +1094,7 @@ fn testAxisAngle(t: &testing::T) {
 }
 
 fn equalApprox(a: Quat, b: Quat): bool {
-	ret jn::Close(a.W, b.W) &&
+	return jn::Close(a.W, b.W) &&
 		jn::Close(a.X, b.X) &&
 		jn::Close(a.Y, b.Y) &&
 		jn::Close(a.Z, b.Z)
@@ -1033,65 +1103,65 @@ fn equalApprox(a: Quat, b: Quat): bool {
 fn sameApprox(a: Quat, b: Quat): bool {
 	match {
 	| a.W == 0 && b.W == 0:
-		ret math::Signbit(a.W) == math::Signbit(b.W)
+		return math::Signbit(a.W) == math::Signbit(b.W)
 	| a.X == 0 && b.X == 0:
-		ret math::Signbit(a.X) == math::Signbit(b.X)
+		return math::Signbit(a.X) == math::Signbit(b.X)
 	| a.Y == 0 && b.Y == 0:
-		ret math::Signbit(a.Y) == math::Signbit(b.Y)
+		return math::Signbit(a.Y) == math::Signbit(b.Y)
 	| a.Z == 0 && b.Z == 0:
-		ret math::Signbit(a.Z) == math::Signbit(b.Z)
+		return math::Signbit(a.Z) == math::Signbit(b.Z)
 	}
-	ret (sameFloat(a.W, b.W) || jn::Close(a.W, b.W)) &&
+	return (sameFloat(a.W, b.W) || jn::Close(a.W, b.W)) &&
 		(sameFloat(a.X, b.X) || jn::Close(a.X, b.X)) &&
 		(sameFloat(a.Y, b.Y) || jn::Close(a.Y, b.Y)) &&
 		(sameFloat(a.Z, b.Z) || jn::Close(a.Z, b.Z))
 }
 
 fn sameFloat(a: f64, b: f64): bool {
-	ret a == b || (math::IsNaN(a) && math::IsNaN(b))
+	return a == b || (math::IsNaN(a) && math::IsNaN(b))
 }
 
 fn asinh(mut q: Quat): Quat {
 	q.Asinh(&q)
-	ret q
+	return q
 }
 
 fn sinh(mut q: Quat): Quat {
 	q.Sinh(&q)
-	ret q
+	return q
 }
 
 fn sin(mut q: Quat): Quat {
 	q.Sin(&q)
-	ret q
+	return q
 }
 
 fn cos(mut q: Quat): Quat {
 	q.Cos(&q)
-	ret q
+	return q
 }
 
 fn cosh(mut q: Quat): Quat {
 	q.Cosh(&q)
-	ret q
+	return q
 }
 
 fn tan(mut q: Quat): Quat {
 	q.Tan(&q)
-	ret q
+	return q
 }
 
 fn tanh(mut q: Quat): Quat {
 	q.Tanh(&q)
-	ret q
+	return q
 }
 
 fn inv(mut q: Quat): Quat {
 	q.Inv(&q)
-	ret q
+	return q
 }
 
 fn mul(mut x: Quat, y: Quat): Quat {
 	x.Mul(&x, &y)
-	ret x
+	return x
 }

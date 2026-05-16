@@ -26,7 +26,7 @@ fn AiryAi(z: cmplx128): cmplx128 {
 	id := 0
 	kode := 1
 	air, aii, _, _ := zairy(real(z), imag(z), id, kode)
-	ret cmplx(air, aii)
+	return cmplx(air, aii)
 }
 
 // Returns the value of the derivative of the Airy function at z. The
@@ -43,7 +43,7 @@ fn AiryAiDeriv(z: cmplx128): cmplx128 {
 	id := 1
 	kode := 1
 	air, aii, _, _ := zairy(real(z), imag(z), id, kode)
-	ret cmplx(air, aii)
+	return cmplx(air, aii)
 }
 
 /*
@@ -288,7 +288,7 @@ fn zairy(ZR: f64, ZI: f64, ID: int, KODE: int): (AIR: f64, AII: f64, NZ: int, IE
 		IERR = 1
 	}
 	if IERR != 0 {
-		ret
+		return
 	}
 	AZ = cmplx::Abs(cmplx(ZR, ZI))
 	TOL = math::Max(dmach[4], 1.0e-18)
@@ -357,7 +357,7 @@ Forty:
 	AIR = S1R*C1 - C2*(ZR*S2R-ZI*S2I)
 	AII = S1I*C1 - C2*(ZR*S2I+ZI*S2R)
 	if KODE == 1 {
-		ret
+		return
 	}
 	tmp = cmplx::Sqrt(cmplx(ZR, ZI))
 	STR = real(tmp)
@@ -370,7 +370,7 @@ Forty:
 	PTR = AIR*STR - AII*STI
 	AII = AIR*STI + AII*STR
 	AIR = PTR
-	ret
+	return
 
 Fifty:
 	AIR = -S2R * C2
@@ -386,7 +386,7 @@ Fifty:
 
 Sixty:
 	if KODE == 1 {
-		ret
+		return
 	}
 	tmp = cmplx::Sqrt(cmplx(ZR, ZI))
 	STR = real(tmp)
@@ -399,7 +399,7 @@ Sixty:
 	PTR = STR*AIR - STI*AII
 	AII = STR*AII + STI*AIR
 	AIR = PTR
-	ret
+	return
 
 	// CASE FOR CABS(Z)>1.0.
 Seventy:
@@ -530,11 +530,11 @@ OneThirty:
 	}
 	AIR = CSQR*S1R - CSQI*S1I
 	AII = CSQR*S1I + CSQI*S1R
-	ret
+	return
 OneFourty:
 	AIR = -(ZR*S1R - ZI*S1I)
 	AII = -(ZR*S1I + ZI*S1R)
-	ret
+	return
 OneFifty:
 	S1R = S1R * SFAC
 	S1I = S1I * SFAC
@@ -546,14 +546,14 @@ OneFifty:
 	S1R = STR
 	AIR = S1R / SFAC
 	AII = S1I / SFAC
-	ret
+	return
 OneSixty:
 	STR = -(S1R*ZR - S1I*ZI)
 	S1I = -(S1R*ZI + S1I*ZR)
 	S1R = STR
 	AIR = S1R / SFAC
 	AII = S1I / SFAC
-	ret
+	return
 OneSeventy:
 	AA = 1.0e+3 * dmach[1]
 	S1R = ZEROR
@@ -569,7 +569,7 @@ OneSeventy:
 OneEighty:
 	AIR = C1 - S1R
 	AII = -S1I
-	ret
+	return
 OneNinety:
 	AIR = -C2
 	AII = 0.0e0
@@ -582,27 +582,27 @@ OneNinety:
 TwoHundred:
 	AIR = AIR + C1*S1R
 	AII = AII + C1*S1I
-	ret
+	return
 TwoTen:
 	NZ = 1
 	AIR = ZEROR
 	AII = ZEROI
-	ret
+	return
 TwoSeventy:
 	NZ = 0
 	IERR = 2
-	ret
+	return
 TwoEighty:
 	if NN == (-1) {
 		goto TwoSeventy
 	}
 	NZ = 0
 	IERR = 5
-	ret
+	return
 TwoSixty:
 	IERR = 4
 	NZ = 0
-	ret
+	return
 }
 
 // Computes the k bessel function in the right half z plane.
@@ -885,7 +885,7 @@ Seventy:
 	YR[1] = S1R
 	YI[1] = S1I
 	if KODED == 1 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	tmp = cmplx::Exp(cmplx(ZR, ZI))
 	STR = real(tmp)
@@ -893,7 +893,7 @@ Seventy:
 	tmp = cmplx(S1R, S1I) * cmplx(STR, STI)
 	YR[1] = real(tmp)
 	YI[1] = imag(tmp)
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 
 	// GENERATE K(DNU,Z) AND K(DNU+1,Z) FOR FORWARD RECURRENCE.
 Eighty:
@@ -1207,18 +1207,18 @@ TwoFourty:
 	YR[1] = S1R * STR
 	YI[1] = S1I * STR
 	if N == 1 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	YR[2] = S2R * STR
 	YI[2] = S2I * STR
 	if N == 2 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	KK = 2
 TwoFifty:
 	KK = KK + 1
 	if KK > N {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	P1R = CSRR[KFLAG]
 	ASCLE = BRY[KFLAG]
@@ -1258,7 +1258,7 @@ TwoFifty:
 		S2I = S2I * STR
 		P1R = CSRR[KFLAG]
 	}
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 
 	// IFLAG=1 CASES, FORWARD RECURRENCE ON SCALED VALUES ON UNDERFLOW.
 TwoSixtyOne:
@@ -1353,7 +1353,7 @@ TwoEighty:
 	_, _, FNU, N, YR, YI, NZ, RZR, RZI, _, TOL, ELIM = zkscl(ZDR, ZDI, FNU, N, YR, YI, RZR, RZI, ASCLE, TOL, ELIM)
 	INU = N - NZ
 	if INU <= 0 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	KK = NZ + 1
 	S1R = YR[KK]
@@ -1361,7 +1361,7 @@ TwoEighty:
 	YR[KK] = S1R * CSRR[1]
 	YI[KK] = S1I * CSRR[1]
 	if INU == 1 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	KK = NZ + 2
 	S2R = YR[KK]
@@ -1369,7 +1369,7 @@ TwoEighty:
 	YR[KK] = S2R * CSRR[1]
 	YI[KK] = S2I * CSRR[1]
 	if INU == 2 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 	}
 	T2 = FNU + f64(f32(KK-1))
 	CKR = T2 * RZR
@@ -1394,7 +1394,7 @@ ThreeHundred:
 
 ThreeTen:
 	NZ = -2
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL, ELIM, ALIM
 }
 
 // SET K FUNCTIONS TO ZERO ON UNDERFLOW, CONTINUE RECURRENCE
@@ -1473,7 +1473,7 @@ fn zkscl(ZRR: f64, ZRI: f64, FNU: f64, N: int, mut YR: []f64, mut YI: []f64, RZR
 		NZ = NZ - 1
 	}
 	if N == 1 {
-		ret ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
+		return ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
 	}
 	if IC > 1 {
 		goto Twenty
@@ -1483,10 +1483,10 @@ fn zkscl(ZRR: f64, ZRI: f64, FNU: f64, N: int, mut YR: []f64, mut YI: []f64, RZR
 	NZ = 2
 Twenty:
 	if N == 2 {
-		ret ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
+		return ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
 	}
 	if NZ == 0 {
-		ret ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
+		return ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
 	}
 	FN = FNU + 1.0e0
 	CKR = FN * RZR
@@ -1568,7 +1568,7 @@ FourtyFive:
 		YR[I] = ZEROR
 		YI[I] = ZEROI
 	}
-	ret ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
+	return ZRR, ZRI, FNU, N, YR, YI, NZ, RZR, RZI, ASCLE, TOL, ELIM
 }
 
 // Tests whether the magnitude of the real or imaginary part would
@@ -1586,14 +1586,14 @@ fn zuchk(y: cmplx128, scale: f64, tol: f64): int {
 	absI := math::Abs(imag(y))
 	mut minAbs := math::Min(absR, absI)
 	if minAbs > scale {
-		ret 0
+		return 0
 	}
 	maxAbs := math::Max(absR, absI)
 	minAbs /= tol
 	if maxAbs < minAbs {
-		ret 1
+		return 1
 	}
-	ret 0
+	return 0
 }
 
 // APPLIES THE ANALYTIC CONTINUATION FORMULA
@@ -1732,13 +1732,13 @@ Sixty:
 Seventy:
 	YR[1] = CSPNR*C1R - CSPNI*C1I + CSGNR*C2R - CSGNI*C2I
 	YI[1] = CSPNR*C1I + CSPNI*C1R + CSGNR*C2I + CSGNI*C2R
-	ret ZR, ZI, FNU, KODE, MR, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, MR, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 Eighty:
 	NZ = -1
 	if NW == -2 {
 		NZ = -2
 	}
-	ret ZR, ZI, FNU, KODE, MR, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, MR, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 }
 
 // COMPUTES THE I BESSEL FUNCTION FOR REAL(Z)>=0.0 BY
@@ -1959,7 +1959,7 @@ Thirty:
 		YI[M] = S2R*AK1I + S2I*AK1R
 	}
 	if N <= 2 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 	}
 	NN = N
 	K = NN - 2
@@ -1977,7 +1977,7 @@ Thirty:
 		K = K - 1
 	}
 	if KODED == 0 {
-		ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+		return ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 	}
 	tmp = cmplx::Exp(cmplx(CZR, CZI))
 	CKR = real(tmp)
@@ -1988,13 +1988,13 @@ Thirty:
 		YI[I] = YR[I]*CKI + YI[I]*CKR
 		YR[I] = STR
 	}
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 OneHundred:
 	NZ = -1
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 OneTen:
 	NZ = -2
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, RL, TOL, ELIM, ALIM
 }
 
 // COMPUTES THE I BESSEL FUNCTION FOR RE(Z)>=0.0 BY THE
@@ -2250,10 +2250,10 @@ Ninety:
 		YI[I] = YR[I]*CNORMI + YI[I]*CNORMR
 		YR[I] = STR
 	}
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL
 OneTen:
 	NZ = -2
-	ret ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL
+	return ZR, ZI, FNU, KODE, N, YR, YI, NZ, TOL
 }
 
 // Computes the I bessel function for real(z) >= 0 by means of the power
@@ -2279,9 +2279,9 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 			n--
 		}
 		if az == 0 {
-			ret 0
+			return 0
 		}
-		ret n
+		return n
 	}
 	hz := 0.5 * z
 	let mut cz: cmplx128
@@ -2311,11 +2311,11 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 			// Return with nz < 0 if abs(Z*Z/4)>fnu+u-nz-1 complete the calculation
 			// in cbinu with n = n - abs(nz).
 			nz *= -1
-			ret nz
+			return nz
 		}
 		NN--
 		if NN == 0 {
-			ret nz
+			return nz
 		}
 	}
 	mut crscr := 1.0
@@ -2384,11 +2384,11 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 							// Return with nz < 0 if abs(Z*Z/4)>fnu+u-nz-1 complete the calculation
 							// in cbinu with n = n - abs(nz).
 							nz *= -1
-							ret nz
+							return nz
 						}
 						NN--
 						if NN == 0 {
-							ret nz
+							return nz
 						}
 					}
 					continue
@@ -2401,7 +2401,7 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 		break
 	}
 	if NN <= 2 {
-		ret nz
+		return nz
 	}
 	rz := cmplx(2*real(z)/(az*az), -2*imag(z)/(az*az))
 	if flag == 0 {
@@ -2409,7 +2409,7 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 		for i >= 0; i-- {
 			y[i] = cmplx(f64(i+1)+fnu, 0)*rz*y[i+1] + y[i+2]
 		}
-		ret nz
+		return nz
 	}
 
 	// exp(-alim)=exp(-elim)/tol=approximately one digit of precision above the
@@ -2425,10 +2425,10 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 			for K >= 0; K-- {
 				y[K] = cmplx(f64(K+1)+fnu, 0)*rz*y[K+1] + y[K+2]
 			}
-			ret nz
+			return nz
 		}
 	}
-	ret nz
+	return nz
 }
 
 // Tests for a possible underflow resulting from the addition of the I and
@@ -2442,22 +2442,22 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 fn zs1s2(zr: cmplx128, mut s1: cmplx128, s2: cmplx128, scale: f64, lim: f64, iuf: int): (s1o: cmplx128, s2o: cmplx128, nz: int, iufo: int) {
 	if s1 == 0 || math::Log(cmplx::Abs(s1))-2*real(zr) < -lim {
 		if cmplx::Abs(s2) > scale {
-			ret 0, s2, 0, iuf
+			return 0, s2, 0, iuf
 		}
-		ret 0, 0, 1, 0
+		return 0, 0, 1, 0
 	}
 	// TODO: Written like this for numerical rounding reasons.
 	// Fix once we're sure other changes are correct.
 	s1 = cmplx::Exp(cmplx::Log(s1) - zr - zr)
 	if math::Max(cmplx::Abs(s1), cmplx::Abs(s2)) > scale {
-		ret s1, s2, 0, iuf + 1
+		return s1, s2, 0, iuf + 1
 	}
-	ret 0, 0, 1, 0
+	return 0, 0, 1, 0
 }
 
 fn dgamln(z: f64, ierr: int): f64 {
 	if z < 0 {
-		ret 0
+		return 0
 	}
-	ret lgam(z)
+	return lgam(z)
 }

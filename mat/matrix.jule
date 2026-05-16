@@ -27,12 +27,12 @@ struct Matrix[T: numeric] {
 impl Matrix {
 	// Returns dimensions of the Matrix (M×N).
 	fn Dims(*self): (m: int, n: int) {
-		ret self.m, self.n
+		return self.m, self.n
 	}
 
 	// Returns total element count of matrix (M×N).
 	fn Size(*self): int {
-		ret self.m * self.n
+		return self.m * self.n
 	}
 
 	// Reports whether the all values of Matrix are zero.
@@ -42,15 +42,15 @@ impl Matrix {
 	fn Zero(*self): bool {
 		for _, x in self.data {
 			if x != 0 {
-				ret false
+				return false
 			}
 		}
-		ret true
+		return true
 	}
 
 	// Reports whether the Matrix is a square matrix (M == N).
 	fn Square(*self): bool {
-		ret self.m == self.n
+		return self.m == self.n
 	}
 
 	// Reports whether the matrice (M×N) is scalar matrice of c.
@@ -69,20 +69,20 @@ impl Matrix {
 			for k < j; k++ {
 				if k == pivot {
 					if self.data[k] != c {
-						ret false
+						return false
 					}
 				} else if self.data[k] != 0 {
-					ret false
+					return false
 				}
 			}
 		}
-		ret true
+		return true
 	}
 
 	// Reports whether the matrice (M×N) is an identity matrice.
 	// This function only supports square matrices (M == N && N > 0).
 	fn Identity(*self): bool {
-		ret self.Scalar(1)
+		return self.Scalar(1)
 	}
 
 	// Reports whether the matrice (M×N) is a diagonal matrice.
@@ -100,14 +100,14 @@ impl Matrix {
 			for k < j; k++ {
 				if k == pivot {
 					if self.data[k] == 0 {
-						ret false
+						return false
 					}
 				} else if self.data[k] != 0 {
-					ret false
+					return false
 				}
 			}
 		}
-		ret true
+		return true
 	}
 
 	// Returns value of the specified (i×j) position.
@@ -116,7 +116,7 @@ impl Matrix {
 	// Implementation will not check for boundaries, invalid position may cause panic.
 	// To provide fast computation, it will not check whether the (i×j) is valid (M×N).
 	fn Get(*self, i: int, j: int): T {
-		ret self.data[i+j*self.m]
+		return self.data[i+j*self.m]
 	}
 
 	// Sets value of the specified (i×j) position.
@@ -132,24 +132,24 @@ impl Matrix {
 	#disable boundary
 	fn Equal(*self, &z: *Matrix[T]): bool {
 		if self.m != z.m || self.n != z.n {
-			ret false
+			return false
 		}
 		mut i := 0
 		for i < len(self.data); i++ {
 			if self.data[i] != z.data[i] {
-				ret false
+				return false
 			}
 		}
-		ret true
+		return true
 	}
 
 	// Returns new buffer enough to store at least n values.
 	fn make(mut *self, n: int): []T {
 		// Reuse self capacity, if there is enough space.
 		if n <= cap(self.data) {
-			ret self.data[:n]
+			return self.data[:n]
 		}
-		ret make([]T, n)
+		return make([]T, n)
 	}
 
 	// Sets self to z, filled with k.
@@ -172,7 +172,7 @@ impl Matrix {
 	fn Copy(mut *self, &z: *Matrix[T]) {
 		// Fast case: if z and self is the same pointer.
 		if self == z {
-			ret
+			return
 		}
 
 		// Make sure the self data have enough space.
@@ -192,7 +192,7 @@ impl Matrix {
 		if m == 0 || n == 0 {
 			self.data = self.data[:0]
 			self.m, self.n = 0, 0
-			ret
+			return
 		}
 
 		// Same size, copy directly.
@@ -201,7 +201,7 @@ impl Matrix {
 			if self != z {
 				copy(self.data, z.data)
 			}
-			ret
+			return
 		}
 		// Size is different, resize the matrix.
 
@@ -215,8 +215,8 @@ impl Matrix {
 		}
 
 		mut r := Matrix[T]{
-			m: m,
-			n: n,
+			m:    m,
+			n:    n,
 			data: copySpace,
 		}
 
@@ -243,7 +243,7 @@ impl Matrix {
 		}
 		// Special case: trace of (0×0) matrix.
 		if self.m == 0 {
-			ret 0
+			return 0
 		}
 		// Compute trace of self.
 
@@ -253,7 +253,7 @@ impl Matrix {
 		for i < self.m; i, k = i+1, k+self.m+1 {
 			n += self.data[k]
 		}
-		ret n
+		return n
 	}
 
 	// Sets self to the transpose of the matrix z.
@@ -265,7 +265,7 @@ impl Matrix {
 		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
-			ret
+			return
 		}
 
 		// (M×N) matrix will become (N×M).
@@ -277,7 +277,7 @@ impl Matrix {
 			mut r := uncheckedNew[T](z.n, z.m)
 			r.Transpose(z)
 			*self = r
-			ret
+			return
 		} else {
 			self.m, self.n = z.n, z.m
 			self.data = self.make(self.Size())
@@ -304,7 +304,7 @@ impl Matrix {
 		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
-			ret
+			return
 		}
 
 		// Make sure the self data have enough space.
@@ -316,7 +316,7 @@ impl Matrix {
 		// Copy data instead of scalar addition.
 		if k == 0 {
 			copy(self.data, z.data)
-			ret
+			return
 		}
 
 		mut i := 0
@@ -342,14 +342,14 @@ impl Matrix {
 		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
-			ret
+			return
 		}
 
 		// Special case: k is zero. Result will always be zero matrix.
 		// Use Fill instead of scalar multiplication.
 		if k == 0 {
 			self.Fill(z, k)
-			ret
+			return
 		}
 
 		// Make sure the self data have enough space.
@@ -361,7 +361,7 @@ impl Matrix {
 		// Copy data instead of scalar multiplication.
 		if k == 1 {
 			copy(self.data, z.data)
-			ret
+			return
 		}
 
 		mut i := 0
@@ -383,7 +383,7 @@ impl Matrix {
 		// Set self to (0×0), do not deallocate slice.
 		if x.m == 0 && x.n == 0 {
 			self.m, self.n = 0, 0
-			ret
+			return
 		}
 
 		// Make sure the self data have enough space.
@@ -406,7 +406,7 @@ impl Matrix {
 		// Set self to (0×0), do not deallocate slice.
 		if x.m == 0 && x.n == 0 {
 			self.m, self.n = 0, 0
-			ret
+			return
 		}
 
 		// Make sure the self data have enough space.
@@ -439,7 +439,7 @@ impl Matrix {
 				mut r := uncheckedNew[T](x.m, y.n)
 				basicMul(&r, x, y)
 				*self = r
-				ret
+				return
 			}
 
 			// Make sure the self data have enough space.
@@ -447,7 +447,7 @@ impl Matrix {
 			self.data = self.make(self.Size())
 
 			basicMul(self, x, y)
-			ret
+			return
 		}
 		// Matrices are big for basic multiplication.
 		// Use Strassen algorithm to compute efficiently.
@@ -509,8 +509,8 @@ impl Matrix {
 		// To avoid collision during the copy, use the trailing space for z.
 		zpos := len(strassenSpace) - k*k
 		mut z := Matrix[T]{
-			m: k,
-			n: k,
+			m:    k,
+			n:    k,
 			data: strassenSpace[zpos:],
 		}
 		strassenSpace = strassenSpace[:zpos]
@@ -576,10 +576,10 @@ impl Matrix {
 		const match comptime::TypeOf(T).Kind() {
 		| comptime::Cmplx64 | comptime::Cmplx128:
 			// complex
-			ret T(det(self, cmplx::Abs))
+			return T(det(self, cmplx::Abs))
 		|:
 			// integer or floating-point
-			ret T(det(self, math::Abs))
+			return T(det(self, math::Abs))
 		}
 	}
 
@@ -614,11 +614,11 @@ impl Matrix {
 		| comptime::Cmplx64 | comptime::Cmplx128:
 			// complex
 			_sign, (logdet) := slogdetCmplx(self)
-			ret T(_sign), logdet
+			return T(_sign), logdet
 		|:
 			// integer or floating-point
 			_sign, (logdet) := slogdet(self)
-			ret T(_sign), logdet
+			return T(_sign), logdet
 		}
 	}
 
@@ -653,12 +653,12 @@ fn uncheckedNew[T: numeric](m: int, n: int): Matrix[T] {
 	let mut mat: Matrix[T]
 	mat.m, mat.n = m, n
 	mat.data = make([]T, m*n)
-	ret mat
+	return mat
 }
 
 // Returns new empty (0×0) Matrix for type T.
 fn Empty[T: numeric](): Matrix[T] {
-	ret uncheckedNew[T](0, 0)
+	return uncheckedNew[T](0, 0)
 }
 
 // Returns new (M×N) zero Matrix for type T.
@@ -670,7 +670,7 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 	if m < 0 || n < 0 {
 		panic("mat: New: m < 0 || n < 0")
 	}
-	ret uncheckedNew[T](m, n)
+	return uncheckedNew[T](m, n)
 }
 
 // Returns new (M×N) Matrix for type T.
@@ -695,12 +695,12 @@ fn New[T: numeric](m: int, n: int): Matrix[T] {
 fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 	m := len(values)
 	if m == 0 {
-		ret uncheckedNew[T](0, 0)
+		return uncheckedNew[T](0, 0)
 	}
 
 	n := len(values[0])
 	if n == 0 {
-		ret uncheckedNew[T](0, 0)
+		return uncheckedNew[T](0, 0)
 	}
 
 	// Make sure all rows have same amount of values.
@@ -723,7 +723,7 @@ fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 		}
 	}
 
-	ret mat
+	return mat
 }
 
 #disable boundary
@@ -734,7 +734,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 	match n {
 	| 1:
 		// 1×1 matrix: det(A) = a₀₀
-		ret Prec(a.data[0])
+		return Prec(a.data[0])
 	| 2:
 		// 2×2 matrix:
 		// det(A) = a₀₀·a₁₁ - a₀₁·a₁₀
@@ -742,7 +742,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 		a_11 := Prec(a.data[1+1*m])
 		a_01 := Prec(a.data[0+1*m])
 		a_10 := Prec(a.data[1+0*m])
-		ret a_00*a_11 - a_01*a_10
+		return a_00*a_11 - a_01*a_10
 	| 3:
 		// 3×3 matrix using cofactor expansion along the first row:
 		// det(A) = a₀₀·(a₁₁·a₂₂ - a₁₂·a₂₁)
@@ -757,7 +757,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 		a_10 := Prec(a.data[1+0*m])
 		a_20 := Prec(a.data[2+0*m])
 		a_02 := Prec(a.data[0+2*m])
-		ret a_00*(a_11*a_22-a_12*a_21) -
+		return a_00*(a_11*a_22-a_12*a_21) -
 			a_01*(a_10*a_22-a_12*a_20) +
 			a_02*(a_10*a_21-a_11*a_20)
 	}
@@ -796,7 +796,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 
 		// If the pivot is too small, matrix is singular or nearly singular.
 		if maxPivot == 0 {
-			ret 0
+			return 0
 		}
 
 		// Swap rows k and pivotIndex if necessary.
@@ -831,7 +831,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 	for i < n; i, k = i+1, k+m+1 {
 		det *= LU[k]
 	}
-	ret det
+	return det
 }
 
 #disable boundary
@@ -844,9 +844,9 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 		// 1×1 matrix: det(A) = a₀₀
 		det := f64(a.data[0])
 		if det == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
-		ret math::Copysign(1, det), math::Log(math::Abs(det))
+		return math::Copysign(1, det), math::Log(math::Abs(det))
 	| 2:
 		// 2×2 matrix:
 		// det(A) = a₀₀·a₁₁ - a₀₁·a₁₀
@@ -856,9 +856,9 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 		a_10 := f64(a.data[1+0*m])
 		det := a_00*a_11 - a_01*a_10
 		if det == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
-		ret math::Copysign(1, det), math::Log(math::Abs(det))
+		return math::Copysign(1, det), math::Log(math::Abs(det))
 	| 3:
 		// 3×3 matrix using cofactor expansion along the first row:
 		// det(A) = a₀₀·(a₁₁·a₂₂ - a₁₂·a₂₁)
@@ -877,9 +877,9 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 			a_01*(a_10*a_22-a_12*a_20) +
 			a_02*(a_10*a_21-a_11*a_20)
 		if det == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
-		ret math::Copysign(1, det), math::Log(math::Abs(det))
+		return math::Copysign(1, det), math::Log(math::Abs(det))
 	}
 
 	// Use LU decomposition with partial pivoting for larger ones.
@@ -916,7 +916,7 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 
 		// If the pivot is too small, matrix is singular or nearly singular.
 		if maxPivot == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
 
 		// Swap rows k and pivotIndex if necessary.
@@ -946,7 +946,7 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 		}
 	}
 
-	ret
+	return
 }
 
 #disable boundary
@@ -959,10 +959,10 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 		// 1×1 matrix: det(A) = a₀₀
 		det := cmplx128(a.data[0])
 		if det == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
 		phase := cmplx::Rect(1, cmplx::Phase(det))
-		ret phase, math::Log(cmplx::Abs(det))
+		return phase, math::Log(cmplx::Abs(det))
 	| 2:
 		// 2×2 matrix:
 		// det(A) = a₀₀·a₁₁ - a₀₁·a₁₀
@@ -972,10 +972,10 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 		a_10 := cmplx128(a.data[1+0*m])
 		det := a_00*a_11 - a_01*a_10
 		if det == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
 		phase := cmplx::Rect(1, cmplx::Phase(det))
-		ret phase, math::Log(cmplx::Abs(det))
+		return phase, math::Log(cmplx::Abs(det))
 	| 3:
 		// 3×3 matrix using cofactor expansion along the first row:
 		// det(A) = a₀₀·(a₁₁·a₂₂ - a₁₂·a₂₁)
@@ -994,10 +994,10 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 			a_01*(a_10*a_22-a_12*a_20) +
 			a_02*(a_10*a_21-a_11*a_20)
 		if det == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
 		phase := cmplx::Rect(1, cmplx::Phase(det))
-		ret phase, math::Log(cmplx::Abs(det))
+		return phase, math::Log(cmplx::Abs(det))
 	}
 
 	// Use LU decomposition with partial pivoting for larger ones.
@@ -1034,7 +1034,7 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 
 		// If the pivot is too small, matrix is singular or nearly singular.
 		if maxPivot == 0 {
-			ret 0, math::Inf(-1)
+			return 0, math::Inf(-1)
 		}
 
 		// Swap rows k and pivotIndex if necessary.
@@ -1065,7 +1065,7 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 		}
 	}
 
-	ret
+	return
 }
 
 #disable boundary
@@ -1087,7 +1087,7 @@ fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs
 		z.m, z.n = 1, 1
 		z.data = z.make(z.Size())
 		z.data[0] = T(Prec(1) / Prec(val))
-		ret
+		return
 	}
 
 	// Use LU decomposition with partial pivoting for larger ones.
@@ -1298,7 +1298,7 @@ fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[
 	n := ibits::Max(ibits::Max(x.m, x.n), y.n)
 	if n < strassenThreshold {
 		basicMul(z, x, y)
-		ret
+		return
 	}
 
 	// Half-size for quadrant splitting.
@@ -1461,9 +1461,9 @@ fn getMatrix[T: numeric](m: int, n: int, mut &space: *[]T): Matrix[T] {
 	}
 	mut data := (*space)[:k]
 	*space = (*space)[k:]
-	ret Matrix[T]{
-		m: m,
-		n: n,
+	return Matrix[T]{
+		m:    m,
+		n:    n,
 		data: data,
 	}
 }

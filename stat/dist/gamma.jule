@@ -27,7 +27,7 @@ struct Gamma {
 impl Gamma {
 	// Returns the number of parameters required to define the distribution.
 	fn NumParams(*self): int {
-		ret 2
+		return 2
 	}
 
 	// Computes the Cumulative Distribution Function (CDF) at x.
@@ -40,12 +40,12 @@ impl Gamma {
 	//	where P is the regularized lower incomplete gamma function.
 	fn CDF(*self, x: f64): f64 {
 		if x < 0 {
-			ret 0
+			return 0
 		}
 		if x == 0 {
-			ret 0
+			return 0
 		}
-		ret jn::GammaIncReg(self.K, self.Theta*x)
+		return jn::GammaIncReg(self.K, self.Theta*x)
 	}
 
 	// Computes the Probability Density Function (PDF) for the Gamma distribution.
@@ -57,21 +57,21 @@ impl Gamma {
 	//	where Γ is the Gamma function.
 	fn PDF(*self, x: f64): f64 {
 		if x < 0 {
-			ret 0
+			return 0
 		}
 		if x == 0 {
 			if self.K == 1 { // Exponential distribution case, PDF is 1/theta at x=0
-				ret 1 / self.Theta
+				return 1 / self.Theta
 			}
 			if self.K < 1 { // PDF goes to infinity at x=0 for k < 1
-				ret math::Inf(1)
+				return math::Inf(1)
 			}
-			ret 0 // PDF is 0 at x=0 for k > 1
+			return 0 // PDF is 0 at x=0 for k > 1
 		}
 
 		denominator := math::Gamma(self.K) * math::Pow(self.Theta, self.K)
 		numerator := math::Pow(x, self.K-1) * math::Exp(-x/self.Theta)
-		ret numerator / denominator
+		return numerator / denominator
 	}
 
 	// Computes the natural logarithm of the Probability Density Function (PDF) at x.
@@ -83,21 +83,21 @@ impl Gamma {
 	//	where Γ is the Gamma function.
 	fn LogPDF(*self, x: f64): f64 {
 		if x < 0 {
-			ret math::Inf(-1)
+			return math::Inf(-1)
 		}
 		if x == 0 {
 			if self.K == 1 { // Exponential distribution case, PDF is 1/theta at x=0
-				ret math::Log(1 / self.Theta)
+				return math::Log(1 / self.Theta)
 			}
 			if self.K < 1 { // PDF goes to infinity at x=0 for k < 1
-				ret math::Inf(1)
+				return math::Inf(1)
 			}
-			ret math::Inf(-1) // PDF is 0 at x=0 for k > 1
+			return math::Inf(-1) // PDF is 0 at x=0 for k > 1
 		}
 
 		logGammaK, _ := math::Lgamma(self.K) // natural log of Gamma(k)
 
-		ret (self.K-1)*math::Log(x) - (x / self.Theta) - logGammaK - self.K*math::Log(self.Theta)
+		return (self.K-1)*math::Log(x) - (x / self.Theta) - logGammaK - self.K*math::Log(self.Theta)
 	}
 
 	// Computes the Moment Generating Function (MGF) of the distribution.
@@ -106,16 +106,16 @@ impl Gamma {
 	//	MGF(t) = (1 - θt)^(-k), for t < 1/θ
 	fn MGF(*self, t: f64): f64 {
 		if t >= 1/self.Theta {
-			ret math::NaN() // MGF not defined for t >= 1/θ
+			return math::NaN() // MGF not defined for t >= 1/θ
 		}
-		ret math::Pow(1.0-self.Theta*t, -self.K)
+		return math::Pow(1.0-self.Theta*t, -self.K)
 	}
 
 	// Computes the Survival Function (SF), also known as the Complementary Cumulative Distribution Function (CCDF).
 	// The Survival Function is the probability that a random variable X is greater than a given value x.
 	// SF(x) = P(X > x) = 1 - CDF(x)
 	fn Survival(*self, x: f64): f64 {
-		ret 1 - self.CDF(x)
+		return 1 - self.CDF(x)
 	}
 
 	// Computes the Quantile Function (inverse CDF) for the distribution.
@@ -124,15 +124,15 @@ impl Gamma {
 	// Returns NaN if p is outside [0, 1].
 	fn Quantile(*self, p: f64): f64 {
 		if p < 0 || p > 1 {
-			ret math::NaN()
+			return math::NaN()
 		}
 		if p == 0 {
-			ret 0
+			return 0
 		}
 		if p == 1 {
-			ret math::Inf(1) // Goes to infinity for p=1
+			return math::Inf(1) // Goes to infinity for p=1
 		}
-		ret jn::GammaIncRegInv(self.K, p) / self.Theta
+		return jn::GammaIncRegInv(self.K, p) / self.Theta
 	}
 
 	// Returns the differential entropy of the distribution.
@@ -142,7 +142,7 @@ impl Gamma {
 	//	where ψ is the digamma function (Γ'/Γ)
 	fn Entropy(*self): f64 {
 		lg, _ := math::Lgamma(self.K)
-		ret self.K - math::Log(self.Theta) + lg + (1-self.K)*jn::Digamma(self.K)
+		return self.K - math::Log(self.Theta) + lg + (1-self.K)*jn::Digamma(self.K)
 	}
 
 	// Computes the excess kurtosis of the distribution.
@@ -151,7 +151,7 @@ impl Gamma {
 	// Formula:
 	//	Excess Kurtosis = 6 / k
 	fn ExcessKurtosis(*self): f64 {
-		ret 6 / self.K
+		return 6 / self.K
 	}
 
 	// Computes the mean (expected value) of the distribution.
@@ -159,7 +159,7 @@ impl Gamma {
 	// Formula:
 	//	E[X] = k * θ
 	fn Mean(*self): f64 {
-		ret self.K * self.Theta
+		return self.K * self.Theta
 	}
 
 	// Computes the mode of the distribution.
@@ -171,9 +171,9 @@ impl Gamma {
 	//	- If k < 1: The mode is at x = 0 (or undefined for k<=0, but handled by constructor).
 	fn Mode(*self): f64 {
 		if self.K >= 1 {
-			ret (self.K - 1) * self.Theta
+			return (self.K - 1) * self.Theta
 		}
-		ret 0 // Mode is at 0 for k < 1
+		return 0 // Mode is at 0 for k < 1
 	}
 
 	// Generates a random number from the distribution.
@@ -206,7 +206,7 @@ impl Gamma {
 			panic("gamma: k <= 0")
 		| a == 1:
 			// Generate from exponential
-			ret exprnd() / b
+			return exprnd() / b
 		| a < smallAlphaThresh:
 			// Generate using
 			//  Liu, Chuanhai, Martin, Ryan and Syring, Nick. "Simulating from a
@@ -234,7 +234,7 @@ impl Gamma {
 					lEta = -1 + lambda*z
 				}
 				if lh-lEta > -exprnd() {
-					ret eza / b
+					return eza / b
 				}
 			}
 		| a >= smallAlphaThresh:
@@ -258,10 +258,10 @@ impl Gamma {
 				v = v * v * v
 				u := unifrnd()
 				if u < 1.0-0.0331*(x*x)*(x*x) {
-					ret m * d * v / b
+					return m * d * v / b
 				}
 				if math::Log(u) < 0.5*x*x+d*(1-v+math::Log(v)) {
-					ret m * d * v / b
+					return m * d * v / b
 				}
 			}
 		}
@@ -273,7 +273,7 @@ impl Gamma {
 	// Formula:
 	//	Skewness = 2 / sqrt(k)
 	fn Skewness(*self): f64 {
-		ret 2 / math::Sqrt(self.K)
+		return 2 / math::Sqrt(self.K)
 	}
 
 	// Computes the variance of the distribution.
@@ -282,7 +282,7 @@ impl Gamma {
 	// Formula:
 	//	Var(X) = k * θ²
 	fn Variance(*self): f64 {
-		ret self.K * self.Theta * self.Theta
+		return self.K * self.Theta * self.Theta
 	}
 
 	// Computes the standard deviation of the distribution.
@@ -291,7 +291,7 @@ impl Gamma {
 	// Formula:
 	//	StdDev = sqrt(k * θ^2) = θ * sqrt(k)
 	fn StdDev(*self): f64 {
-		ret math::Sqrt(self.Variance())
+		return math::Sqrt(self.Variance())
 	}
 
 	// Estimates the parameters (k, θ) of the distribution from sample data

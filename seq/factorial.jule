@@ -29,7 +29,7 @@ impl Seq for seqFactorial {
 		}
 
 		self.n++
-		ret self.z
+		return self.z
 	}
 }
 
@@ -37,5 +37,5 @@ impl Seq for seqFactorial {
 fn Factorial(): Seq {
 	mut seq := new(seqFactorial)
 	seq.Reset()
-	ret seq
+	return seq
 }

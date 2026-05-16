@@ -8,36 +8,36 @@ const UintSize = 32 << (^uint(0) >> 63) // 32 or 64
 // Returns the minimum value, x or y.
 fn Min(x: int, y: int): int {
 	if x < y {
-		ret x
+		return x
 	}
-	ret y
+	return y
 }
 
 // Returns the maximum value, x or y.
 fn Max(x: int, y: int): int {
 	if x > y {
-		ret x
+		return x
 	}
-	ret y
+	return y
 }
 
 // Returns the absolute value.
 fn Abs(a: int): int {
-	ret int(u64(a & ^(1 << 63)))
+	return int(u64(a & ^(1 << 63)))
 }
 
 // https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
 fn IsPowerOfTwo(n: int): bool {
-	ret n&(n-1) == 0
+	return n&(n-1) == 0
 }
 
 // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 fn NextPowerOfTwo(mut n: int): int {
 	if n <= 1 {
-		ret 1
+		return 1
 	}
 	if IsPowerOfTwo(n) {
-		ret n
+		return n
 	}
 	n--
 	n |= n >> 1
@@ -48,5 +48,5 @@ fn NextPowerOfTwo(mut n: int): int {
 	if UintSize == 64 { // 64-bit architecture
 		n |= n >> 32
 	}
-	ret n + 1
+	return n + 1
 }

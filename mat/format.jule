@@ -9,13 +9,13 @@ use "std/unsafe"
 fn appendNumeric[T: numeric](mut buf: []byte, t: T): []byte {
 	const match comptime::TypeOf(T).Kind() {
 	| comptime::Cmplx64 | comptime::Cmplx128:
-		ret append(buf, conv::FormatCmplx(cmplx128(t), 'g', -1, 128)...)
+		return append(buf, conv::FormatCmplx(cmplx128(t), 'g', -1, 128)...)
 	| comptime::F32 | comptime::F64:
-		ret conv::AppendFloat(buf, f64(t), 'g', -1, 64)
+		return conv::AppendFloat(buf, f64(t), 'g', -1, 64)
 	| comptime::Int | comptime::I8 | comptime::I16 | comptime::I32 | comptime::I64:
-		ret conv::AppendInt(buf, i64(t), 10)
+		return conv::AppendInt(buf, i64(t), 10)
 	| comptime::Uint | comptime::Uintptr | comptime::U8 | comptime::U16 | comptime::U32 | comptime::U64:
-		ret conv::AppendUint(buf, u64(t), 10)
+		return conv::AppendUint(buf, u64(t), 10)
 	}
 	panic("unreachable")
 }
@@ -24,7 +24,7 @@ fn appendNumeric[T: numeric](mut buf: []byte, t: T): []byte {
 fn appendFormatMatrix[T: numeric](&m: *Matrix[T], mut buf: []byte, wsn: int): []byte {
 	// (0×0) matrix.
 	if m.n == 0 || m.m == 0 {
-		ret append(buf, '[', ']') // []
+		return append(buf, '[', ']') // []
 	}
 
 	fri := m.m - 1 // final row index
@@ -136,7 +136,7 @@ fn appendFormatMatrix[T: numeric](&m: *Matrix[T], mut buf: []byte, wsn: int): []
 			}
 		}
 	}
-	ret buf
+	return buf
 }
 
 impl Matrix {
@@ -144,8 +144,8 @@ impl Matrix {
 	// wsn represents number of whitespaces between matrix elements.
 	// wsn will be considired as zero if wsn < 1.
 	// Default wsn value is 1.
-	fn Format(*self, wsn: int): str {
-		ret unsafe::StrFromBytes(appendFormatMatrix(self, nil, wsn))
+	fn Format(*self, wsn: int): string {
+		return unsafe::StringFromBytes(appendFormatMatrix(self, nil, wsn))
 	}
 
 	// Appends string form of the matrix to buf and returns.
@@ -153,11 +153,11 @@ impl Matrix {
 	// wsn will be considired as zero if wsn < 1.
 	// Default wsn value is 1.
 	fn AppendFormat(*self, mut buf: []byte, wsn: int): []byte {
-		ret appendFormatMatrix(self, buf, wsn)
+		return appendFormatMatrix(self, buf, wsn)
 	}
 
 	// Returns string form of the matrix.
-	fn Str(*self): str {
-		ret unsafe::StrFromBytes(appendFormatMatrix(self, nil, 1))
+	fn String(*self): string {
+		return unsafe::StringFromBytes(appendFormatMatrix(self, nil, 1))
 	}
 }

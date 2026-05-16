@@ -21,7 +21,7 @@ struct Quat {
 impl Quat {
 	// Reports whether all fields of quaternion are zero.
 	fn Zero(*self): bool {
-		ret self.W == 0 && self.X == 0 && self.Y == 0 && self.Z == 0
+		return self.W == 0 && self.X == 0 && self.Y == 0 && self.Z == 0
 	}
 
 	// Sets self to the sum of x+y.
@@ -50,7 +50,7 @@ impl Quat {
 
 	// Returns the norm (magnitude or length) of the quaternion.
 	fn Norm(*self): f64 {
-		ret math::Sqrt(self.W*self.W + self.X*self.X + self.Y*self.Y + self.Z*self.Z)
+		return math::Sqrt(self.W*self.W + self.X*self.X + self.Y*self.Y + self.Z*self.Z)
 	}
 
 	// Sets self to normalized quaternion q.
@@ -68,13 +68,13 @@ impl Quat {
 // Returns a quaternion NaN.
 fn NaN(): Quat {
 	nan := math::NaN()
-	ret Quat{nan, nan, nan, nan}
+	return Quat{nan, nan, nan, nan}
 }
 
 // Returns a quaternion ±infinity by sign.
 fn Inf(sign: int): Quat {
 	inf := math::Inf(sign)
-	ret Quat{inf, inf, inf, inf}
+	return Quat{inf, inf, inf, inf}
 }
 
 // Returns a unit quaternion representing a rotation
@@ -92,5 +92,5 @@ fn AxisAngle(x: f64, y: f64, z: f64, radians: f64): Quat {
 		Z: z * sinHalf,
 	}
 	q.Normalize(&q)
-	ret q
+	return q
 }

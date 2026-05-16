@@ -154,8 +154,8 @@ fn testMatrixScalar(t: &testing::T) {
 	for _, test in testsMatrixScalar {
 		mat := Matrix[int]{
 			data: test.mat,
-			m: test.m,
-			n: test.n,
+			m:    test.m,
+			n:    test.n,
 		}
 		r := mat.Scalar(test.c)
 		if r != test.r {
@@ -169,8 +169,8 @@ fn testMatrixDiagonal(t: &testing::T) {
 	for _, test in testsMatrixScalar {
 		mat := Matrix[int]{
 			data: test.mat,
-			m: test.m,
-			n: test.n,
+			m:    test.m,
+			n:    test.n,
 		}
 		r := mat.Diagonal()
 		if r != test.r {
@@ -194,9 +194,9 @@ let mut testsMatrixResize: []testCaseMatrixResize = [
 			1, 2, 3,
 			3, 4, 5,
 		],
-		m: 3,
-		n: 3,
-		r: [],
+		m:    3,
+		n:    3,
+		r:    [],
 		newM: 0,
 		newN: 0,
 	},
@@ -285,8 +285,8 @@ fn testMatrixResize(t: &testing::T) {
 	for (_, mut test) in testsMatrixResize {
 		mut mat := Matrix[int]{
 			data: test.input,
-			m: test.m,
-			n: test.n,
+			m:    test.m,
+			n:    test.n,
 		}
 		mat.Resize(&mat, test.newM, test.newN)
 		if mat.m != test.newM || mat.n != test.newN {
@@ -316,45 +316,45 @@ struct caseNewFrom {
 let testsNewFrom: []caseNewFrom = [
 	{
 		input: nil,
-		data: [],
-		m: 0,
-		n: 0,
+		data:  [],
+		m:     0,
+		n:     0,
 	},
 	{
 		input: [[], []],
-		data: [],
-		m: 0,
-		n: 0,
+		data:  [],
+		m:     0,
+		n:     0,
 	},
 	{
 		input: [[1, 2, 4], [3, 4, 5]],
-		data: [1, 3, 2, 4, 4, 5],
-		m: 2,
-		n: 3,
+		data:  [1, 3, 2, 4, 4, 5],
+		m:     2,
+		n:     3,
 	},
 	{
 		input: [[1]],
-		data: [1],
-		m: 1,
-		n: 1,
+		data:  [1],
+		m:     1,
+		n:     1,
 	},
 	{
 		input: [[1], [2], [3], [4]],
-		data: [1, 2, 3, 4],
-		m: 4,
-		n: 1,
+		data:  [1, 2, 3, 4],
+		m:     4,
+		n:     1,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [1, 2, 3, 4, 2, 3, 4, 5],
-		m: 4,
-		n: 2,
+		data:  [1, 2, 3, 4, 2, 3, 4, 5],
+		m:     4,
+		n:     2,
 	},
 	{
 		input: [[1, 2, 3, 4, 5]],
-		data: [1, 2, 3, 4, 5],
-		m: 1,
-		n: 5,
+		data:  [1, 2, 3, 4, 5],
+		m:     1,
+		n:     5,
 	},
 ]
 
@@ -416,7 +416,7 @@ fn testMatrixFill(t: &testing::T) {
 	a.Fill(&b, 42)
 	if len(a.data) != len(b.data) {
 		t.Errorf("data length expected {}, found {}", len(b.data), len(a.data))
-		ret
+		return
 	}
 	for i in a.data {
 		if a.data[i] != 42 {
@@ -473,36 +473,36 @@ struct caseMatrixDet[T] {
 let testsMatrixDet: []caseMatrixDet[f64] = [
 	{
 		input: [[0]],
-		det: 0,
+		det:   0,
 	},
 	{
 		input: [[0, 1], [4, 8]],
-		det: -4,
+		det:   -4,
 	},
 	{
 		input: [[0, -1], [-4, 8]],
-		det: -4,
+		det:   -4,
 	},
 	{
 		input: [[1, 8, 4], [0, 1, 4], [5, 3, 9]],
-		det: 137,
+		det:   137,
 	},
 	{
 		input: [[1, 8, 4, 4], [0, 1, 4, 2], [5, 3, 9, 9], [3, 6, 2, 6]],
-		det: 204.00000000000003,
+		det:   204.00000000000003,
 	},
 	{
 		//  rounding-error, mathematically det = 0
 		input: [[1, 2, 3, 4, 5], [5, 4, 3, 2, 1], [9, 8, 7, 6, 5], [4, 3, 2, 1, 0], [1, 9, 2, 8, 5]],
-		det: -1.4791141972893974e-29,
+		det:   -1.4791141972893974e-29,
 	},
 	{
 		input: [[2, 3, 1, 5], [6, 13, 5, 19], [2, 19, 10, 23], [4, 10, 11, 31]],
-		det: 24.000000000000025,
+		det:   24.000000000000025,
 	},
 	{
 		input: [[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]],
-		det: 1,
+		det:   1,
 	},
 ]
 
@@ -526,39 +526,39 @@ fn testMatrixDet(t: &testing::T) {
 let testsCmplxMatrixDet: []caseMatrixDet[cmplx128] = [
 	{
 		input: [[0]],
-		det: 0,
+		det:   0,
 	},
 	{
 		input: [[3 + 4i]],
-		det: 3 + 4i,
+		det:   3 + 4i,
 	},
 	{
 		input: [[1 + 2i, 3 + 4i], [5 + 6i, 7 + 8i]],
-		det: 0 - 16i,
+		det:   0 - 16i,
 	},
 	{
 		input: [[1 + 3i, 2 + 3i, 3 + 3i], [4 + 3i, 5 + 3i, 6 + 3i], [7 + 3i, 8 + 3i, 9 + 3i]],
-		det: 0,
+		det:   0,
 	},
 	{
 		input: [[2, 1 + 1i, 0], [0, 3 + 2i, 0], [0, 0, 4]],
-		det: 24 + 16i,
+		det:   24 + 16i,
 	},
 	{
 		input: [[1i, 1, 0], [0, 1i, 1], [1, 0, 1i]],
-		det: 1 - 1i,
+		det:   1 - 1i,
 	},
 	{
 		input: [[1i, 1, 0], [0, 1i, 1], [1, 0, 1i]],
-		det: 1 - 1i,
+		det:   1 - 1i,
 	},
 	{
 		input: [[1 + 1i, 2, 3, 4], [0, 1 + 1i, 2, 3], [0, 0, 1 + 1i, 2], [0, 0, 0, 1 + 1i]],
-		det: -4,
+		det:   -4,
 	},
 	{
 		input: [[1 + 1i, 2 + 2i], [2 + 2i, 4 + 4i]],
-		det: 0,
+		det:   0,
 	},
 ]
 
@@ -587,27 +587,27 @@ struct caseMatrixInv[T] {
 let testsMatrixInv: []caseMatrixInv[f64] = [
 	{
 		input: [[2, 1], [5, 3]],
-		want: [3, -5, -1, 2],
+		want:  [3, -5, -1, 2],
 	},
 	{
 		input: [[4, 7], [2, 6]],
-		want: [0.6, -0.2, -0.7, 0.4],
+		want:  [0.6, -0.2, -0.7, 0.4],
 	},
 	{
 		input: [[1, 2, 3], [0, 1, 4], [5, 6, 0]],
-		want: [-24, 20, -5, 18, -15, 4, 5, -4, 1],
+		want:  [-24, 20, -5, 18, -15, 4, 5, -4, 1],
 	},
 	{
 		input: [[3, 2, 1], [0, 1, 0], [-1, 0, 1]],
-		want: [0.25, 0, 0.25, -0.5, 1, -0.5, -0.25, 0, 0.75],
+		want:  [0.25, 0, 0.25, -0.5, 1, -0.5, -0.25, 0, 0.75],
 	},
 	{
 		input: [[1, 0, 0, 0], [0, 2, 0, 0], [0, 0, 3, 0], [0, 0, 0, 4]],
-		want: [1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.3333333333333333, 0, 0, 0, 0, 0.25],
+		want:  [1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.3333333333333333, 0, 0, 0, 0, 0.25],
 	},
 	{
 		input: [[1, 1, 1], [0, 1, 1], [0, 0, 1]],
-		want: [1, 0, 0, -1, 1, 0, 0, -1, 1],
+		want:  [1, 0, 0, -1, 1, 0, 0, -1, 1],
 	},
 ]
 
@@ -632,15 +632,15 @@ fn testMatrixInv(t: &testing::T) {
 let testsCmplxMatrixInv: []caseMatrixInv[cmplx128] = [
 	{
 		input: [[1i, 1 + 1i], [1, -1i]],
-		want: [1, -1i, 1 + -1i, -1],
+		want:  [1, -1i, 1 + -1i, -1],
 	},
 	{
 		input: [[1 + 1i, 2], [3 - 1i, 4 + 4i]],
-		want: [0.11764705882352945 - 0.4705882352941177i, 0.2058823529411765 + 0.17647058823529416i, 0.08823529411764706 + 0.14705882352941174i, 0.029411764705882353 - 0.11764705882352941i],
+		want:  [0.11764705882352945 - 0.4705882352941177i, 0.2058823529411765 + 0.17647058823529416i, 0.08823529411764706 + 0.14705882352941174i, 0.029411764705882353 - 0.11764705882352941i],
 	},
 	{
 		input: [[1, 2, 2], [3, 4, 3], [1, 2, 3]],
-		want: [-3, 3, -1, 1, -0.5, 0, 1, -1.5, 1],
+		want:  [-3, 3, -1, 1, -0.5, 0, 1, -1.5, 1],
 	},
 ]
 
@@ -665,45 +665,45 @@ fn testCmplxMatrixInv(t: &testing::T) {
 let testsMatrixTranspose: []caseNewFrom = [
 	{
 		input: nil,
-		data: [],
-		m: 0,
-		n: 0,
+		data:  [],
+		m:     0,
+		n:     0,
 	},
 	{
 		input: [[], []],
-		data: [],
-		m: 0,
-		n: 0,
+		data:  [],
+		m:     0,
+		n:     0,
 	},
 	{
 		input: [[1, 2, 3], [4, 5, 6]],
-		data: [1, 2, 3, 4, 5, 6],
-		m: 3,
-		n: 2,
+		data:  [1, 2, 3, 4, 5, 6],
+		m:     3,
+		n:     2,
 	},
 	{
 		input: [[1]],
-		data: [1],
-		m: 1,
-		n: 1,
+		data:  [1],
+		m:     1,
+		n:     1,
 	},
 	{
 		input: [[1], [2], [3], [4]],
-		data: [1, 2, 3, 4],
-		m: 1,
-		n: 4,
+		data:  [1, 2, 3, 4],
+		m:     1,
+		n:     4,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [1, 2, 2, 3, 3, 4, 4, 5],
-		m: 2,
-		n: 4,
+		data:  [1, 2, 2, 3, 3, 4, 4, 5],
+		m:     2,
+		n:     4,
 	},
 	{
 		input: [[1, 2, 3, 4, 5]],
-		data: [1, 2, 3, 4, 5],
-		m: 5,
-		n: 1,
+		data:  [1, 2, 3, 4, 5],
+		m:     5,
+		n:     1,
 	},
 ]
 
@@ -768,43 +768,43 @@ fn testCaseMatrixScalarArith(t: &testing::T, tests: []testMatrixScalarArith, r: 
 let testsMatrixMulScalar: []testMatrixScalarArith = [
 	{
 		input: nil,
-		data: [],
-		k: 0,
+		data:  [],
+		k:     0,
 	},
 	{
 		input: [[], []],
-		data: [],
-		k: 0,
+		data:  [],
+		k:     0,
 	},
 	{
 		input: [[1, 2, 4], [3, 4, 5]],
-		data: [2, 6, 4, 8, 8, 10],
-		k: 2,
+		data:  [2, 6, 4, 8, 8, 10],
+		k:     2,
 	},
 	{
 		input: [[1]],
-		data: [10],
-		k: 10,
+		data:  [10],
+		k:     10,
 	},
 	{
 		input: [[1], [2], [3], [4]],
-		data: [-1, -2, -3, -4],
-		k: -1,
+		data:  [-1, -2, -3, -4],
+		k:     -1,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [1, 2, 3, 4, 2, 3, 4, 5],
-		k: 1,
+		data:  [1, 2, 3, 4, 2, 3, 4, 5],
+		k:     1,
 	},
 	{
 		input: [[1, 2, 3, 4, 5]],
-		data: [3, 6, 9, 12, 15],
-		k: 3,
+		data:  [3, 6, 9, 12, 15],
+		k:     3,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [0, 0, 0, 0, 0, 0, 0, 0],
-		k: 0,
+		data:  [0, 0, 0, 0, 0, 0, 0, 0],
+		k:     0,
 	},
 ]
 
@@ -813,50 +813,50 @@ fn testMatrixMulScalar(t: &testing::T) {
 	testCaseMatrixScalarArith(t, testsMatrixMulScalar, fn|test| {
 		mut mat := NewFrom(test.input)
 		mat.MulScalar(&mat, test.k)
-		ret mat
+		return mat
 	})
 }
 
 let testsMatrixAddScalar: []testMatrixScalarArith = [
 	{
 		input: nil,
-		data: [],
-		k: 0,
+		data:  [],
+		k:     0,
 	},
 	{
 		input: [[], []],
-		data: [],
-		k: 0,
+		data:  [],
+		k:     0,
 	},
 	{
 		input: [[1, 2, 4], [3, 4, 5]],
-		data: [3, 5, 4, 6, 6, 7],
-		k: 2,
+		data:  [3, 5, 4, 6, 6, 7],
+		k:     2,
 	},
 	{
 		input: [[1]],
-		data: [2],
-		k: 1,
+		data:  [2],
+		k:     1,
 	},
 	{
 		input: [[1], [2], [3], [4]],
-		data: [4, 5, 6, 7],
-		k: 3,
+		data:  [4, 5, 6, 7],
+		k:     3,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [-8, -7, -6, -5, -7, -6, -5, -4],
-		k: -9,
+		data:  [-8, -7, -6, -5, -7, -6, -5, -4],
+		k:     -9,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [1, 2, 3, 4, 2, 3, 4, 5],
-		k: 0,
+		data:  [1, 2, 3, 4, 2, 3, 4, 5],
+		k:     0,
 	},
 	{
 		input: [[1, 2, 3, 4, 5]],
-		data: [0, 1, 2, 3, 4],
-		k: -1,
+		data:  [0, 1, 2, 3, 4],
+		k:     -1,
 	},
 ]
 
@@ -865,50 +865,50 @@ fn testMatrixAddScalar(t: &testing::T) {
 	testCaseMatrixScalarArith(t, testsMatrixAddScalar, fn|test| {
 		mut mat := NewFrom(test.input)
 		mat.AddScalar(&mat, test.k)
-		ret mat
+		return mat
 	})
 }
 
 let testsMatrixSubScalar: []testMatrixScalarArith = [
 	{
 		input: nil,
-		data: [],
-		k: 0,
+		data:  [],
+		k:     0,
 	},
 	{
 		input: [[], []],
-		data: [],
-		k: 0,
+		data:  [],
+		k:     0,
 	},
 	{
 		input: [[1, 2, 4], [3, 4, 5]],
-		data: [-1, 1, 0, 2, 2, 3],
-		k: 2,
+		data:  [-1, 1, 0, 2, 2, 3],
+		k:     2,
 	},
 	{
 		input: [[1]],
-		data: [0],
-		k: 1,
+		data:  [0],
+		k:     1,
 	},
 	{
 		input: [[1], [2], [3], [4]],
-		data: [-2, -1, 0, 1],
-		k: 3,
+		data:  [-2, -1, 0, 1],
+		k:     3,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [1, 2, 3, 4, 2, 3, 4, 5],
-		k: 0,
+		data:  [1, 2, 3, 4, 2, 3, 4, 5],
+		k:     0,
 	},
 	{
 		input: [[1, 2], [2, 3], [3, 4], [4, 5]],
-		data: [2, 3, 4, 5, 3, 4, 5, 6],
-		k: -1,
+		data:  [2, 3, 4, 5, 3, 4, 5, 6],
+		k:     -1,
 	},
 	{
 		input: [[1, 2, 3, 4, 5]],
-		data: [101, 102, 103, 104, 105],
-		k: -100,
+		data:  [101, 102, 103, 104, 105],
+		k:     -100,
 	},
 ]
 
@@ -917,7 +917,7 @@ fn testMatrixSubScalar(t: &testing::T) {
 	testCaseMatrixScalarArith(t, testsMatrixSubScalar, fn|test| {
 		mut mat := NewFrom(test.input)
 		mat.SubScalar(&mat, test.k)
-		ret mat
+		return mat
 	})
 }
 
@@ -929,7 +929,7 @@ struct testMatrixASM {
 	n:      int
 }
 
-fn testCaseMatrixASM(t: &testing::T, op: str, tests: []testMatrixASM, r: fn(test: testMatrixASM): Matrix[int]) {
+fn testCaseMatrixASM(t: &testing::T, op: string, tests: []testMatrixASM, r: fn(test: testMatrixASM): Matrix[int]) {
 	for _, test in tests {
 		mut mat := r(test)
 		if mat.m != test.m || mat.n != test.n {
@@ -953,58 +953,58 @@ let testsMatrixAdd: []testMatrixASM = [
 	{
 		xinput: nil,
 		yinput: nil,
-		data: [],
-		m: 0,
-		n: 0,
+		data:   [],
+		m:      0,
+		n:      0,
 	},
 	{
 		xinput: [[], []],
 		yinput: [[], []],
-		data: [],
-		m: 0,
-		n: 0,
+		data:   [],
+		m:      0,
+		n:      0,
 	},
 	{
 		xinput: [[1, 2, 3], [4, 5, 6]],
 		yinput: [[0, 7, 8], [13, 20, 60]],
-		data: [1, 17, 9, 25, 11, 66],
-		m: 2,
-		n: 3,
+		data:   [1, 17, 9, 25, 11, 66],
+		m:      2,
+		n:      3,
 	},
 	{
 		xinput: [[1, 2], [3, 4]],
 		yinput: [[5, 6], [7, 8]],
-		data: [6, 10, 8, 12],
-		m: 2,
-		n: 2,
+		data:   [6, 10, 8, 12],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[10, 20], [30, 40]],
 		yinput: [[0, 0], [0, 0]],
-		data: [10, 30, 20, 40],
-		m: 2,
-		n: 2,
+		data:   [10, 30, 20, 40],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[-1, -2], [-3, -4]],
 		yinput: [[5, 6], [7, 8]],
-		data: [4, 4, 4, 4],
-		m: 2,
-		n: 2,
+		data:   [4, 4, 4, 4],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[0, 0], [0, 0]],
 		yinput: [[0, 0], [0, 0]],
-		data: [0, 0, 0, 0],
-		m: 2,
-		n: 2,
+		data:   [0, 0, 0, 0],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[1]],
 		yinput: [[1]],
-		data: [2],
-		m: 1,
-		n: 1,
+		data:   [2],
+		m:      1,
+		n:      1,
 	},
 ]
 
@@ -1014,7 +1014,7 @@ fn testMatrixAdd(t: &testing::T) {
 		mut x := NewFrom(test.xinput)
 		y := NewFrom(test.yinput)
 		x.Add(&x, &y)
-		ret x
+		return x
 	})
 }
 
@@ -1022,65 +1022,65 @@ let testsMatrixSub: []testMatrixASM = [
 	{
 		xinput: nil,
 		yinput: nil,
-		data: [],
-		m: 0,
-		n: 0,
+		data:   [],
+		m:      0,
+		n:      0,
 	},
 	{
 		xinput: [[], []],
 		yinput: [[], []],
-		data: [],
-		m: 0,
-		n: 0,
+		data:   [],
+		m:      0,
+		n:      0,
 	},
 	{
 		xinput: [[1, 2, 3], [4, 5, 6]],
 		yinput: [[0, 7, 8], [13, 20, 60]],
-		data: [1, -9, -5, -15, -5, -54],
-		m: 2,
-		n: 3,
+		data:   [1, -9, -5, -15, -5, -54],
+		m:      2,
+		n:      3,
 	},
 	{
 		xinput: [[1, 2], [3, 4]],
 		yinput: [[5, 6], [7, 8]],
-		data: [-4, -4, -4, -4],
-		m: 2,
-		n: 2,
+		data:   [-4, -4, -4, -4],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[10, 20], [30, 40]],
 		yinput: [[0, 0], [0, 0]],
-		data: [10, 30, 20, 40],
-		m: 2,
-		n: 2,
+		data:   [10, 30, 20, 40],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[10, 20], [30, 40]],
 		yinput: [[1, 2], [3, 4]],
-		data: [9, 27, 18, 36],
-		m: 2,
-		n: 2,
+		data:   [9, 27, 18, 36],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[-1, -2], [-3, -4]],
 		yinput: [[5, 6], [7, 8]],
-		data: [-6, -10, -8, -12],
-		m: 2,
-		n: 2,
+		data:   [-6, -10, -8, -12],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[0, 0], [0, 0]],
 		yinput: [[0, 0], [0, 0]],
-		data: [0, 0, 0, 0],
-		m: 2,
-		n: 2,
+		data:   [0, 0, 0, 0],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[1]],
 		yinput: [[1]],
-		data: [0],
-		m: 1,
-		n: 1,
+		data:   [0],
+		m:      1,
+		n:      1,
 	},
 ]
 
@@ -1090,7 +1090,7 @@ fn testMatrixSub(t: &testing::T) {
 		mut x := NewFrom(test.xinput)
 		y := NewFrom(test.yinput)
 		x.Sub(&x, &y)
-		ret x
+		return x
 	})
 }
 
@@ -3321,54 +3321,54 @@ const (
 	]`
 )
 
-fn matrixFromStr[T](s: str): T {
+fn matrixFromString[T](s: string): T {
 	let mut mat: T
-	json::Decode(unsafe::StrBytes(s), &mat)!
-	ret mat
+	json::Decode(unsafe::StringBytes(s), &mat)!
+	return mat
 }
 
 let testsMatrixMul: []testMatrixASM = [
 	{
 		xinput: [[1]],
 		yinput: [[1]],
-		data: [1],
-		m: 1,
-		n: 1,
+		data:   [1],
+		m:      1,
+		n:      1,
 	},
 	{
 		xinput: [[1]],
 		yinput: [[128]],
-		data: [128],
-		m: 1,
-		n: 1,
+		data:   [128],
+		m:      1,
+		n:      1,
 	},
 	{
 		xinput: [[0]],
 		yinput: [[128]],
-		data: [0],
-		m: 1,
-		n: 1,
+		data:   [0],
+		m:      1,
+		n:      1,
 	},
 	{
 		xinput: [[1, 2], [3, 4]],
 		yinput: [[5, 6], [7, 8]],
-		data: [19, 43, 22, 50],
-		m: 2,
-		n: 2,
+		data:   [19, 43, 22, 50],
+		m:      2,
+		n:      2,
 	},
 	{
 		xinput: [[1, 0, 2], [-1, 3, 1], [3, 2, 0]],
 		yinput: [[3, 1, 2], [1, 0, 0], [4, 1, 0]],
-		data: [11, 4, 11, 3, 0, 3, 2, -2, 6],
-		m: 3,
-		n: 3,
+		data:   [11, 4, 11, 3, 0, 3, 2, -2, 6],
+		m:      3,
+		n:      3,
 	},
 	{
 		xinput: [[1, 4, 6], [2, 7, 5]],
 		yinput: [[3, 2], [5, 1], [4, 6]],
-		data: [47, 61, 42, 41],
-		m: 2,
-		n: 2,
+		data:   [47, 61, 42, 41],
+		m:      2,
+		n:      2,
 	},
 
 	// Medium matrices.
@@ -3386,8 +3386,8 @@ let testsMatrixMul: []testMatrixASM = [
 			[0, 0, 0, 1],
 		],
 		data: [1, 5, 9, 5, 2, 6, 8, 4, 3, 7, 7, 3, 4, 8, 6, 2],
-		m: 4,
-		n: 4,
+		m:    4,
+		n:    4,
 	},
 	{
 		xinput: [
@@ -3428,32 +3428,32 @@ let testsMatrixMul: []testMatrixASM = [
 	// Large matrices.
 	// Triggers Strassen algorithm.
 	{
-		xinput: matrixFromStr[[][]int](matrix8x10_X),
-		yinput: matrixFromStr[[][]int](matrix8x10_Y),
-		data: matrixFromStr[[]int](matrix8x10_C),
-		m: 8,
-		n: 10,
+		xinput: matrixFromString[[][]int](matrix8x10_X),
+		yinput: matrixFromString[[][]int](matrix8x10_Y),
+		data:   matrixFromString[[]int](matrix8x10_C),
+		m:      8,
+		n:      10,
 	},
 	{
-		xinput: matrixFromStr[[][]int](matrix64x64_X),
-		yinput: matrixFromStr[[][]int](matrix64x64_Y),
-		data: matrixFromStr[[]int](matrix64x64_C),
-		m: 64,
-		n: 64,
+		xinput: matrixFromString[[][]int](matrix64x64_X),
+		yinput: matrixFromString[[][]int](matrix64x64_Y),
+		data:   matrixFromString[[]int](matrix64x64_C),
+		m:      64,
+		n:      64,
 	},
 	{
-		xinput: matrixFromStr[[][]int](matrix128x128_X),
-		yinput: matrixFromStr[[][]int](matrix128x128_Y),
-		data: matrixFromStr[[]int](matrix128x128_C),
-		m: 128,
-		n: 128,
+		xinput: matrixFromString[[][]int](matrix128x128_X),
+		yinput: matrixFromString[[][]int](matrix128x128_Y),
+		data:   matrixFromString[[]int](matrix128x128_C),
+		m:      128,
+		n:      128,
 	},
 	{
-		xinput: matrixFromStr[[][]int](matrix512x512_X),
-		yinput: matrixFromStr[[][]int](matrix512x512_Y),
-		data: matrixFromStr[[]int](matrix512x512_C),
-		m: 512,
-		n: 512,
+		xinput: matrixFromString[[][]int](matrix512x512_X),
+		yinput: matrixFromString[[][]int](matrix512x512_Y),
+		data:   matrixFromString[[]int](matrix512x512_C),
+		m:      512,
+		n:      512,
 	},
 ]
 
@@ -3463,6 +3463,6 @@ fn testMatrixMul(t: &testing::T) {
 		mut x := NewFrom(test.xinput)
 		y := NewFrom(test.yinput)
 		x.Mul(&x, &y)
-		ret x
+		return x
 	})
 }

@@ -41,7 +41,7 @@ impl Seq for seqCatalan {
 		// advance index
 		self.n++
 
-		ret self.out
+		return self.out
 	}
 }
 
@@ -49,5 +49,5 @@ impl Seq for seqCatalan {
 fn Catalan(): Seq {
 	mut seq := new(seqCatalan)
 	seq.Reset()
-	ret seq
+	return seq
 }

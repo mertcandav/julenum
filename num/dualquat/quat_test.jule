@@ -9,33 +9,33 @@ use "std/testing"
 
 fn dExp(mut x: quat::Quat): quat::Quat {
 	x.Exp(&x)
-	ret x
+	return x
 }
 fn dLog(mut x: quat::Quat): quat::Quat {
 	match {
 	| x.Zero():
-		ret quat::Inf(1)
+		return quat::Inf(1)
 	| x.Inf():
-		ret quat::Quat{}
+		return quat::Quat{}
 	}
 	x.Inv(&x)
-	ret x
+	return x
 }
 fn dSqrt(mut x: quat::Quat): quat::Quat {
 	x.Sqrt(&x)
 	x.Inv(&x)
 	x.Scale(&x, 0.5)
-	ret x
+	return x
 }
 fn dInv(mut x: quat::Quat): quat::Quat {
 	x.Mul(&x, &x)
 	x.Inv(&x)
 	x.Scale(&x, -1)
-	ret x
+	return x
 }
 fn scale(mut x: quat::Quat, k: f64): quat::Quat {
 	x.Scale(&x, k)
-	ret x
+	return x
 }
 
 let zeroQuat = quat::Quat{}
@@ -54,7 +54,7 @@ let four = scale(one, 4)
 let six = scale(one, 6)
 
 struct dualTest {
-	name:   str
+	name:   string
 	x:      []quat::Quat
 	fnDual: fn(mut &x: *Quat)
 	f:      fn(mut &x: *quat::Quat)
@@ -63,32 +63,32 @@ struct dualTest {
 
 let testsDual: []dualTest = [
 	{
-		name: "inv",
-		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		name:   "inv",
+		x:      [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
 		fnDual: fn|mut q| q.Inv(q),
-		f: fn|mut q| q.Inv(q),
-		dFn: dInv,
+		f:      fn|mut q| q.Inv(q),
+		dFn:    dInv,
 	},
 	{
-		name: "exp",
-		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		name:   "exp",
+		x:      [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
 		fnDual: fn|mut q| q.Exp(q),
-		f: fn|mut q| q.Exp(q),
-		dFn: dExp,
+		f:      fn|mut q| q.Exp(q),
+		dFn:    dExp,
 	},
 	{
-		name: "log",
-		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		name:   "log",
+		x:      [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
 		fnDual: fn|mut q| q.Log(q),
-		f: fn|mut q| q.Log(q),
-		dFn: dLog,
+		f:      fn|mut q| q.Log(q),
+		dFn:    dLog,
 	},
 	{
-		name: "sqrt",
-		x: [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
+		name:   "sqrt",
+		x:      [quat::NaN(), quat::Inf(1), negThree, negTwo, negOne, negHalf, negZeroQuat, zeroQuat, half, one, two, three],
 		fnDual: fn|mut q| q.Sqrt(q),
-		f: fn|mut q| q.Sqrt(q),
-		dFn: dSqrt,
+		f:      fn|mut q| q.Sqrt(q),
+		dFn:    dSqrt,
 	},
 ]
 
@@ -276,15 +276,15 @@ fn testPowReal(t: &testing::T) {
 }
 
 fn sameDual(a: Quat, b: Quat, tol: f64): bool {
-	ret same(a.X, b.X, tol) && same(a.Y, b.Y, tol)
+	return same(a.X, b.X, tol) && same(a.Y, b.Y, tol)
 }
 
 fn same(a: quat::Quat, b: quat::Quat, tol: f64): bool {
-	ret a.NaN() && b.NaN() || a.Inf() && b.Inf() || equalApprox(a, b, tol)
+	return a.NaN() && b.NaN() || a.Inf() && b.Inf() || equalApprox(a, b, tol)
 }
 
 fn equalApprox(a: quat::Quat, b: quat::Quat, tol: f64): bool {
-	ret julenum::Tolerance(a.W, b.W, tol) &&
+	return julenum::Tolerance(a.W, b.W, tol) &&
 		julenum::Tolerance(a.X, b.X, tol) &&
 		julenum::Tolerance(a.Y, b.Y, tol) &&
 		julenum::Tolerance(a.Z, b.Z, tol)

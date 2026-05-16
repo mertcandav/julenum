@@ -28,10 +28,10 @@ fn incbet(aa: f64, bb: f64, xx: f64): f64 {
 	}
 	if xx <= 0 || xx >= 1 {
 		if xx == 0 {
-			ret 0
+			return 0
 		}
 		if xx == 1 {
-			ret 1
+			return 1
 		}
 		panic(paramOutOfBounds)
 	}
@@ -39,7 +39,7 @@ fn incbet(aa: f64, bb: f64, xx: f64): f64 {
 	let mut flag: int
 	if bb*xx <= 1 && xx <= 0.95 {
 		t := pseries(aa, bb, xx)
-		ret transformT(t, flag)
+		return transformT(t, flag)
 	}
 
 	mut w := 1 - xx
@@ -64,7 +64,7 @@ fn incbet(aa: f64, bb: f64, xx: f64): f64 {
 
 	if flag == 1 && (b*x) <= 1.0 && x <= 0.95 {
 		t := pseries(a, b, x)
-		ret transformT(t, flag)
+		return transformT(t, flag)
 	}
 
 	// Choose expansion for better convergence.
@@ -86,7 +86,7 @@ fn incbet(aa: f64, bb: f64, xx: f64): f64 {
 		t /= a
 		t *= w
 		t *= 1.0 / Beta(a, b)
-		ret transformT(t, flag)
+		return transformT(t, flag)
 	}
 
 	// Resort to logarithms.
@@ -98,7 +98,7 @@ fn incbet(aa: f64, bb: f64, xx: f64): f64 {
 		t = math::Exp(y)
 	}
 
-	ret transformT(t, flag)
+	return transformT(t, flag)
 }
 
 fn transformT(mut t: f64, flag: int): f64 {
@@ -109,7 +109,7 @@ fn transformT(mut t: f64, flag: int): f64 {
 			t = 1.0 - t
 		}
 	}
-	ret t
+	return t
 }
 
 // Returns the incomplete beta integral evaluated by a continued fraction expansion.
@@ -181,7 +181,7 @@ fn incbcf(a: f64, b: f64, x: f64): f64 {
 		}
 
 		if t < thresh {
-			ret ans
+			return ans
 		}
 
 		k1 += 1.0
@@ -207,7 +207,7 @@ fn incbcf(a: f64, b: f64, x: f64): f64 {
 		}
 	}
 
-	ret ans
+	return ans
 }
 
 // Returns the incomplete beta integral evaluated by a continued fraction expansion.
@@ -280,7 +280,7 @@ fn incbd(a: f64, b: f64, x: f64): f64 {
 		}
 
 		if t < thresh {
-			ret ans
+			return ans
 		}
 
 		k1 += 1.0
@@ -305,7 +305,7 @@ fn incbd(a: f64, b: f64, x: f64): f64 {
 			qkm1 *= big
 		}
 	}
-	ret ans
+	return ans
 }
 
 // Returns the incomplete beta integral evaluated by a power series. Use
@@ -349,5 +349,5 @@ fn pseries(a: f64, b: f64, x: f64): f64 {
 			s = math::Exp(t)
 		}
 	}
-	ret s
+	return s
 }

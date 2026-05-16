@@ -43,14 +43,14 @@ impl Quat {
 			match {
 			| q.X.NaN():
 				self.X, self.Y = quat::Quat{W: 1}, quat::NaN()
-				ret
+				return
 			| q.X.Zero() | q.X.Inf():
 				self.X, self.Y = quat::Quat{W: 1}, quat::Quat{}
-				ret
+				return
 			}
 		| p == 1:
 			*self = *q
-			ret
+			return
 		| math::IsInf(p, 1):
 			if q.Abs().X > 1 {
 				if q.Y.Zero() {
@@ -58,21 +58,21 @@ impl Quat {
 				} else {
 					self.X, self.Y = quat::Inf(1), quat::Inf(1)
 				}
-				ret
+				return
 			}
 			self.X, self.Y = quat::Quat{}, quat::NaN()
-			ret
+			return
 		| math::IsInf(p, -1):
 			if q.Abs().X > 1 {
 				self.X, self.Y = quat::Quat{}, quat::NaN()
-				ret
+				return
 			}
 			if q.Y.Zero() {
 				self.X, self.Y = quat::Inf(1), quat::NaN()
 			} else {
 				self.X, self.Y = quat::Inf(1), quat::Inf(1)
 			}
-			ret
+			return
 		}
 		mut z := quat::Quat{W: p - 1}
 		mut r := q.X
@@ -127,11 +127,11 @@ impl Quat {
 		| q.X.Zero():
 			self.X.Log(&q.X)
 			self.Y = quat::Inf(1)
-			ret
+			return
 		| q.X.Inf():
 			self.X.Log(&q.X)
 			self.Y = quat::Quat{}
-			ret
+			return
 		}
 		mut xlog := q.X // q may be alias for self.
 		xlog.Log(&q.X)

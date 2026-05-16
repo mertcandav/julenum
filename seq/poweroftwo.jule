@@ -21,12 +21,12 @@ impl Seq for seqPowerOfTwo {
 			// z = z << 1
 			self.z.Lsh(&self.z, 1)
 		}
-		ret self.z
+		return self.z
 	}
 }
 
 // Returns a sequence representing powers of two starting from 2⁰ = 1,
 // then 2¹ = 2, 2² = 4, and so on.
 fn PowerOfTwo(): Seq {
-	ret new(seqPowerOfTwo)
+	return new(seqPowerOfTwo)
 }

@@ -34,11 +34,11 @@ fn _IgamI(a: f64, p: f64): f64 {
 	}
 
 	if p == 0 {
-		ret math::Inf(1)
+		return math::Inf(1)
 	}
 
 	if p == 1 {
-		ret 0.0
+		return 0.0
 	}
 
 	// Starting with the approximate value
@@ -85,7 +85,7 @@ fn _IgamI(a: f64, p: f64): f64 {
 		// Compute the step to the next approximation of x
 		d = (y - p) / d
 		if math::Abs(d/x) < machEp {
-			ret x
+			return x
 		}
 		x = x - d
 	}
@@ -155,5 +155,5 @@ fn _IgamI(a: f64, p: f64): f64 {
 		}
 	}
 
-	ret x
+	return x
 }

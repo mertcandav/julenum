@@ -19,7 +19,7 @@ struct Dual {
 impl Dual {
 	// Reports whether all fields of dual are zero.
 	fn Zero(*self): bool {
-		ret self.X == 0 && self.Y == 0
+		return self.X == 0 && self.Y == 0
 	}
 
 	// Sets self to the sum x+y.

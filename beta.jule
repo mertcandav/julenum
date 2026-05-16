@@ -23,7 +23,7 @@ use "std/math"
 //
 // See http://mathworld.wolfram.com/BetaFunction.html for more detailed information.
 fn Beta(a: f64, b: f64): f64 {
-	ret math::Exp(Lbeta(a, b))
+	return math::Exp(Lbeta(a, b))
 }
 
 // Returns the natural logarithm of the complete beta function B(a,b).
@@ -40,19 +40,19 @@ fn Beta(a: f64, b: f64): f64 {
 fn Lbeta(a: f64, b: f64): f64 {
 	match {
 	| math::IsInf(a, +1) || math::IsInf(b, +1):
-		ret math::NaN()
+		return math::NaN()
 	| a == 0 && b == 0:
-		ret math::NaN()
+		return math::NaN()
 	| a < 0 || b < 0:
-		ret math::NaN()
+		return math::NaN()
 	| math::IsNaN(a) || math::IsNaN(b):
-		ret math::NaN()
+		return math::NaN()
 	| a == 0 || b == 0:
-		ret math::Inf(+1)
+		return math::Inf(+1)
 	}
 
 	la, _ := math::Lgamma(a)
 	lb, _ := math::Lgamma(b)
 	lab, _ := math::Lgamma(a + b)
-	ret la + lb - lab
+	return la + lb - lab
 }

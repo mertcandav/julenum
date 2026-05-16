@@ -56,7 +56,7 @@ let testsPrime: []primeTest = [
 	{x: 18446744073709551557, want: true}, // prime close to u64 limits
 
 	// Large negatives.
-	{x: 1<<61, want: false}, // Mersenne prime +1
+	{x: 1 << 61, want: false}, // Mersenne prime +1
 	{x: u64.Max - 1, want: false},
 	{x: 9223372036854775806, want: false},
 ]

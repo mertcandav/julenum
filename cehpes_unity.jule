@@ -49,11 +49,11 @@ let lQ: [...]f64 = [
 fn log1p(x: f64): f64 {
 	mut z := 1 + x
 	if z < invSqrt2 || z > Sqrt2 {
-		ret math::Log(z)
+		return math::Log(z)
 	}
 	z = x * x
 	z = -0.5*z + x*(z*polevl(x, lP[:], 6)/p1evl(x, lQ[:], 6))
-	ret x + z
+	return x + z
 }
 
 // computes
@@ -74,9 +74,9 @@ fn log1pmx(x: f64): f64 {
 				break
 			}
 		}
-		ret res
+		return res
 	}
-	ret log1p(x) - x
+	return log1p(x) - x
 }
 
 // Coefficients for
@@ -105,17 +105,17 @@ let eQ: [...]f64 = [
 fn expm1(x: f64): f64 {
 	if math::IsInf(x, 0) {
 		if math::IsNaN(x) || x > 0 {
-			ret x
+			return x
 		}
-		ret -1
+		return -1
 	}
 	if x < -0.5 || x > 0.5 {
-		ret math::Exp(x) - 1
+		return math::Exp(x) - 1
 	}
 	xx := x * x
 	mut r := x * polevl(xx, eP[:], 2)
 	r = r / (polevl(xx, eQ[:], 3) - r)
-	ret r + r
+	return r + r
 }
 
 // Computes
@@ -125,7 +125,7 @@ fn expm1(x: f64): f64 {
 // around x = 0 using its Taylor series.
 fn lgam1pTaylor(x: f64): f64 {
 	if x == 0 {
-		ret 0
+		return 0
 	}
 	mut res := -Euler * x
 	mut xfac := -x
@@ -140,7 +140,7 @@ fn lgam1pTaylor(x: f64): f64 {
 		}
 	}
 
-	ret res
+	return res
 }
 
 // computes
@@ -148,9 +148,9 @@ fn lgam1pTaylor(x: f64): f64 {
 //	lgam(x + 1)
 fn lgam1p(x: f64): f64 {
 	if math::Abs(x) <= 0.5 {
-		ret lgam1pTaylor(x)
+		return lgam1pTaylor(x)
 	} else if math::Abs(x-1) < 0.5 {
-		ret math::Log(x) + lgam1pTaylor(x-1)
+		return math::Log(x) + lgam1pTaylor(x-1)
 	}
-	ret lgam(x + 1)
+	return lgam(x + 1)
 }

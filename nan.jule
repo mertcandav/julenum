@@ -19,7 +19,7 @@ const (
 // payload specified in the low 51 bits of payload.
 // The NaN returned by math::NaN has a bit pattern equal to NaN(1).
 fn NaN(payload: u64): f64 {
-	ret math::F64frombits(nanBits | (payload & ^nanMask))
+	return math::F64frombits(nanBits | (payload & ^nanMask))
 }
 
 // Returns the lowest 51 bits payload of an IEEE 754 "quiet not-a-number".
@@ -27,7 +27,7 @@ fn NaN(payload: u64): f64 {
 fn NaNPayload(f: f64): (payload: u64, ok: bool) {
 	b := math::F64bits(f)
 	if b&nanBits != nanBits {
-		ret 0, false
+		return 0, false
 	}
-	ret b & ^nanMask, true
+	return b & ^nanMask, true
 }

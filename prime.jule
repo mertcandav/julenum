@@ -13,11 +13,11 @@ fn Prime(x: u64): bool {
 		1<<37 | 1<<41 | 1<<43 | 1<<47 | 1<<53 | 1<<59 | 1<<61
 
 	if x < 64 {
-		ret primeBitMask&(1<<x) != 0
+		return primeBitMask&(1<<x) != 0
 	}
 
 	if x&1 == 0 {
-		ret false // number is even
+		return false // number is even
 	}
 
 	const primesA = 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 37
@@ -29,10 +29,10 @@ fn Prime(x: u64): bool {
 
 	if rA%3 == 0 || rA%5 == 0 || rA%7 == 0 || rA%11 == 0 || rA%13 == 0 || rA%17 == 0 || rA%19 == 0 || rA%23 == 0 || rA%37 == 0 ||
 		rB%29 == 0 || rB%31 == 0 || rB%41 == 0 || rB%43 == 0 || rB%47 == 0 || rB%53 == 0 {
-		ret false
+		return false
 	}
 
-	ret millerRabin(x)
+	return millerRabin(x)
 }
 
 fn millerRabin(n: u64): bool {
@@ -62,10 +62,10 @@ fn millerRabin(n: u64): bool {
 			}
 		}
 		if !cont {
-			ret false
+			return false
 		}
 	}
-	ret true
+	return true
 }
 
 // a^d % n
@@ -79,12 +79,12 @@ fn expmod(mut a: u64, mut d: u64, n: u64): (res: u64) {
 		a = mulmod(a, a, n)
 		d >>= 1
 	}
-	ret res
+	return res
 }
 
 // a*b % mod
 fn mulmod(a: u64, b: u64, mod: u64): u64 {
 	// Compute with full 128-bit product to avoid overflow.
 	hi, lo := bits::Mul64(a, b)
-	ret bits::Rem64(hi, lo, mod)
+	return bits::Rem64(hi, lo, mod)
 }

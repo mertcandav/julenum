@@ -76,7 +76,7 @@ impl Barycentric {
 		mut j := 0
 		for j < n; j++ {
 			if x == self.xp[j] {
-				ret self.fp[j]
+				return self.fp[j]
 			}
 		}
 
@@ -88,6 +88,6 @@ impl Barycentric {
 			denominator += term
 		}
 
-		ret numerator / denominator
+		return numerator / denominator
 	}
 }

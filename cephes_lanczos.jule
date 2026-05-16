@@ -46,7 +46,7 @@ let lanczosSumExpgScaledDenom: [...]f64 = [
 ]
 
 fn lanczosSumExpgScaled(x: f64): f64 {
-	ret ratevl(x,
+	return ratevl(x,
 		lanczosSumExpgScaledNum[:],
 		len(lanczosSumExpgScaledNum)-1,
 		lanczosSumExpgScaledDenom[:],

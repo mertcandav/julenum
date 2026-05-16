@@ -26,7 +26,7 @@ fn polevl(x: f64, coef: []f64, n: int): f64 {
 	for i <= n; i++ {
 		ans = ans*x + coef[i]
 	}
-	ret ans
+	return ans
 }
 
 // Same as polevl, except c_n is assumed to be 1 and is not included in the slice.
@@ -37,7 +37,7 @@ fn p1evl(x: f64, coef: []f64, n: int): f64 {
 	for i <= n-1; i++ {
 		ans = ans*x + coef[i]
 	}
-	ret ans
+	return ans
 }
 
 // Evaluates a rational function
@@ -86,7 +86,7 @@ fn ratevl(x: f64, num: []f64, m: int, denom: []f64, n: int): f64 {
 
 	if absx > 1 {
 		pow := f64(n - m)
-		ret math::Pow(x, pow) * numAns / denomAns
+		return math::Pow(x, pow) * numAns / denomAns
 	}
-	ret numAns / denomAns
+	return numAns / denomAns
 }

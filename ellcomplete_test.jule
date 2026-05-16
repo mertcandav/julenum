@@ -18,7 +18,7 @@ fn testCompleteKE(t: &testing::T) {
 		legendre := math::Abs(E*Kp + Ep*K - K*Kp - Pi/2)
 		if legendre > 1e-14 {
 			t.Errorf("legendre > tol: m={}, legendre={}, tol=1e-14", mf, legendre)
-			ret
+			return
 		}
 	}
 }
@@ -41,11 +41,11 @@ fn testCompleteBD(t: &testing::T) {
 		difference2 := math::Abs(E - (B + (1-mf)*D))
 		if difference1 > 1e-14 {
 			t.Errorf("difference1 > tol: m={}, difference1={}, tol=1e-14", mf, difference1)
-			ret
+			return
 		}
 		if difference2 > 1e-14 {
 			t.Errorf("difference2 > tol: m={}, difference2={}, tol=1e-14", mf, difference2)
-			ret
+			return
 		}
 	}
 }

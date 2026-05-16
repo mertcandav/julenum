@@ -12,9 +12,9 @@ impl Vector {
 	fn make(mut *self, n: int): Vector[T] {
 		// Reuse self capacity, if there is enough space.
 		if n <= cap(*self) {
-			ret (*self)[:n]
+			return (*self)[:n]
 		}
-		ret make(Vector[T], n)
+		return make(Vector[T], n)
 	}
 
 	// Sets self to the sum x+y.
@@ -65,7 +65,7 @@ impl Vector {
 			panic("vec: Vector.Dot: len(self) != len(y)")
 		}
 
-		ret dot(self, y)
+		return dot(self, y)
 	}
 
 	// Sets self to to x scaled by k.
@@ -85,7 +85,7 @@ impl Vector {
 
 	// Returns norm (length) of vector.
 	fn Norm(*self): f64 {
-		ret math::Sqrt(f64(dot(self, self)))
+		return math::Sqrt(f64(dot(self, self)))
 	}
 
 	// Sets self to the unit vector (vector with norm 1) in the same direction as x.
@@ -121,7 +121,7 @@ impl Vector {
 
 		normProduct := self.Norm() * y.Norm()
 		if normProduct == 0 {
-			ret 0
+			return 0
 		}
 		dot := f64(dot(self, y))
 		mut cosTheta := dot / normProduct
@@ -131,7 +131,7 @@ impl Vector {
 		} else if cosTheta < -1 {
 			cosTheta = -1
 		}
-		ret math::Acos(cosTheta)
+		return math::Acos(cosTheta)
 	}
 
 	// Sets self to projection of vector x onto y.
@@ -170,5 +170,5 @@ fn dot[T: integer | float](&x: *Vector[T], &y: *Vector[T]): T {
 	for i < len(*x); i++ {
 		dot += (*x)[i] * (*y)[i]
 	}
-	ret dot
+	return dot
 }

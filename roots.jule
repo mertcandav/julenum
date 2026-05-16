@@ -101,12 +101,12 @@ fn falsePosition(mut x1: f64, mut x2: f64, mut f1: f64, mut f2: f64, absErr: f64
 				} else {
 					bestF = f2
 				}
-				ret fSolveConverged, bestX, bestF, w
+				return fSolveConverged, bestX, bestF, w
 			}
 
 			f3 = f(x3, fExtra)
 			if f3 == 0 {
-				ret fSolveExact, x3, f3, w
+				return fSolveExact, x3, f3, w
 			}
 
 			if f3*f2 < 0 {
@@ -134,7 +134,7 @@ fn falsePosition(mut x1: f64, mut x2: f64, mut f1: f64, mut f2: f64, absErr: f64
 			x3 = x2 - f2/s12
 			f3 = f(x3, fExtra)
 			if f3 == 0 {
-				ret fSolveExact, x3, f3, w
+				return fSolveExact, x3, f3, w
 			}
 
 			nFalseP++
@@ -179,9 +179,9 @@ fn falsePosition(mut x1: f64, mut x2: f64, mut f1: f64, mut f2: f64, absErr: f64
 				bestX = x2
 				bestF = f2
 			}
-			ret fSolveConverged, bestX, bestF, w
+			return fSolveConverged, bestX, bestF, w
 		}
 	}
 
-	ret fSolveMaxIterations, x3, f3, w
+	return fSolveMaxIterations, x3, f3, w
 }

@@ -16,15 +16,15 @@ impl Quat {
 	fn NaN(*self): bool {
 		if math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
 			math::IsInf(self.Y, 0) || math::IsInf(self.Z, 0) {
-			ret false
+			return false
 		}
-		ret math::IsNaN(self.W) || math::IsNaN(self.X) ||
+		return math::IsNaN(self.W) || math::IsNaN(self.X) ||
 			math::IsNaN(self.Y) || math::IsNaN(self.Z)
 	}
 
 	// Reports whether any of field of quaternion is ±infinity.
 	fn Inf(*self): bool {
-		ret math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
+		return math::IsInf(self.W, 0) || math::IsInf(self.X, 0) ||
 			math::IsInf(self.Y, 0) || math::IsInf(self.Z, 0)
 	}
 
@@ -32,7 +32,7 @@ impl Quat {
 	fn Inv(mut *self, &q: *Quat) {
 		if q.Inf() {
 			lift(self, 0)
-			ret
+			return
 		}
 		a := q.Abs()
 		self.Conj(q)
@@ -44,7 +44,7 @@ impl Quat {
 		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Exp(w))
-			ret
+			return
 		}
 		v := uv.Abs()
 		e := math::Exp(w)
@@ -58,7 +58,7 @@ impl Quat {
 		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Log(w))
-			ret
+			return
 		}
 		a := q.Abs()
 		v := uv.Abs()
@@ -78,7 +78,7 @@ impl Quat {
 			match {
 			| w == 0:
 				lift(self, 1)
-				ret
+				return
 			| w < 0:
 				if uv.Zero() {
 					lift(self, math::Inf(1))
@@ -87,7 +87,7 @@ impl Quat {
 				}
 			| w > 0:
 				lift(self, 0)
-				ret
+				return
 			}
 		}
 		// exp(log(q) * r)
@@ -110,7 +110,7 @@ impl Quat {
 				*self = Inf(1)
 			| r > 0:
 				lift(self, 0)
-				ret
+				return
 			}
 		}
 		// exp(scale(r, log(q)))
@@ -123,7 +123,7 @@ impl Quat {
 	fn Sqrt(mut *self, &q: *Quat) {
 		if q.Zero() {
 			lift(self, 0)
-			ret
+			return
 		}
 		self.PowReal(q, 0.5)
 	}
@@ -133,7 +133,7 @@ impl Quat {
 		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Sin(w))
-			ret
+			return
 		}
 		v := uv.Abs()
 		s, c := math::Sincos(w)
@@ -147,7 +147,7 @@ impl Quat {
 		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Sinh(w))
-			ret
+			return
 		}
 		v := uv.Abs()
 		s, c := math::Sincos(v)
@@ -161,7 +161,7 @@ impl Quat {
 		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Cos(w))
-			ret
+			return
 		}
 		v := uv.Abs()
 		s, c := math::Sincos(w)
@@ -175,7 +175,7 @@ impl Quat {
 		w, uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Cosh(w))
-			ret
+			return
 		}
 		v := uv.Abs()
 		s, c := math::Sincos(v)
@@ -190,7 +190,7 @@ impl Quat {
 		d.Cos(&d)
 		if d.Zero() {
 			*self = Inf(1)
-			ret
+			return
 		}
 		d.Inv(&d)
 		self.Sin(q)
@@ -205,13 +205,13 @@ impl Quat {
 			self.X *= math::Sin(2 * q.X)
 			self.Y *= math::Sin(2 * q.Y)
 			self.Z *= math::Sin(2 * q.Z)
-			ret
+			return
 		}
 		mut d := *q
 		d.Cosh(&d)
 		if d.Zero() {
 			*self = Inf(1)
-			ret
+			return
 		}
 		d.Inv(&d)
 		self.Sinh(q)
@@ -223,7 +223,7 @@ impl Quat {
 		_, mut uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Asin(q.W))
-			ret
+			return
 		}
 
 		unit(&uv)
@@ -270,7 +270,7 @@ impl Quat {
 		self.Acos(q)
 		_, mut uv := split(self)
 		if uv.Zero() {
-			ret
+			return
 		}
 		unit(&uv)
 		self.Mul(self, &uv)
@@ -284,7 +284,7 @@ impl Quat {
 		w, mut uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Atan(w))
-			ret
+			return
 		}
 		unit(&uv)
 
@@ -314,7 +314,7 @@ impl Quat {
 		w, mut uv := split(q)
 		if uv.Zero() {
 			lift(self, math::Atanh(w))
-			ret
+			return
 		}
 		unit(&uv)
 		self.Mul(&uv, q)
@@ -332,9 +332,9 @@ impl Quat {
 		// Special cases.
 		match {
 		| self.Inf():
-			ret math::Inf(1)
+			return math::Inf(1)
 		| self.NaN():
-			ret math::NaN()
+			return math::NaN()
 		}
 
 		mut w, mut x, mut y, mut z := self.W, self.X, self.Y, self.Z
@@ -360,12 +360,12 @@ impl Quat {
 			w, z = z, w
 		}
 		if w == 0 {
-			ret 0
+			return 0
 		}
 		x /= w
 		y /= w
 		z /= w
-		ret w * math::Sqrt(1+x*x+y*y+z*z)
+		return w * math::Sqrt(1+x*x+y*y+z*z)
 	}
 }
 
@@ -374,7 +374,7 @@ fn lift(mut &q: *Quat, w: f64) {
 }
 
 fn split(&q: *Quat): (f64, Quat) {
-	ret q.W, Quat{0, q.X, q.Y, q.Z}
+	return q.W, Quat{0, q.X, q.Y, q.Z}
 }
 
 fn join(mut &uv: *Quat, w: f64) {
@@ -384,19 +384,19 @@ fn join(mut &uv: *Quat, w: f64) {
 // calculate sinh and cosh
 fn sinhcosh(x: f64): (sh: f64, ch: f64) {
 	if math::Abs(x) <= 0.5 {
-		ret math::Sinh(x), math::Cosh(x)
+		return math::Sinh(x), math::Cosh(x)
 	}
 	mut e := math::Exp(x)
 	ei := 0.5 / e
 	e *= 0.5
-	ret e - ei, e + ei
+	return e - ei, e + ei
 }
 
 // Sets z to q scaled by f, except that inf×0 is 0.
 fn scale(mut &z: *Quat, &q: *Quat, f: f64) {
 	if f == 0 {
 		lift(z, 0)
-		ret
+		return
 	}
 	if q.W != 0 {
 		z.W = q.W * f

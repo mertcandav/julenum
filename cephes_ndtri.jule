@@ -115,13 +115,13 @@ fn ndtri(y0: f64): f64 {
 		if y0 < 0 {
 			panic(paramOutOfBounds)
 		}
-		ret math::Inf(-1)
+		return math::Inf(-1)
 	}
 	if y0 >= 1.0 {
 		if y0 > 1 {
 			panic(paramOutOfBounds)
 		}
-		ret math::Inf(1)
+		return math::Inf(1)
 	}
 	code = 1
 	y = y0
@@ -135,7 +135,7 @@ fn ndtri(y0: f64): f64 {
 		y2 = y * y
 		x = y + y*(y2*polevl(y2, p0[:], 4)/p1evl(y2, q0[:], 8))
 		x = x * s2pi
-		ret x
+		return x
 	}
 
 	x = math::Sqrt(-2.0 * math::Log(y))
@@ -151,5 +151,5 @@ fn ndtri(y0: f64): f64 {
 	if code != 0 {
 		x = -x
 	}
-	ret x
+	return x
 }

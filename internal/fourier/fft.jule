@@ -19,7 +19,7 @@ const pi2 = 6.28318530717958647692528676655900576839433879875021164194988918 // 
 fn FFT(mut a: []cmplx128, invert: bool) {
 	n := len(a)
 	if n == 1 {
-		ret
+		return
 	}
 
 	// Bit reversal permutation.
@@ -82,7 +82,7 @@ fn FFT(mut a: []cmplx128, invert: bool) {
 fn FuseFFT(mut a: []cmplx128, mut b: []cmplx128, invert: bool) {
 	n := len(a)
 	if n == 1 {
-		ret
+		return
 	}
 
 	// Bit reversal permutation.

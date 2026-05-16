@@ -8,44 +8,44 @@ use "std/math"
 fn RadiansToDegrees(rad: f64): f64 {
 	// deg = rad * (180 / π)
 	const Div180Pi = 57.2957795130823208767981548141051703324054724665643215491602438 // https://oeis.org/A072097
-	ret rad * Div180Pi
+	return rad * Div180Pi
 }
 
 // Converts degrees to radians.
 fn DegreesToRadians(deg: f64): f64 {
 	// rad = deg * (π / 180)
 	const DivPi180 = 0.017453292519943295769236907684886127134428718885417254560971914 // https://oeis.org/A019685
-	ret deg * DivPi180
+	return deg * DivPi180
 }
 
 // Converts degrees to gradians.
 fn DegreesToGradians(deg: f64): f64 {
 	// 1 degree = 10/9 gradians.
-	ret deg * (10 / 9)
+	return deg * (10 / 9)
 }
 
 // Converts gradians to degrees.
 fn GradiansToDegrees(grad: f64): f64 {
 	// 1 gradian = 0.9 degrees.
-	ret grad * 0.9
+	return grad * 0.9
 }
 
 // Converts radians to gradians.
 fn RadiansToGradians(rad: f64): f64 {
 	// 1 radian = 200 / π gradians.
-	ret rad * (200 / Pi)
+	return rad * (200 / Pi)
 }
 
 // Converts gradians to radians.
 fn GradiansToRadians(grad: f64): f64 {
 	// 1 gradian = π / 200 radians.
-	ret grad * (Pi / 200)
+	return grad * (Pi / 200)
 }
 
 // Converts an angle given in hours, minutes, and seconds to degrees (used in RA conversion).
 fn HMSToDegrees(hours: f64, minutes: f64, seconds: f64): f64 {
 	// deg = 15 * (h + m/60 + s/3600)
-	ret 15 * (hours + minutes/60 + seconds/3600)
+	return 15 * (hours + minutes/60 + seconds/3600)
 }
 
 // Converts decimal degrees to hours, minutes, and seconds (used in RA).
@@ -58,7 +58,7 @@ fn DegreesToHMS(deg: f64): (hours: f64, minutes: f64, seconds: f64) {
 	if deg < 0 {
 		hours = -hours
 	}
-	ret hours, minutes, seconds
+	return hours, minutes, seconds
 }
 
 // Converts an angle in degrees, arcminutes, and arcseconds to decimal degrees.
@@ -67,7 +67,7 @@ fn DMSToDegrees(degrees: f64, minutes: f64, seconds: f64): f64 {
 	// decimal = sign * (|degrees| + minutes/60 + seconds/3600)
 	sign := math::Copysign(1, degrees) // Preserve the sign of the degrees.
 	absDeg := math::Abs(degrees)
-	ret sign * (absDeg + minutes/60 + seconds/3600)
+	return sign * (absDeg + minutes/60 + seconds/3600)
 }
 
 // Converts decimal degrees to degrees, minutes, and seconds.
@@ -78,7 +78,7 @@ fn DegreesToDMS(deg: f64): (degrees: f64, minutes: f64, seconds: f64) {
 	remainder := (absDeg - degrees) * 60
 	minutes = math::Floor(remainder)
 	seconds = (remainder - minutes) * 60
-	ret degrees * sign, minutes, seconds
+	return degrees * sign, minutes, seconds
 }
 
 // Normalizes an angle in degrees to the range [0, 360).
@@ -87,7 +87,7 @@ fn NormalizeAngle(deg: f64): f64 {
 	if normalized < 0 {
 		normalized += 360
 	}
-	ret normalized
+	return normalized
 }
 
 // Normalizes RA hours to the range [0, 24).
@@ -96,7 +96,7 @@ fn NormalizeRAHours(hours: f64): f64 {
 	if normalized < 0 {
 		normalized += 24
 	}
-	ret normalized
+	return normalized
 }
 
 // Converts Cartesian coordinates (x, y, z) to spherical coordinates (r, theta, phi).
@@ -109,14 +109,14 @@ fn CartesianToSpherical(x: f64, y: f64, z: f64): (r: f64, theta: f64, phi: f64) 
 	if r == 0 {
 		theta = 0
 		phi = 0
-		ret
+		return
 	}
 	theta = math::Acos(z / r) // polar angle
 	phi = math::Atan2(y, x)   // azimuthal angle
 	if phi < 0 {
 		phi += 2 * Pi
 	}
-	ret
+	return
 }
 
 // Converts spherical coordinates (r, theta, phi) in radians to Cartesian coordinates (x, y, z).
@@ -128,5 +128,5 @@ fn SphericalToCartesian(r: f64, theta: f64, phi: f64): (x: f64, y: f64, z: f64) 
 	x = r * sinTheta * math::Cos(phi)
 	y = r * sinTheta * math::Sin(phi)
 	z = r * math::Cos(theta)
-	ret
+	return
 }

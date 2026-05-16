@@ -19,7 +19,7 @@ impl Seq for seqSquare {
 	fn Next(*self): big::Int {
 		self.result.Mul(&self.n, &self.n) // result = n * n
 		self.n.Add(&self.n, &self.one)    // n++
-		ret self.result
+		return self.result
 	}
 }
 
@@ -27,5 +27,5 @@ impl Seq for seqSquare {
 fn Square(): Seq {
 	mut seq := new(seqSquare)
 	seq.Reset()
-	ret seq
+	return seq
 }

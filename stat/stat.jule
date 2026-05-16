@@ -33,7 +33,7 @@ fn ChiSquare[T: float](obs: []T, exp: []T): f64 {
 		diff := x - y
 		r += (diff * diff) / y
 	}
-	ret r
+	return r
 }
 
 // Computes the chi-square distance between two vectors: x and y.
@@ -59,7 +59,7 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
 		diff := xi - yi
 		r += (diff * diff) / (xi + yi)
 	}
-	ret 0.5 * r
+	return 0.5 * r
 }
 
 // Computes the weighted mean of the data set x.
@@ -78,10 +78,10 @@ fn Mean[T: integer | float](x: []T, weights: []T): f64 {
 		panic("stat: Mean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0
+		return 0
 	}
 	if len(weights) == 0 {
-		ret f64(jn::Sum(x...)) / f64(len(x))
+		return f64(jn::Sum(x...)) / f64(len(x))
 	}
 	let mut sumX: f64
 	let mut sumW: f64
@@ -91,7 +91,7 @@ fn Mean[T: integer | float](x: []T, weights: []T): f64 {
 		sumX += w * f64(x[i])
 		sumW += w
 	}
-	ret sumX / sumW
+	return sumX / sumW
 }
 
 // Computes the weighted geometric mean of the data set x.
@@ -110,7 +110,7 @@ fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 		panic("stat: GeometricMean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0
+		return 0
 	}
 	if len(weights) == 0 {
 		mut logSum := 0.0
@@ -118,7 +118,7 @@ fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 			logSum += math::Log(f64(x_i))
 		}
 		logSum /= f64(len(x))
-		ret math::Exp(logSum)
+		return math::Exp(logSum)
 	}
 	mut logSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -128,7 +128,7 @@ fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 		weightsSum += w
 	}
 	logSum /= weightsSum
-	ret math::Exp(logSum)
+	return math::Exp(logSum)
 }
 
 // Computes the weighted harmonic mean of the data set x.
@@ -147,7 +147,7 @@ fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
 		panic("stat: HarmonicMean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0
+		return 0
 	}
 	if len(weights) == 0 {
 		mut z := 0.0
@@ -155,7 +155,7 @@ fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
 		for i < len(x); i++ {
 			z += 1 / f64(x[i])
 		}
-		ret f64(len(x)) / z
+		return f64(len(x)) / z
 	}
 	mut weightedSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -164,7 +164,7 @@ fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
 		weightedSum += w / f64(x[i])
 		weightsSum += w
 	}
-	ret weightsSum / weightedSum
+	return weightsSum / weightedSum
 }
 
 // Computes the weighted root mean square of the data set x.
@@ -183,7 +183,7 @@ fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 		panic("stat: RootMeanSquare: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0
+		return 0
 	}
 	if len(weights) == 0 {
 		let mut z: f64
@@ -192,7 +192,7 @@ fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 			z += f64(x[i]) * f64(x[i])
 		}
 		z /= f64(len(x))
-		ret math::Sqrt(z)
+		return math::Sqrt(z)
 	}
 	mut weightedSum, mut weightsSum := 0.0, 0.0
 	mut i := 0
@@ -201,7 +201,7 @@ fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 		weightedSum += w_i * x_i * x_i
 		weightsSum += w_i
 	}
-	ret math::Sqrt(weightedSum / weightsSum)
+	return math::Sqrt(weightedSum / weightsSum)
 }
 
 // Computes the weighted circular mean of the data set x.
@@ -220,7 +220,7 @@ fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
 		panic("stat: CircularMean: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0
+		return 0
 	}
 	if len(weights) == 0 {
 		mut sumSin, mut sumCos := 0.0, 0.0
@@ -230,7 +230,7 @@ fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
 			sumSin += math::Sin(x_i)
 			sumCos += math::Cos(x_i)
 		}
-		ret math::Atan2(sumSin, sumCos)
+		return math::Atan2(sumSin, sumCos)
 	}
 	mut sumSin, mut sumCos := 0.0, 0.0
 	mut i := 0
@@ -239,7 +239,7 @@ fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
 		sumSin += w_i * math::Sin(x_i)
 		sumCos += w_i * math::Cos(x_i)
 	}
-	ret math::Atan2(sumSin, sumCos)
+	return math::Atan2(sumSin, sumCos)
 }
 
 #disable boundary
@@ -247,7 +247,7 @@ fn quickSelect[T: comparable](mut x: []T, k: int): T {
 	mut left, mut right := 0, len(x)-1
 	for {
 		if left == right {
-			ret x[left]
+			return x[left]
 		}
 
 		// Pivot selection (randomized for performance).
@@ -255,7 +255,7 @@ fn quickSelect[T: comparable](mut x: []T, k: int): T {
 		pivotIndex = partition(x, left, right, pivotIndex)
 
 		if k == pivotIndex {
-			ret x[k]
+			return x[k]
 		} else if k < pivotIndex {
 			right = pivotIndex - 1
 		} else {
@@ -280,19 +280,19 @@ fn partition[T: comparable](mut x: []T, left: int, right: int, pivotIndex: int):
 	}
 	// Move pivot to its final place.
 	x[storeIndex], x[right] = x[right], x[storeIndex]
-	ret storeIndex
+	return storeIndex
 }
 
 fn medianInPlace[T: integer | float](mut x: []T): f64 {
 	n := len(x)
 	mid := n >> 1
 	if n&1 == 1 {
-		ret quickSelect(x, mid)
+		return quickSelect(x, mid)
 	}
 	// For even n, average two middle values.
 	lo := quickSelect(x, mid-1)
 	hi := quickSelect(x, mid)
-	ret (lo + hi) / 2
+	return (lo + hi) / 2
 }
 
 // Computes the median of the data set x.
@@ -309,7 +309,7 @@ fn Median[T: integer | float](x: []T): f64 {
 	}
 	mut xc := make([]T, len(x))
 	copy(xc, x)
-	ret medianInPlace(xc)
+	return medianInPlace(xc)
 }
 
 // Computes the median of the data set x in-place (modifies x).
@@ -394,7 +394,7 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 	varY -= compensationY * compensationY / sumW
 	covXY -= compensationX * compensationY / sumW
 
-	ret
+	return
 }
 
 // Computes the weighted Pearson correlation coefficient between two data sets x and y.
@@ -417,14 +417,14 @@ fn Correlation[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 		panic("stat: Correlation: (len(x) == len(y)) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0
+		return 0
 	}
 	_, _, _, _, varX, varY, covXY := meanCovariance(x, y, weights)
 	denominator := math::Sqrt(varX * varY)
 	if denominator == 0 {
-		ret 0
+		return 0
 	}
-	ret covXY / denominator
+	return covXY / denominator
 }
 
 // This function computes the variance using
@@ -475,7 +475,7 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 
 	varX -= compensationX * compensationX / n
 	varX /= n - 1
-	ret
+	return
 }
 
 // Computes the weighted mean and the weighted unbiased sample variance of the data set x.
@@ -496,7 +496,7 @@ fn MeanVariance[T: integer | float](x: []T, weights: []T): (f64, f64) {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: MeanVariance: len(x) != len(weights)")
 	}
-	ret meanVariance(x, weights)
+	return meanVariance(x, weights)
 }
 
 // Computes the weighted unbiased sample variance of the data set x.
@@ -514,7 +514,7 @@ fn Variance[T: integer | float](x: []T, weights: []T): f64 {
 		panic("stat: Variance: len(x) != len(weights)")
 	}
 	_, varX := meanVariance(x, weights)
-	ret varX
+	return varX
 }
 
 // Computes the weighted unbiased sample covariance of the data sets x and y.
@@ -534,13 +534,13 @@ fn Covariance[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 	}
 	if len(weights) == 0 {
 		sumW, _, _, _, _, _, covXY := meanCovariance(x, y, nil)
-		ret covXY / (sumW - 1)
+		return covXY / (sumW - 1)
 	}
 	if len(x) != len(weights) {
 		panic("stat: Covariance: (len(x) == len(y)) != len(weights)")
 	}
 	sumW, sumW2, _, _, _, _, covXY := meanCovariance(x, y, weights)
-	ret covXY / (sumW - sumW2/sumW)
+	return covXY / (sumW - sumW2/sumW)
 }
 
 // Computes the Shannon entropy of a distribution or the distance between
@@ -560,7 +560,7 @@ fn Entropy[T: integer | float](p: []T): f64 {
 			e += fp_i * math::Log(fp_i)
 		}
 	}
-	ret -e
+	return -e
 }
 
 // Computes the cross Shannon entropy between the two distributions specified
@@ -586,7 +586,7 @@ fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
 			e += p_i * math::Log(f64(q[i]))
 		}
 	}
-	ret -e
+	return -e
 }
 
 // Computes the Euclidean Distance between two points p1 and p2.
@@ -603,7 +603,7 @@ fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
 		panic("stat: EuclideanDistance: len(p1) != len(p2)")
 	}
 	if len(p1) == 0 {
-		ret 0
+		return 0
 	}
 	mut sumSquare := 0.0
 	mut i := 0
@@ -612,7 +612,7 @@ fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
 		sumSquare += diff * diff
 	}
 	distance := math::Sqrt(sumSquare)
-	ret distance
+	return distance
 }
 
 // Computes the Sigmoid function.
@@ -623,7 +623,7 @@ fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 fn Sigmoid[T: integer | float](x: T): f64 {
-	ret 1 / (1 + math::Exp(f64(-x)))
+	return 1 / (1 + math::Exp(f64(-x)))
 }
 
 // Computes the weighted best-fit line
@@ -673,13 +673,13 @@ fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bo
 		}
 		beta = xySum / x2Sum
 
-		ret 0, beta
+		return 0, beta
 	}
 
 	_, _, meanX, meanY, varX, _, covXY := meanCovariance(x, y, weights)
 	beta = covXY / varX
 	alpha = meanY - beta*meanX
-	ret
+	return
 }
 
 // Computes the weighted sample standard deviation.
@@ -691,12 +691,12 @@ fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bo
 // result is in the same precision, casting to proper type is responsibility of the developer.
 fn StdDev[T: integer | float](x: []T, weights: []T): f64 {
 	var := Variance(x, weights)
-	ret math::Sqrt(var)
+	return math::Sqrt(var)
 }
 
 // Computes the standard error in the mean with the given values.
 fn StdErr(stdDev: f64, sampleSize: f64): f64 {
-	ret stdDev / math::Sqrt(sampleSize)
+	return stdDev / math::Sqrt(sampleSize)
 }
 
 // Computes the standard score (a.k.a. z-score, z-value) for the value x
@@ -705,7 +705,7 @@ fn StdErr(stdDev: f64, sampleSize: f64): f64 {
 // Mathematically, the standard score is defined as:
 //	(x - mean) / stdDev
 fn StdScore(x: f64, mean: f64, stdDev: f64): f64 {
-	ret (x - mean) / stdDev
+	return (x - mean) / stdDev
 }
 
 // Computes the most common value in the data set x and the given weights.
@@ -723,7 +723,7 @@ fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 		panic("stat: Mode: len(x) != len(weights)")
 	}
 	if len(x) == 0 {
-		ret 0, 0
+		return 0, 0
 	}
 	mut m := map[f64]f64{}
 	if len(weights) == 0 {
@@ -742,14 +742,14 @@ fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 			max = z
 		}
 	}
-	ret max, maxCount
+	return max, maxCount
 }
 
 // Computes the posterior probability P(A|B) using Bayes' Theorem:
 //	P(A|B) = P(B|A) * P(A) / P(B)
 fn Bayes[T: float](prior: T, likelihood: T, evidence: T): T {
 	if evidence == 0 {
-		ret 0 // avoid division by zero
+		return 0 // avoid division by zero
 	}
-	ret (likelihood * prior) / evidence
+	return (likelihood * prior) / evidence
 }

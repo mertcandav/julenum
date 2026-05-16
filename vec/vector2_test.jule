@@ -14,29 +14,29 @@ struct vector2RotateTest {
 
 let testsVector2Rotate: []vector2RotateTest = [
 	{
-		x: {1, 0},
+		x:     {1, 0},
 		theta: jn::Pi / 2,
-		r: {0, 1},
+		r:     {0, 1},
 	},
 	{
-		x: {0, 1},
+		x:     {0, 1},
 		theta: jn::Pi,
-		r: {0, -1},
+		r:     {0, -1},
 	},
 	{
-		x: {1, 1},
+		x:     {1, 1},
 		theta: jn::Pi / 4,
-		r: {0, math::Sqrt(2)},
+		r:     {0, math::Sqrt(2)},
 	},
 	{
-		x: {2, 3},
+		x:     {2, 3},
 		theta: jn::Pi / 2,
-		r: {-3, 2},
+		r:     {-3, 2},
 	},
 	{
-		x: {5, 0},
+		x:     {5, 0},
 		theta: jn::Pi * 2,
-		r: {5, 0},
+		r:     {5, 0},
 	},
 ]
 

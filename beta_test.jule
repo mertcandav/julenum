@@ -13,68 +13,68 @@ struct betaTest {
 
 let testsBeta: []betaTest = [
 	{
-		p: 1,
-		q: 2,
+		p:    1,
+		q:    2,
 		want: 0.5, // obtained from scipy.special.beta(1,2) (version=0.18.0)
 	},
 	{
-		p: 10,
-		q: 20,
+		p:    10,
+		q:    20,
 		want: 4.9925087406346778e-09, // obtained from scipy.special.beta(10,20) (version=0.18.0)
 	},
 	{
-		p: +0,
-		q: 10,
+		p:    +0,
+		q:    10,
 		want: math::Inf(+1),
 	},
 	{
-		p: -0,
-		q: 10,
+		p:    -0,
+		q:    10,
 		want: math::Inf(+1),
 	},
 	{
-		p: 0,
-		q: 0,
+		p:    0,
+		q:    0,
 		want: math::NaN(),
 	},
 	{
-		p: 0,
-		q: math::Inf(-1),
+		p:    0,
+		q:    math::Inf(-1),
 		want: math::NaN(),
 	},
 	{
-		p: 10,
-		q: math::Inf(-1),
+		p:    10,
+		q:    math::Inf(-1),
 		want: math::NaN(),
 	},
 	{
-		p: 0,
-		q: math::Inf(+1),
+		p:    0,
+		q:    math::Inf(+1),
 		want: math::NaN(),
 	},
 	{
-		p: 10,
-		q: math::Inf(+1),
+		p:    10,
+		q:    math::Inf(+1),
 		want: math::NaN(),
 	},
 	{
-		p: math::NaN(),
-		q: 10,
+		p:    math::NaN(),
+		q:    10,
 		want: math::NaN(),
 	},
 	{
-		p: math::NaN(),
-		q: 0,
+		p:    math::NaN(),
+		q:    0,
 		want: math::NaN(),
 	},
 	{
-		p: -1,
-		q: 0,
+		p:    -1,
+		q:    0,
 		want: math::NaN(),
 	},
 	{
-		p: -1,
-		q: +1,
+		p:    -1,
+		q:    +1,
 		want: math::NaN(),
 	},
 ]
@@ -114,7 +114,7 @@ fn testBeta(t: &testing::T) {
 }
 
 fn beta2(x: f64, y: f64): f64 {
-	ret math::Gamma(x) * math::Gamma(y) / math::Gamma(x+y)
+	return math::Gamma(x) * math::Gamma(y) / math::Gamma(x+y)
 }
 
 #test
