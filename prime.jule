@@ -44,26 +44,20 @@ fn millerRabin(n: u64): bool {
 		d >>= 1
 		s++
 	}
+Loop:
 	for _, a in bases {
-		if a >= n {
-			break
-		}
 		mut x := expmod(a, d, n)
 		if x == 1 || x == n-1 {
 			continue
 		}
-		mut cont := false
 		mut r := 1
 		for r < s; r++ {
 			x = mulmod(x, x, n)
 			if x == n-1 {
-				cont = true
-				break
+				continue Loop
 			}
 		}
-		if !cont {
-			return false
-		}
+		return false
 	}
 	return true
 }
