@@ -8,6 +8,26 @@ use "std/comptime"
 use "std/math"
 use "std/math/cmplx"
 
+// A sub-matrix type.
+struct matrixView[T: numeric] {
+	m:      int
+	n:      int
+	stride: int
+	data:   []T
+}
+
+impl matrixView {
+	// Returns a quadrant of the matrix view without copying.
+	fn sub(mut *self, r: int, c: int, m: int, n: int): matrixView[T] {
+		return matrixView[T]{
+			m:      m,
+			n:      n,
+			stride: self.stride,
+			data:   self.data[r+c*self.stride:],
+		}
+	}
+}
+
 // A matrix for type T.
 // Uses internal mutable slice to store data.
 // Matrix computations may use available capacity of the underlying slice
@@ -1262,23 +1282,49 @@ fn subRaw[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
 // Multiplies x and y and leaves the result in z.
 // z must be have enough space for the product x*k.
 // It will not update dimensions of the z.
-#disable boundary
+#disable nilptr
 fn basicMul[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
-	mut i := 0
-	for i < x.m; i++ {
-		mut zm := i + 0*z.m // i + j*z.m
-		mut ym := 0 + 0*y.m // k + j*y.m
+	// Break immutability for x and y but do not mutate them.
+	mut zv := matrixView[T]{m: z.m, n: z.n, stride: z.m, data: z.data}
+	mut xv := matrixView[T]{m: x.m, n: x.n, stride: x.m, data: unsafe { *(&x.data) }}
+	mut yv := matrixView[T]{m: y.m, n: y.n, stride: y.m, data: unsafe { *(&y.data) }}
+	basicMulView(zv, xv, yv)
+}
 
-		mut j := 0
-		for j < y.n; j, zm, ym = j+1, zm+z.m, ym+y.m {
-			let mut sum: T
-			mut k := 0
-			for k < x.n; k++ {
-				// Fast access form of: x.Get(i, k) * y.Get(k, j)
-				sum += x.data[i+k*x.m] * y.data[k+ym]
+// Same as basicMul but for matrixView.
+#disable boundary
+fn basicMulView[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+	mut j := 0
+
+	if x.n == 0 {
+		for j < y.n; j++ {
+			zm := j * z.stride
+			mut i := 0
+			for i < x.m; i++ {
+				z.data[i+zm] = 0
 			}
-			// Fast access form of: z.Set(i, j, sum)
-			z.data[zm] = sum
+		}
+		return
+	}
+
+	for j < y.n; j++ {
+		zm := j * z.stride
+		ym := j * y.stride
+
+		mut yVal := y.data[ym]
+		mut i := 0
+		for i < x.m; i++ {
+			z.data[i+zm] = x.data[i] * yVal
+		}
+
+		mut k := 1
+		for k < x.n; k++ {
+			xm := k * x.stride
+			yVal = y.data[k+ym]
+			i = 0
+			for i < x.m; i++ {
+				z.data[i+zm] += x.data[i+xm] * yVal
+			}
 		}
 	}
 }
@@ -1290,7 +1336,7 @@ const strassenThreshold = 64
 // Performs recursive Strassen matrix multiplication using single shared allocation.
 // Assumes square matrices of size n × n where n is a power of 2.
 // Writes final result to z, it must be have enough space for the product x*y.
-#disable boundary
+#disable nilptr boundary
 fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[T], mut space: []T) {
 	// If the matrix size is small enough, use basic matrix multiplication.
 	// This threshold balances recursion overhead and cache-local performance.
