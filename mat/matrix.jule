@@ -17,13 +17,15 @@ struct matrixView[T: numeric] {
 }
 
 impl matrixView {
-	// Returns a quadrant of the matrix view without copying.
-	fn sub(mut *self, r: int, c: int, m: int, n: int): matrixView[T] {
+	// Returns a view to a sub-matrix of m without allocating memory.
+	#disable boundary
+	fn getQuadrant(mut *self, rowStart: int, colStart: int, rows: int, cols: int): matrixView[T] {
+		offset := rowStart + colStart*self.stride
 		return matrixView[T]{
-			m:      m,
-			n:      n,
+			m:      rows,
+			n:      cols,
 			stride: self.stride,
-			data:   self.data[r+c*self.stride:],
+			data:   self.data[offset:], // View window starting from offset
 		}
 	}
 }
@@ -45,6 +47,12 @@ struct Matrix[T: numeric] {
 }
 
 impl Matrix {
+	fn asView(*self): matrixView[T] {
+		// Break immutability for but do not mutate them unsafely.
+		// This method requires extra attention.
+		return matrixView[T]{m: self.m, n: self.n, stride: self.m, data: unsafe { *(&self.data) }}
+	}
+
 	// Returns dimensions of the Matrix (M×N).
 	fn Dims(*self): (m: int, n: int) {
 		return self.m, self.n
@@ -410,7 +418,7 @@ impl Matrix {
 		self.m, self.n = x.m, x.n
 		self.data = self.make(self.Size())
 
-		addRaw(self, x, y)
+		addRaw(self.data, x.data, y.data)
 	}
 
 	// Sets self to the difference x-y.
@@ -433,7 +441,7 @@ impl Matrix {
 		self.m, self.n = x.m, x.n
 		self.data = self.make(self.Size())
 
-		subRaw(self, x, y)
+		subRaw(self.data, x.data, y.data)
 	}
 
 	// Sets self to the product x*y.
@@ -480,14 +488,14 @@ impl Matrix {
 		// Total common buffer allocation size estimation for Strassen implementation:
 		// Let n = size
 		// - Padded matrices (worst case): 3n² (A, B, and C)
-		// - Recursive temporary space per level: 17 × (n/2)² = (17/4) × n²
+		// - We use Matrix Views so we DO NOT allocate sub-quadrants.
+		// - Recursive temporary space per level (9 matrices: M1-M7, S1, S2): 9 × (n/2)² = (9/4) × n²
 		// - Depth of recursion: log₂(n / threshold)
 		// - Recursive workspace total:
-		//   S(n) = (17/4)n² + (17/4)(n/2)² + ... + (17/4)(threshold)²
-		//   This is a geometric series: S ≈ (17/3) × n²   (as n → ∞)
-		// => Total = 3n² + (17/3)n² = (26/3)n² ≈ 8.67n²
-		// We use a conservative multiplier of 9 to ensure no overflow at threshold=64.
-		mut strassenSize := 9 * k * k
+		//   S(n) = (9/4)n² + (9/16)n² + ...
+		//   This is a geometric series: S ≈ 3n² (as n → ∞)
+		// => Total = 3n² (pads) + 3n² (recursion) = 6n²
+		mut strassenSize := 6 * k * k
 
 		// Determine whether the input matrices needs padding.
 		xPadNeed := !ibits::IsPowerOfTwo(x.m) || !ibits::IsPowerOfTwo(x.n)
@@ -528,34 +536,43 @@ impl Matrix {
 		// The z matrix will be result with possible padding.
 		// To avoid collision during the copy, use the trailing space for z.
 		zpos := len(strassenSpace) - k*k
-		mut z := Matrix[T]{
-			m:    k,
-			n:    k,
-			data: strassenSpace[zpos:],
+		mut z := matrixView[T]{
+			m:      k,
+			n:      k,
+			stride: k,
+			data:   strassenSpace[zpos:],
 		}
 		strassenSpace = strassenSpace[:zpos]
 		mut r := strassenSpace[:x.m*y.n] // The final result allocation.
 
 		// Allocate padded matrices from common buffer, if needed.
-		let mut xPad: Matrix[T]
-		let mut yPad: Matrix[T]
+		let mut xPad: matrixView[T]
+		let mut yPad: matrixView[T]
 		if xPadNeed {
 			// Copy input matrices into zero-padded square matrices.
-			xPad = getMatrix(k, k, &strassenSpace)
-			padAndCopy(&xPad, x)
+			xPad = getView(k, k, &strassenSpace)
+			padAndCopyView(xPad, x)
 		} else {
-			xPad = unsafe { **(&x) } // Break immutability, it will not be mutated.
+			xPad.m = x.m
+			xPad.n = x.n
+			xPad.stride = x.m
+			// Break immutability, it will not be mutated.
+			xPad.data = unsafe { *&x.data }
 		}
 		if yPadNeed {
 			// Copy input matrices into zero-padded square matrices.
-			yPad = getMatrix(k, k, &strassenSpace)
-			padAndCopy(&yPad, y)
+			yPad = getView(k, k, &strassenSpace)
+			padAndCopyView(yPad, y)
 		} else {
-			yPad = unsafe { **(&y) } // Break immutability, it will not be mutated.
+			yPad.m = y.m
+			yPad.n = y.n
+			yPad.stride = y.m
+			// Break immutability, it will not be mutated.
+			yPad.data = unsafe { *&y.data }
 		}
 
 		// Time to compute the product x*y using Strassen algorithm.
-		strassen(&z, &xPad, &yPad, strassenSpace)
+		strassen(z, xPad, yPad, strassenSpace)
 
 		// Set result to self.
 		self.m, self.n = x.m, y.n
@@ -740,7 +757,7 @@ fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 	return mat
 }
 
-#disable boundary
+#disable nilptr boundary
 fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Prec {
 	m, n := a.m, a.n
 
@@ -848,7 +865,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 	return det
 }
 
-#disable boundary
+#disable nilptr boundary
 fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 	m, n := a.m, a.n
 
@@ -963,7 +980,7 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 	return
 }
 
-#disable boundary
+#disable nilptr boundary
 fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 	m, n := a.m, a.n
 
@@ -1082,7 +1099,7 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 	return
 }
 
-#disable boundary
+#disable nilptr boundary
 fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs: fn(Prec): f64) {
 	n := a.n
 
@@ -1255,20 +1272,46 @@ fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs
 // Sets z to the sum x+y.
 // z must be have enough space for the sum x+y.
 #disable boundary
-fn addRaw[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
+fn addRaw[T: numeric](mut z: []T, x: []T, y: []T) {
 	mut i := 0
-	for i < len(z.data); i++ {
-		z.data[i] = x.data[i] + y.data[i]
+	for i < len(z); i++ {
+		z[i] = x[i] + y[i]
 	}
 }
 
 // Sets z to the difference x-y.
 // z must be have enough space for the difference x-y.
 #disable boundary
-fn subRaw[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
+fn subRaw[T: numeric](mut z: []T, x: []T, y: []T) {
 	mut i := 0
-	for i < len(z.data); i++ {
-		z.data[i] = x.data[i] - y.data[i]
+	for i < len(z); i++ {
+		z[i] = x[i] - y[i]
+	}
+}
+
+// Adds x and y, storing the result in z using matrix views.
+#disable boundary
+fn addView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+	mut j := 0
+	for j < z.n; j++ {
+		zj := j * z.stride
+		xj := j * x.stride
+		yj := j * y.stride
+
+		addRaw(z.data[zj:zj+z.m], x.data[xj:], y.data[yj:])
+	}
+}
+
+// Subtracts y from x, storing the result in z using matrix views.
+#disable boundary
+fn subView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+	mut j := 0
+	for j < z.n; j++ {
+		zj := j * z.stride
+		xj := j * x.stride
+		yj := j * y.stride
+
+		subRaw(z.data[zj:zj+z.m], x.data[xj:], y.data[yj:])
 	}
 }
 
@@ -1278,11 +1321,7 @@ fn subRaw[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
 // It will not update dimensions of the z.
 #disable nilptr
 fn basicMul[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
-	// Break immutability for x and y but do not mutate them.
-	mut zv := matrixView[T]{m: z.m, n: z.n, stride: z.m, data: z.data}
-	mut xv := matrixView[T]{m: x.m, n: x.n, stride: x.m, data: unsafe { *(&x.data) }}
-	mut yv := matrixView[T]{m: y.m, n: y.n, stride: y.m, data: unsafe { *(&y.data) }}
-	basicMulView(zv, xv, yv)
+	basicMulView(z.asView(), x.asView(), y.asView())
 }
 
 // Same as basicMul but for matrixView.
@@ -1324,20 +1363,21 @@ fn basicMulView[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixVie
 }
 
 // Threshold for switching to basic multiplication.
-// This value is crucial for performance, Strassen algorithm is inefficient for tiny matrices.
+// This value is crucial for performance.
+// Strassen algorithm is inefficient for tiny matrices.
 const strassenThreshold = 64
 
 // Performs recursive Strassen matrix multiplication using single shared allocation.
 // Assumes square matrices of size n × n where n is a power of 2.
 // Writes final result to z, it must be have enough space for the product x*y.
 #disable nilptr boundary
-fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[T], mut space: []T) {
+fn strassen[T: numeric](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView[T], mut space: []T) {
 	// If the matrix size is small enough, use basic matrix multiplication.
 	// This threshold balances recursion overhead and cache-local performance.
 	// Threshold choice (e.g., 64) is crucial for performance and determines space needs.
 	n := ibits::Max(ibits::Max(x.m, x.n), y.n)
 	if n < strassenThreshold {
-		basicMul(z, x, y)
+		basicMulView(z, x, y)
 		return
 	}
 
@@ -1350,110 +1390,85 @@ fn strassen[T: numeric](mut &z: *Matrix[T], mut &x: *Matrix[T], mut &y: *Matrix[
 	// - 2 temporary matrices for sum/diff (S1, S2)
 	// - 8 quadrant matrices (A11..A22, B11..B22) for copying subblocks
 
-	// Each matrix is of size (k × k), so total allocation per level is:
-	// 17 × (k × k) = 17k²
-
 	// Allocate intermediate result matrices.
-	mut m1 := getMatrix(k, k, &space)
-	mut m2 := getMatrix(k, k, &space)
-	mut m3 := getMatrix(k, k, &space)
-	mut m4 := getMatrix(k, k, &space)
-	mut m5 := getMatrix(k, k, &space)
-	mut m6 := getMatrix(k, k, &space)
-	mut m7 := getMatrix(k, k, &space)
-	mut s1 := getMatrix(k, k, &space)
-	mut s2 := getMatrix(k, k, &space)
+	mut m1 := getView(k, k, &space)
+	mut m2 := getView(k, k, &space)
+	mut m3 := getView(k, k, &space)
+	mut m4 := getView(k, k, &space)
+	mut m5 := getView(k, k, &space)
+	mut m6 := getView(k, k, &space)
+	mut m7 := getView(k, k, &space)
+
+	mut s1 := getView(k, k, &space)
+	mut s2 := getView(k, k, &space)
 
 	// Allocate quadrant matrices from input x.
-	mut a11 := getMatrix(k, k, &space)
-	copySubMatrix(&a11, x, 0, 0, k, k)
-	mut a12 := getMatrix(k, k, &space)
-	copySubMatrix(&a12, x, 0, k, k, k)
-	mut a21 := getMatrix(k, k, &space)
-	copySubMatrix(&a21, x, k, 0, k, k)
-	mut a22 := getMatrix(k, k, &space)
-	copySubMatrix(&a22, x, k, k, k, k)
+	mut a11 := x.getQuadrant(0, 0, k, k)
+	mut a12 := x.getQuadrant(0, k, k, k)
+	mut a21 := x.getQuadrant(k, 0, k, k)
+	mut a22 := x.getQuadrant(k, k, k, k)
 
 	// Allocate quadrant matrices from input y.
-	mut b11 := getMatrix(k, k, &space)
-	copySubMatrix(&b11, y, 0, 0, k, k)
-	mut b12 := getMatrix(k, k, &space)
-	copySubMatrix(&b12, y, 0, k, k, k)
-	mut b21 := getMatrix(k, k, &space)
-	copySubMatrix(&b21, y, k, 0, k, k)
-	mut b22 := getMatrix(k, k, &space)
-	copySubMatrix(&b22, y, k, k, k, k)
+	mut b11 := y.getQuadrant(0, 0, k, k)
+	mut b12 := y.getQuadrant(0, k, k, k)
+	mut b21 := y.getQuadrant(k, 0, k, k)
+	mut b22 := y.getQuadrant(k, k, k, k)
 
 	// M1 = (A11 + A22) * (B11 + B22)
-	addRaw(&s1, &a11, &a22)
-	addRaw(&s2, &b11, &b22)
-	strassen(&m1, &s1, &s2, space)
+	addView(s1, a11, a22)
+	addView(s2, b11, b22)
+	strassen(m1, s1, s2, space)
 
 	// M2 = (A21 + A22) * B11
-	addRaw(&s1, &a21, &a22)
-	strassen(&m2, &s1, &b11, space)
+	addView(s1, a21, a22)
+	strassen(m2, s1, b11, space)
 
 	// M3 = A11 * (B12 - B22)
-	subRaw(&s1, &b12, &b22)
-	strassen(&m3, &a11, &s1, space)
+	subView(s1, b12, b22)
+	strassen(m3, a11, s1, space)
 
 	// M4 = A22 * (B21 - B11)
-	subRaw(&s1, &b21, &b11)
-	strassen(&m4, &a22, &s1, space)
+	subView(s1, b21, b11)
+	strassen(m4, a22, s1, space)
 
 	// M5 = (A11 + A12) * B22
-	addRaw(&s1, &a11, &a12)
-	strassen(&m5, &s1, &b22, space)
+	addView(s1, a11, a12)
+	strassen(m5, s1, b22, space)
 
 	// M6 = (A21 - A11) * (B11 + B12)
-	subRaw(&s1, &a21, &a11)
-	addRaw(&s2, &b11, &b12)
-	strassen(&m6, &s1, &s2, space)
+	subView(s1, a21, a11)
+	addView(s2, b11, b12)
+	strassen(m6, s1, s2, space)
 
 	// M7 = (A12 - A22) * (B21 + B22)
-	subRaw(&s1, &a12, &a22)
-	addRaw(&s2, &b21, &b22)
-	strassen(&m7, &s1, &s2, space)
+	subView(s1, a12, a22)
+	addView(s2, b21, b22)
+	strassen(m7, s1, s2, space)
 
 	// C11 = M1 + M4 - M5 + M7
-	addRaw(&s1, &m1, &m4)
-	subRaw(&s2, &s1, &m5)
-	addRaw(&s1, &s2, &m7)
-	copyToQuadrant(z, &s1, 0, 0)
+	mut c11 := z.getQuadrant(0, 0, k, k)
+	addView(c11, m1, m4)
+	subView(c11, c11, m5)
+	addView(c11, c11, m7)
 
 	// C12 = M3 + M5
-	addRaw(&s1, &m3, &m5)
-	copyToQuadrant(z, &s1, 0, k)
+	mut c12 := z.getQuadrant(0, k, k, k)
+	addView(c12, m3, m5)
 
 	// C21 = M2 + M4
-	addRaw(&s1, &m2, &m4)
-	copyToQuadrant(z, &s1, k, 0)
+	mut c21 := z.getQuadrant(k, 0, k, k)
+	addView(c21, m2, m4)
 
 	// C22 = M1 - M2 + M3 + M6
-	subRaw(&s1, &m1, &m2)
-	addRaw(&s2, &s1, &m3)
-	addRaw(&s1, &s2, &m6)
-	copyToQuadrant(z, &s1, k, k)
-}
-
-// Places k matrix into a quadrant of z matrix at offset (m, n).
-#disable boundary
-fn copyToQuadrant[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], m: int, n: int) {
-	mut kj := 0 * k.m             // j * k.m
-	mut zm := (m + 0) + (n+0)*z.m // (m + i) + (n+j)*z.m
-	mut j := 0
-	for j < k.m; j, kj, zm = j+1, kj+k.m, zm+z.m {
-		mut i := 0
-		for i < k.m; i++ {
-			// Fast access form of: z.Set(m+i, n+j, k.Get(i, j))
-			z.data[i+zm] = k.data[i+kj]
-		}
-	}
+	mut c22 := z.getQuadrant(k, k, k, k)
+	subView(c22, m1, m2)
+	addView(c22, c22, m3)
+	addView(c22, c22, m6)
 }
 
 // Copies submatrix (of m × n) from source k at (a, b) to z.
 // z must be have enough space to copy k.
-#disable boundary
+#disable nilptr boundary
 fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int, m: int, n: int) {
 	mut zm := 0 + 0*z.m           // i + j*z.m
 	mut km := (a + 0) + (b+0)*k.m // (a + i) + (b+j)*k.m
@@ -1467,11 +1482,9 @@ fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int,
 	}
 }
 
-// Pads and copies k matrix into larger workspace matrix z.
-// Fills remaining elements with zeros.
-// z must be have enough space to copy k.
+// Same as padAndCopy but for matrix-view.
 #disable nilptr boundary
-fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
+fn padAndCopyView[T: numeric](mut z: matrixView[T], &k: *Matrix[T]) {
 	// Clear the z matrix if k is smaller than.
 	if k.m < z.m || k.n < z.n {
 		for i in z.data {
@@ -1485,19 +1498,29 @@ fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
 	}
 }
 
-// Returns new (M×N) Matrix for type T from space.
-// The result matrix will use shared data from space.
+// Pads and copies k matrix into larger workspace matrix z.
+// Fills remaining elements with zeros.
+// z must be have enough space to copy k.
+#disable nilptr boundary
+fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
+	padAndCopyView(z.asView(), k)
+}
+
+// Returns new (M×N) matrix-view for type T from space.
+// The result matrix-view will use shared data from space.
 // Space will be trimmed according to size.
-fn getMatrix[T: numeric](m: int, n: int, mut &space: *[]T): Matrix[T] {
+#disable nilptr boundary
+fn getView[T: numeric](m: int, n: int, mut &space: *[]T): matrixView[T] {
 	k := m * n
 	if k > len(*space) {
 		panic("mat: getMatrix: internal error, no space")
 	}
 	mut data := (*space)[:k]
 	*space = (*space)[k:]
-	return Matrix[T]{
-		m:    m,
-		n:    n,
-		data: data,
+	return matrixView[T]{
+		m:      m,
+		n:      n,
+		stride: m,
+		data:   data,
 	}
 }
