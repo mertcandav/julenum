@@ -567,15 +567,9 @@ impl Matrix {
 		if z.m == self.m && z.n == self.n {
 			copy(self.data, z.data)
 		} else {
-			mut sm := 0 + 0*self.m // i + j*self.m
-			mut zm := 0 + 0*z.m    // i + j*z.m
 			mut j := 0
-			for j < self.n; j, sm, zm = j+1, sm+self.m, zm+z.m {
-				mut i := 0
-				for i < self.m; i++ {
-					// Fast access form of: self.Set(i, j, z.Get(i, j))
-					self.data[i+sm] = z.data[i+zm]
-				}
+			for j < self.n; j++ {
+				copy(self.data[j*self.m:j*self.m+self.m], z.data[j*z.m:j*z.m+self.m])
 			}
 		}
 	}
