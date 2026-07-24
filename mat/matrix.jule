@@ -1494,7 +1494,9 @@ fn padAndCopyView[T: numeric](mut z: matrixView[T], &k: *Matrix[T]) {
 
 	mut j := 0
 	for j < k.n; j++ {
-		copy(z.data[j*z.m:j*z.m+k.m], k.data[j*k.m:j*k.m+k.m])
+		zm := j * z.stride
+		km := j * k.m
+		copy(z.data[zm:zm+k.m], k.data[km:km+k.m])
 	}
 }
 
