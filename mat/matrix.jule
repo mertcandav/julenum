@@ -1324,39 +1324,113 @@ fn basicMul[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T]) {
 	basicMulView(z.asView(), x.asView(), y.asView())
 }
 
-// Same as basicMul but for matrixView.
+// Defines the L1/L2 cache tiling block size for matrix multiplication.
+// A block size of 64 balances register pressure and keeps working sub-matrices
+// within CPU cache lines, minimizing cache misses for column-major layouts.
+const blockSize = 64
+
+// Same as `basicMul` but for matrix-view.
 #disable boundary
-fn basicMulView[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+fn basicMulView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+	xm := x.m
+	xn := x.n
+	yn := y.n
+
 	mut j := 0
 
-	if x.n == 0 {
-		for j < y.n; j++ {
-			zm := j * z.stride
-			mut i := 0
-			for i < x.m; i++ {
-				z.data[i+zm] = 0
-			}
+	// Initialize the destination matrix slice to zero.
+	// Necessary because matrix views might refer to dirty memory segments.
+	for j < yn; j++ {
+		zm := j * z.stride
+		mut i := 0
+		for i < xm; i++ {
+			z.data[i+zm] = 0
 		}
+	}
+
+	// Early return for empty matrix dimensions to
+	// avoid invalid zero-index pointer offsets.
+	if xn == 0 {
 		return
 	}
 
-	for j < y.n; j++ {
-		zm := j * z.stride
-		ym := j * y.stride
+	unsafe {
+		// Extract raw underlying pointers to eliminate slice boundary checks
+		// and slice abstraction/memory management cost during iteration.
+		// Slicing triggers memory management and reference counting,
+		// we do not need it so we can avoid.
+		mut zPtr := &z.data[0]
+		mut xPtr := &x.data[0]
+		mut yPtr := &y.data[0]
 
-		mut yVal := y.data[ym]
-		mut i := 0
-		for i < x.m; i++ {
-			z.data[i+zm] = x.data[i] * yVal
-		}
+		// Outer Tiling Loops (jj, kk, ii)
+		// Partition matrices into smaller
+		// tiles/blocks of size `blockSize x blockSize`.
+		mut jj := 0
+		for jj < yn; jj += blockSize {
+			mut jMax := jj + blockSize
+			if jMax > yn {
+				jMax = yn
+			}
 
-		mut k := 1
-		for k < x.n; k++ {
-			xm := k * x.stride
-			yVal = y.data[k+ym]
-			i = 0
-			for i < x.m; i++ {
-				z.data[i+zm] += x.data[i+xm] * yVal
+			mut kk := 0
+			for kk < xn; kk += blockSize {
+				mut kMax := kk + blockSize
+				if kMax > xn {
+					kMax = xn
+				}
+
+				mut ii := 0
+				for ii < xm; ii += blockSize {
+					mut iMax := ii + blockSize
+					if iMax > xm {
+						iMax = xm
+					}
+
+					// Inner Block Execution Loops (j, k, i)
+					// Performs multiplication within the bounded cache block.
+					j = jj
+					for j < jMax; j++ {
+						zm := j * z.stride
+						ym := j * y.stride
+
+						// Pre-calculate base memory offsets for
+						// column 'j' of Z and Y.
+						mut zSlice := zPtr + zm
+						ySlice := yPtr + ym
+
+						mut k := kk
+						for k < kMax; k++ {
+							xStride := k * x.stride
+							xSlice := xPtr + xStride
+
+							// Broadcast element Y[k:j] for
+							// scalar multiplication across column X[:k]
+							yVal := ySlice[k]
+
+							mut i := ii
+
+							// 4-way Manual Loop Unrolling to
+							// reduce branch misprediction overhead.
+							for i <= iMax-4 {
+								zSlice[i] += xSlice[i] * yVal
+								i++
+								zSlice[i] += xSlice[i] * yVal
+								i++
+								zSlice[i] += xSlice[i] * yVal
+								i++
+								zSlice[i] += xSlice[i] * yVal
+								i++
+							}
+
+							// Cleanup tail loop for remaining
+							// elements non-divisible by 4.
+							for i < iMax; i++ {
+								zSlice[i] += xSlice[i] * yVal
+							}
+						}
+					}
+				}
 			}
 		}
 	}
