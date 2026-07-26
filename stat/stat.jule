@@ -337,6 +337,7 @@ fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 // The covariance results are unnormalised and may be used to compute biased and unbiased covariance;
 //	Biased covariance:   covXY / sumW
 //	Unbiased covariance: covXY / (sumW - sumW2/sumW)
+#disable boundary
 fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64, sumW2: f64, meanX: f64, meanY: f64, varX: f64, varY: f64, covXY: f64) {
 	mut compensationX, mut compensationY := 0.0, 0.0
 	if len(weights) == 0 {
@@ -434,6 +435,7 @@ fn Correlation[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 //
 // The two-pass method first computes the mean, then computes
 // the variance using the mean, reducing floating-point errors.
+#disable boundary
 fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f64) {
 	mut n := f64(len(x))
 	mut compensationX := 0.0
