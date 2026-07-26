@@ -124,7 +124,7 @@ fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 	mut i := 0
 	for i < len(x); i++ {
 		w := f64(weights[i])
-		logSum += w * math::Log(x[i])
+		logSum += w * math::Log(f64(x[i]))
 		weightsSum += w
 	}
 	logSum /= weightsSum
