@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "julenum/internal/chunk"
 use "std/math"
 
 // General vector type for type T.
@@ -31,10 +32,7 @@ impl Vector {
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
 
-		mut i := 0
-		for i < len(*self); i++ {
-			(*self)[i] = (*x)[i] + (*y)[i]
-		}
+		chunk::Add([]T(*self), []T(*x), []T(*y))
 	}
 
 	// Sets self to the difference x-y.
@@ -51,10 +49,7 @@ impl Vector {
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
 
-		mut i := 0
-		for i < len(*self); i++ {
-			(*self)[i] = (*x)[i] - (*y)[i]
-		}
+		chunk::Sub([]T(*self), []T(*x), []T(*y))
 	}
 
 	// Returns the dot product self*y.
@@ -77,10 +72,7 @@ impl Vector {
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
 
-		mut i := 0
-		for i < len(*self); i++ {
-			(*self)[i] = (*x)[i] * k
-		}
+		chunk::MulScalar([]T(*self), []T(*x), k)
 	}
 
 	// Returns norm (length) of vector.
@@ -105,10 +97,7 @@ impl Vector {
 				(*self)[i] = 0
 			}
 		} else {
-			mut i := 0
-			for i < len(*self); i++ {
-				(*self)[i] = (*x)[i] / norm
-			}
+			chunk::DivScalar([]T(*self), []T(*x), norm)
 		}
 	}
 

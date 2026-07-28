@@ -1,0 +1,295 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Sets z to the sum x+y.
+// z must have enough space for the sum x+y.
+#disable boundary
+fn Add[T: numeric](mut z: []T, x: []T, y: []T) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+		mut yPtr := &y[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] + yPtr[0]
+			zPtr[1] = xPtr[1] + yPtr[1]
+			zPtr[2] = xPtr[2] + yPtr[2]
+			zPtr[3] = xPtr[3] + yPtr[3]
+			zPtr[4] = xPtr[4] + yPtr[4]
+			zPtr[5] = xPtr[5] + yPtr[5]
+			zPtr[6] = xPtr[6] + yPtr[6]
+			zPtr[7] = xPtr[7] + yPtr[7]
+
+			zPtr += 8
+			xPtr += 8
+			yPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] + yPtr[0]
+			zPtr[1] = xPtr[1] + yPtr[1]
+
+			zPtr += 2
+			xPtr += 2
+			yPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] + yPtr[0]
+		}
+	}
+}
+
+// Sets z to the difference x-y.
+// z must be have enough space for the difference x-y.
+#disable boundary
+fn Sub[T: numeric](mut z: []T, x: []T, y: []T) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+		mut yPtr := &y[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] - yPtr[0]
+			zPtr[1] = xPtr[1] - yPtr[1]
+			zPtr[2] = xPtr[2] - yPtr[2]
+			zPtr[3] = xPtr[3] - yPtr[3]
+			zPtr[4] = xPtr[4] - yPtr[4]
+			zPtr[5] = xPtr[5] - yPtr[5]
+			zPtr[6] = xPtr[6] - yPtr[6]
+			zPtr[7] = xPtr[7] - yPtr[7]
+
+			zPtr += 8
+			xPtr += 8
+			yPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] - yPtr[0]
+			zPtr[1] = xPtr[1] - yPtr[1]
+
+			zPtr += 2
+			xPtr += 2
+			yPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] - yPtr[0]
+		}
+	}
+}
+
+// Sets z to the sum x+y.
+// z must have enough space for the sum x+y.
+#disable boundary
+fn Mul[T: numeric](mut z: []T, x: []T, y: []T) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+		mut yPtr := &y[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] * yPtr[0]
+			zPtr[1] = xPtr[1] * yPtr[1]
+			zPtr[2] = xPtr[2] * yPtr[2]
+			zPtr[3] = xPtr[3] * yPtr[3]
+			zPtr[4] = xPtr[4] * yPtr[4]
+			zPtr[5] = xPtr[5] * yPtr[5]
+			zPtr[6] = xPtr[6] * yPtr[6]
+			zPtr[7] = xPtr[7] * yPtr[7]
+
+			zPtr += 8
+			xPtr += 8
+			yPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] * yPtr[0]
+			zPtr[1] = xPtr[1] * yPtr[1]
+
+			zPtr += 2
+			xPtr += 2
+			yPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] * yPtr[0]
+		}
+	}
+}
+
+// Sets z to the sum xᵢ+y.
+// z must have enough space for the sum xᵢ+k.
+#disable boundary
+fn AddScalar[T: numeric](mut z: []T, x: []T, k: T) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] + k
+			zPtr[1] = xPtr[1] + k
+			zPtr[2] = xPtr[2] + k
+			zPtr[3] = xPtr[3] + k
+			zPtr[4] = xPtr[4] + k
+			zPtr[5] = xPtr[5] + k
+			zPtr[6] = xPtr[6] + k
+			zPtr[7] = xPtr[7] + k
+
+			zPtr += 8
+			xPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] + k
+			zPtr[1] = xPtr[1] + k
+
+			zPtr += 2
+			xPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] + k
+		}
+	}
+}
+
+// Sets z to the difference xᵢ-y.
+// z must have enough space for the difference xᵢ-k.
+#disable boundary
+fn SubScalar[T: numeric](mut z: []T, k: T) {
+	AddScalar(z, -k)
+}
+
+// Sets z to the product xᵢ*y.
+// z must have enough space for the product xᵢ*k.
+#disable boundary
+fn MulScalar[T: numeric](mut z: []T, x: []T, k: T) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] * k
+			zPtr[1] = xPtr[1] * k
+			zPtr[2] = xPtr[2] * k
+			zPtr[3] = xPtr[3] * k
+			zPtr[4] = xPtr[4] * k
+			zPtr[5] = xPtr[5] * k
+			zPtr[6] = xPtr[6] * k
+			zPtr[7] = xPtr[7] * k
+
+			zPtr += 8
+			xPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] * k
+			zPtr[1] = xPtr[1] * k
+
+			zPtr += 2
+			xPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] * k
+		}
+	}
+}
+
+// Sets z to the division xᵢ/y.
+// z must have enough space for the division xᵢ/k.
+#disable boundary
+fn DivScalar[T: numeric](mut z: []T, x: []T, k: T) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] / k
+			zPtr[1] = xPtr[1] / k
+			zPtr[2] = xPtr[2] / k
+			zPtr[3] = xPtr[3] / k
+			zPtr[4] = xPtr[4] / k
+			zPtr[5] = xPtr[5] / k
+			zPtr[6] = xPtr[6] / k
+			zPtr[7] = xPtr[7] / k
+
+			zPtr += 8
+			xPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] / k
+			zPtr[1] = xPtr[1] / k
+
+			zPtr += 2
+			xPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] / k
+		}
+	}
+}

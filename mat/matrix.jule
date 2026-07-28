@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "julenum/internal/chunk"
 use "julenum/internal/ibits"
 use "julenum/internal/imem"
 use "std/comptime"
@@ -356,10 +357,7 @@ impl Matrix {
 			return
 		}
 
-		mut i := 0
-		for i < len(self.data); i++ {
-			self.data[i] = z.data[i] + k
-		}
+		chunk::AddScalar(self.data, z.data, k)
 	}
 
 	// Sets self to the difference z-k.
@@ -373,7 +371,6 @@ impl Matrix {
 	// Sets self to the product z*k.
 	// If self have enough capacity, MulScalar will use it to avoid making allocation.
 	// If z is a (0×0) matrix, self will be (0×0). But keeps internal allocation.
-	#disable boundary
 	fn MulScalar(mut *self, &z: *Matrix[T], k: T) {
 		// Special case: (0×0) matrix.
 		// Set self to (0×0), do not deallocate slice.
@@ -410,7 +407,6 @@ impl Matrix {
 	// Sets self to the sum x+y.
 	// If self have enough capacity, Add will use it to avoid making allocation.
 	// If matrices are (0×0) matrix, self will be (0×0). But keeps internal allocation.
-	#disable boundary
 	fn Add(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
 		if x.m != y.m || x.n != y.n {
 			panic("mat: Matrix.Add: matrices have different size")
@@ -427,13 +423,12 @@ impl Matrix {
 		self.m, self.n = x.m, x.n
 		self.data = self.make(self.Size())
 
-		addRaw(self.data, x.data, y.data)
+		chunk::Add(self.data, x.data, y.data)
 	}
 
 	// Sets self to the difference x-y.
 	// If self have enough capacity, Sub will use it to avoid making allocation.
 	// If matrices are (0×0) matrix, self will be (0×0). But keeps internal allocation.
-	#disable boundary
 	fn Sub(mut *self, &x: *Matrix[T], &y: *Matrix[T]) {
 		if x.m != y.m || x.n != y.n {
 			panic("mat: Matrix.Sub: matrices have different size")
@@ -450,7 +445,7 @@ impl Matrix {
 		self.m, self.n = x.m, x.n
 		self.data = self.make(self.Size())
 
-		subRaw(self.data, x.data, y.data)
+		chunk::Sub(self.data, x.data, y.data)
 	}
 
 	// Internal implementation of [Mul] and [MulEx].
@@ -1313,26 +1308,6 @@ fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs
 	}
 }
 
-// Sets z to the sum x+y.
-// z must be have enough space for the sum x+y.
-#disable boundary
-fn addRaw[T: numeric](mut z: []T, x: []T, y: []T) {
-	mut i := 0
-	for i < len(z); i++ {
-		z[i] = x[i] + y[i]
-	}
-}
-
-// Sets z to the difference x-y.
-// z must be have enough space for the difference x-y.
-#disable boundary
-fn subRaw[T: numeric](mut z: []T, x: []T, y: []T) {
-	mut i := 0
-	for i < len(z); i++ {
-		z[i] = x[i] - y[i]
-	}
-}
-
 // Adds x and y, storing the result in z using matrix views.
 #disable boundary
 fn addView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
@@ -1342,7 +1317,7 @@ fn addView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
 		xj := j * x.stride
 		yj := j * y.stride
 
-		addRaw(z.data[zj:zj+z.m], x.data[xj:], y.data[yj:])
+		chunk::Add(z.data[zj:zj+z.m], x.data[xj:], y.data[yj:])
 	}
 }
 
@@ -1355,7 +1330,7 @@ fn subView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
 		xj := j * x.stride
 		yj := j * y.stride
 
-		subRaw(z.data[zj:zj+z.m], x.data[xj:], y.data[yj:])
+		chunk::Sub(z.data[zj:zj+z.m], x.data[xj:], y.data[yj:])
 	}
 }
 
