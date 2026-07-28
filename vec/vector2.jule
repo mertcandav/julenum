@@ -38,7 +38,7 @@ impl Vector2 {
 
 	// Returns norm (length) of vector.
 	fn Norm(*self): f64 {
-		return math::Sqrt(self.X*self.X + self.Y*self.Y)
+		return math::Hypot(self.X, self.Y)
 	}
 
 	// Sets self to the unit vector (vector with norm 1) in the same direction as x.
