@@ -4,6 +4,7 @@ Package for matrices.
 
 ## Index
 
+[Variables](#variables)\
 [fn Empty\[T: numeric\]\(\): Matrix\[T\]](#empty)\
 [fn New\[T: numeric\]\(m: int, n: int\): Matrix\[T\]](#new)\
 [fn NewFrom\[T: numeric\]\(values: \[\]\[\]T\): Matrix\[T\]](#newfrom)\
@@ -32,11 +33,21 @@ Package for matrices.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Add\(mut \*self, &amp;x: \*Matrix\[T\], &amp;y: \*Matrix\[T\]\)](#add)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Sub\(mut \*self, &amp;x: \*Matrix\[T\], &amp;y: \*Matrix\[T\]\)](#sub)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Mul\(mut \*self, &amp;x: \*Matrix\[T\], &amp;y: \*Matrix\[T\]\)](#mul)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn MulEx\(mut \*self, &amp;x: \*Matrix\[T\], &amp;y: \*Matrix\[T\], flags: int\)](#mulex)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Det\(\*self\): T](#det)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Slogdet\(\*self\): \(sign: T, logdet: f64\)](#slogdet)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Inv\(mut \*self, &amp;a: \*Matrix\[T\]\)](#inv)
 
+## Variables
 
+```jule
+const (
+	PARALLEL = 1 << iota
+	STRASSEN
+	STABLE
+)
+```
+Flags\.
 
 ## Empty
 ```jule
@@ -79,7 +90,7 @@ mat::NewFrom([
 
 Equals to:
 	A = ⎡1 2 4⎤
-		 ⎣3 4 5⎦(2×3)
+	    ⎣3 4 5⎦(2×3)
 ```
 
 
@@ -240,31 +251,41 @@ Sets self to the difference z\-k\. If self have enough capacity, SubScalar will 
 
 ### MulScalar
 ```jule
-#disable boundary
 fn MulScalar(mut *self, &z: *Matrix[T], k: T)
 ```
 Sets self to the product z\*k\. If self have enough capacity, MulScalar will use it to avoid making allocation\. If z is a \(0×0\) matrix, self will be \(0×0\)\. But keeps internal allocation\.
 
 ### Add
 ```jule
-#disable boundary
 fn Add(mut *self, &x: *Matrix[T], &y: *Matrix[T])
 ```
 Sets self to the sum x\+y\. If self have enough capacity, Add will use it to avoid making allocation\. If matrices are \(0×0\) matrix, self will be \(0×0\)\. But keeps internal allocation\.
 
 ### Sub
 ```jule
-#disable boundary
 fn Sub(mut *self, &x: *Matrix[T], &y: *Matrix[T])
 ```
 Sets self to the difference x\-y\. If self have enough capacity, Sub will use it to avoid making allocation\. If matrices are \(0×0\) matrix, self will be \(0×0\)\. But keeps internal allocation\.
 
 ### Mul
 ```jule
-#disable boundary
 fn Mul(mut *self, &x: *Matrix[T], &y: *Matrix[T])
 ```
-Sets self to the product x\*y\. If self have enough capacity, Mul will use it to avoid making allocation\.
+Sets self to the product x\*y\. If self have enough capacity, Mul will use it to avoid making allocation\. Equals to \[Matrix\.MulEx\(x, y, PARALLEL\|STRASSEN\|STABLE\)\]
+
+### MulEx
+```jule
+fn MulEx(mut *self, &x: *Matrix[T], &y: *Matrix[T], flags: int)
+```
+Sets self to the product x\*y\. If self have enough capacity, MulEx will use it to avoid making allocation\.
+
+Flags:<br>
+```
+PARALLEL: performs parallel computation when it is suitable.
+STRASSEN: uses Strassen algorithm when it is suitable.
+STABLE: prioritizes numerical stability.
+```
+
 
 ### Det
 ```jule
