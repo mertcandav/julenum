@@ -1,0 +1,1 @@
+import{_ as a,c as n,o as l,ah as e}from"./chunks/framework._fWrWIYU.js";const u=JSON.parse('{"title":"julenum/mat","description":"","frontmatter":{},"headers":[],"relativePath":"api/mat.md","filePath":"api/mat.md"}'),o={name:"api/mat.md"};function p(r,s,t,c,i,F){return l(),n("div",null,s[0]||(s[0]=[e("",126)]))}const y=a(o,[["render",p]]);export{u as __pageData,y as default};
