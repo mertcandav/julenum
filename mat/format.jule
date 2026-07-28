@@ -7,7 +7,7 @@ use "std/conv"
 use "std/unsafe"
 
 fn appendNumeric[T: numeric](mut buf: []byte, t: T): []byte {
-	const match comptime::TypeOf(T).Kind() {
+	const match comptime::Typeof(T).Kind() {
 	| comptime::Cmplx64 | comptime::Cmplx128:
 		return append(buf, conv::FormatCmplx(cmplx128(t), 'g', -1, 128)...)
 	| comptime::F32 | comptime::F64:

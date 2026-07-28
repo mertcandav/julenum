@@ -604,7 +604,7 @@ impl Matrix {
 			panic("mat: Matrix.Det: determinant on non-square matrix")
 		}
 
-		const match comptime::TypeOf(T).Kind() {
+		const match comptime::Typeof(T).Kind() {
 		| comptime::Cmplx64 | comptime::Cmplx128:
 			// complex
 			return T(det(self, cmplx::Abs))
@@ -641,7 +641,7 @@ impl Matrix {
 			panic("mat: Matrix.Slogdet: determinant on non-square matrix")
 		}
 
-		const match comptime::TypeOf(T).Kind() {
+		const match comptime::Typeof(T).Kind() {
 		| comptime::Cmplx64 | comptime::Cmplx128:
 			// complex
 			_sign, (logdet) := slogdetCmplx(self)
@@ -668,7 +668,7 @@ impl Matrix {
 			panic("mat: Matrix.Inv: inverse on non-square matrix")
 		}
 
-		const match comptime::TypeOf(T).Kind() {
+		const match comptime::Typeof(T).Kind() {
 		| comptime::Cmplx64 | comptime::Cmplx128:
 			// complex
 			inv(self, a, cmplx::Abs)
