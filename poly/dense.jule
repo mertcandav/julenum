@@ -125,4 +125,17 @@ impl Dense {
 		}
 		return len(*self) - 1
 	}
+
+	// Sets self to negated coefficients of the polynomial x.
+	// For example, (3x^2 - 4x + 1) becomes (-3x^2 + 4x - 1).
+	//
+	// If self has enough capacity, Negate will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Negate(mut *self, &x: *Dense) {
+		*self = self.make(len(*x))
+		for i, coef in *x {
+			(*self)[i] = -coef
+		}
+	}
 }

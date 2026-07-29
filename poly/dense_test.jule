@@ -74,3 +74,29 @@ fn testDenseSimplify(t: &testing::T) {
 		}
 	}
 }
+
+let testsDenseNegate: []denseIOTest = [
+	{
+		input: [3, -4, 1],
+		want:  [-3, 4, -1],
+	},
+	{
+		input: [],
+		want:  [],
+	},
+	{
+		input: [0, 0, -1, 0, 0, 1],
+		want:  [0, 0, 1, 0, 0, -1],
+	},
+]
+
+#test
+fn testDenseNegate(t: &testing::T) {
+	for _, test in testsDenseNegate {
+		let mut r: Dense
+		r.Negate(&test.input)
+		if !slices::Equal(r, test.want) {
+			t.Errorf("Negate({}) = {}, expected {}", test.input, r, test.want)
+		}
+	}
+}
