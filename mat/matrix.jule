@@ -5,6 +5,7 @@
 use "julenum/internal/chunk"
 use "julenum/internal/ibits"
 use "julenum/internal/imem"
+use "julenum/vec"
 use "std/comptime"
 use "std/math"
 use "std/math/cmplx"

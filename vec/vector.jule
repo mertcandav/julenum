@@ -68,7 +68,7 @@ impl Vector {
 	// If self have enough capacity, Normalize will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Scale(mut *self, &x: *Vector[T], k: f64) {
+	fn Scale(mut *self, &x: *Vector[T], k: T) {
 		// Make sure the self data have enough space.
 		*self = self.make(len(*x))
 
@@ -97,7 +97,7 @@ impl Vector {
 				(*self)[i] = 0
 			}
 		} else {
-			chunk::DivScalar([]T(*self), []T(*x), norm)
+			chunk::DivScalar([]T(*self), []T(*x), T(norm))
 		}
 	}
 
@@ -146,7 +146,7 @@ impl Vector {
 			}
 		} else {
 			xy := dot(x, y)
-			scale := xy / (yn * yn)
+			scale := xy / T(yn*yn)
 			self.Scale(y, scale)
 		}
 	}
