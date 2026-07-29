@@ -72,7 +72,7 @@ export default defineConfig({
             { text: 'interp', link: '/api/interp' },
             { text: 'mat', link: '/api/mat' },
             {
-              text: "julenum/num",
+              text: "num",
               link: '/api/num/',
               items: [
                 { text: 'dual', link: '/api/num/dual' },
