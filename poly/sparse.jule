@@ -54,6 +54,61 @@ impl Sparse {
 		return make(Sparse, n)
 	}
 
+	// Sets self to the given terms.
+	//
+	// Terms may be in any order. Terms with the same exponent are merged,
+	// zero coefficients within tolerance are removed, and the result is
+	// sorted by decreasing exponent. Final polynomial will be simplified.
+	//
+	// If self has enough capacity, Set will reuse it to avoid allocation.
+	// If terms is empty, self will be zero-length but keeps its capacity.
+	#disable boundary
+	fn Set(mut *self, terms: []Term, tol: f64) {
+		n := len(terms)
+		if n == 0 {
+			*self = (*self)[:0]
+			return
+		}
+
+		// Copy input first so Set never depends on the input slice remaining
+		// unchanged while the result is being built.
+		*self = self.make(n)
+		copy(*self, terms)
+
+		// If terms are unordered, sort them once.
+		if !slices::IsSortedFunc(*self, cmp) {
+			sortByExp(self)
+		}
+
+		// Merge equal exponents and remove zero coefficients.
+		//
+		// The input is now guaranteed to be non-increasing by exponent.
+		mut i := 0
+		mut k := 0
+
+		for i < n {
+			exp := (*self)[i].Exp
+			mut coef := (*self)[i].Coef
+			i++
+
+			// Combine all terms having the same exponent.
+			for i < n && (*self)[i].Exp == exp {
+				coef += (*self)[i].Coef
+				i++
+			}
+
+			if coef != 0 && !jn::Tolerance(coef, 0, tol) {
+				(*self)[k] = Term{
+					Coef: coef,
+					Exp:  exp,
+				}
+				k++
+			}
+		}
+
+		*self = (*self)[:k]
+	}
+
 	// Returns the leading coefficient of the polynomial.
 	// Panics if polynomial is zero.
 	fn LeadingCoef(*self): f64 {
@@ -119,32 +174,7 @@ impl Sparse {
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
 	fn Simplify(mut *self, &p: *Sparse, tol: f64) {
-		if len(*p) <= 1 {
-			return // Already simplified.
-		}
-
-		// Group terms by exponent using a map.
-		mut m := map[int]f64{}
-		for _, term in *p {
-			if !jn::Tolerance(term.Coef, 0, tol) {
-				m[term.Exp] += term.Coef
-			}
-		}
-
-		*self = self.make(len(m))
-		mut k := 0
-		for exp, coef in m {
-			if !jn::Tolerance(coef, 0, tol) {
-				(*self)[k] = Term{Coef: coef, Exp: exp}
-				k++
-			}
-		}
-
-		// Trim to actual length.
-		// Zero coefficients ignored, so final length may be different.
-		*self = (*self)[:k]
-
-		sortByExp(self)
+		self.Set([]Term(*p), tol)
 	}
 
 	// Sets self to sum x+y.
@@ -1217,16 +1247,18 @@ fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
 
 // Sort terms of the polynomial p by decreasing exponent.
 fn sortByExp(mut &p: *Sparse) {
-	slices::SortFunc([]Term(*p), fn|i, j| {
-		match {
-		| i.Exp == j.Exp:
-			return 0
-		| i.Exp > j.Exp:
-			return -1
-		|:
-			return +1
-		}
-	})
+	slices::SortFunc([]Term(*p), cmp)
+}
+
+fn cmp(i: Term, j: Term): int {
+	match {
+	| i.Exp == j.Exp:
+		return 0
+	| i.Exp > j.Exp:
+		return -1
+	|:
+		return +1
+	}
 }
 
 // Reports whether x and y share the same base array.
