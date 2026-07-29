@@ -116,4 +116,13 @@ impl Dense {
 	fn Zero(*self, tol: f64): bool {
 		return len(*self) == 0 || jn::Tolerance((*self)[len(*self)-1], 0, tol)
 	}
+
+	// Returns the degree of the polynomial (highest exponent).
+	// Returns -1 for the zero polynomial.
+	fn Degree(*self): int {
+		if len(*self) == 0 {
+			return -1
+		}
+		return len(*self) - 1
+	}
 }
