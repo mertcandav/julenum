@@ -12,6 +12,7 @@ Package for matrices.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Format\(\*self, wsn: int\): string](#format)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn AppendFormat\(\*self, mut buf: \[\]byte, wsn: int\): \[\]byte](#appendformat)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn String\(\*self\): string](#string)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Data\(mut \*self\): \[\]T](#data)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Dims\(\*self\): \(m: int, n: int\)](#dims)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Size\(\*self\): int](#size)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Zero\(\*self\): bool](#zero)\
@@ -119,6 +120,12 @@ Appends string form of the matrix to buf and returns\. wsn represents number of 
 fn String(*self): string
 ```
 Returns string form of the matrix\.
+
+### Data
+```jule
+unsafe fn Data(mut *self): []T
+```
+Returns mutable copy of the internal data\. This is an unsafe function, any mutation may cause corruptions\.
 
 ### Dims
 ```jule
