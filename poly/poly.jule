@@ -344,18 +344,18 @@ impl Polynomial {
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
 	fn Mul(mut *self, &x: *Polynomial, &y: *Polynomial) {
-		n := len(*x) * len(*y)
-
 		// Early return: x or y is zero.
-		if n == 0 {
+		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
 			return
 		}
-
-		if n < fftThreshold {
+		kind, size := selectMulAlgorithm(x, y)
+		match kind {
+		| 0:
 			basicMul(self, x, y)
-		} else {
-			size := fftSize(x, y)
+		| 1:
+			denseMul(self, x, y)
+		|:
 			tol := dynamicTolerance(x, y, size)
 			fftMul(self, x, y, size, tol)
 		}
@@ -371,7 +371,7 @@ impl Polynomial {
 	#disable boundary
 	fn MulNaive(mut *self, &x: *Polynomial, &y: *Polynomial) {
 		// Early return: x or y is zero.
-		if len(*x)*len(*y) == 0 {
+		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
 			return
 		}
@@ -389,18 +389,18 @@ impl Polynomial {
 	// If self have enough capacity, MulTol will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	fn MulTol(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
-		n := len(*x) * len(*y)
-
 		// Early return: x or y is zero.
-		if n == 0 {
+		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
 			return
 		}
-
-		if n < fftThreshold {
+		kind, size := selectMulAlgorithm(x, y)
+		match kind {
+		| 0:
 			basicMul(self, x, y)
-		} else {
-			size := fftSize(x, y)
+		| 1:
+			denseMul(self, x, y)
+		|:
 			fftMul(self, x, y, size, tol)
 		}
 	}
@@ -413,10 +413,8 @@ impl Polynomial {
 	// If self have enough capacity, MulFFT will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	fn MulFFT(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
-		n := len(*x) * len(*y)
-
 		// Early return: x or y is zero.
-		if n == 0 {
+		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
 			return
 		}
@@ -442,18 +440,20 @@ impl Polynomial {
 			panic("poly: division by zero")
 		}
 
-		n := len(*x) * len(*y)
+		kind, _ := selectMulAlgorithm(x, y)
 		if rem != nil {
-			if n < fftThreshold {
+			match kind {
+			| 0 | 1:
 				basicDivMod(self, x, y, rem)
-			} else {
+			|:
 				fftDivMod(self, x, y, rem)
 			}
 		} else {
 			let mut _rem: Polynomial
-			if n < fftThreshold {
+			match kind {
+			| 0 | 1:
 				basicDivMod(self, x, y, &_rem)
-			} else {
+			|:
 				fftDivMod(self, x, y, &_rem)
 			}
 		}
@@ -755,6 +755,109 @@ impl Polynomial {
 	}
 }
 
+// Algorithm codes:
+//	0: basicMul
+//	1: denseMul
+//	2: fftMul
+#disable boundary
+fn selectMulAlgorithm(&x: *Polynomial, &y: *Polynomial): (int, int) {
+	nx := len(*x)
+	ny := len(*y)
+
+	if nx == 0 || ny == 0 {
+		return 0, 0
+	}
+
+	// Very small inputs are faster with direct sparse multiplication.
+	work := nx * ny
+	if work <= 64 {
+		return 0, 0
+	}
+
+	degX := (*x)[0].Exp
+	degY := (*y)[0].Exp
+
+	// Degree span of the result.
+	degree := degX + degY + 1
+
+	// Estimate how densely populated the coefficient space is.
+	densityX := f64(nx) / f64(degX+1)
+	densityY := f64(ny) / f64(degY+1)
+
+	density := math::Min(densityX, densityY)
+
+	// Sparse polynomials should never be sent to FFT merely because
+	// their term count is large.
+	if density < 0.05 {
+		return 0, 0
+	}
+
+	// Dense convolution is preferable to FFT for medium-sized inputs.
+	if degree <= 4096 && work <= 1_000_000 {
+		return 1, degree
+	}
+
+	// FFT only when the coefficient domain is sufficiently dense.
+	if density >= 0.20 {
+		size := ibits::NextPowerOfTwo(degree)
+		return 2, size
+	}
+
+	// Moderately sparse: direct multiplication is safer and often faster.
+	return 0, 0
+}
+
+#disable boundary
+fn denseMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
+	if len(*x) == 0 || len(*y) == 0 {
+		*z = (*z)[:0]
+		return
+	}
+
+	degX := (*x)[0].Exp
+	degY := (*y)[0].Exp
+	size := degX + degY + 1
+
+	mut coeffs := make([]f64, size)
+
+	for _, a in *x {
+		if a.Coef == 0 {
+			continue
+		}
+
+		for _, b in *y {
+			if b.Coef == 0 {
+				continue
+			}
+
+			coeffs[a.Exp+b.Exp] += a.Coef * b.Coef
+		}
+	}
+
+	// At most nx + ny - 1 non-zero terms can be produced
+	// for dense input, but zero coefficients may be present.
+	*z = z.make(size)
+
+	mut k := 0
+
+	// Polynomial terms are stored in descending exponent order.
+	mut exp := size
+	for exp > 0 {
+		exp--
+
+		coef := coeffs[exp]
+		if coef != 0 {
+			(*z)[k] = Term{
+				Coef: coef,
+				Exp:  exp,
+			}
+			k++
+		}
+	}
+
+	*z = (*z)[:k]
+}
+
 #disable boundary
 fn dynamicTolerance(&x: *Polynomial, &y: *Polynomial, size: int): f64 {
 	const (
@@ -794,38 +897,69 @@ fn dynamicTolerance(&x: *Polynomial, &y: *Polynomial, size: int): f64 {
 // z = x*y
 #disable boundary
 fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
-	// Temporary map to sum coefficients of matching exponents.
-	mut temp := map[int]f64{}
+	if len(*x) == 0 || len(*y) == 0 {
+		*z = (*z)[:0]
+		return
+	}
 
-	for _, a in *x {
+	// Keep the larger polynomial in the outer loop.
+	// This does not change complexity, but reduces loop overhead
+	// when one polynomial is much smaller than the other.
+	let mut outer: *Polynomial
+	let mut inner: *Polynomial
+	if len(*x) >= len(*y) {
+		outer = unsafe { *&x }
+		inner = unsafe { *&y }
+	} else {
+		outer = unsafe { *&y }
+		inner = unsafe { *&x }
+	}
+
+	n := unsafe { len(*outer) * len(*inner) }
+
+	// The number of distinct exponents can be as high as nx*ny
+	// for sparse polynomials with irregular exponents.
+	mut temp := make(map[int]f64, n)
+
+	for _, a in unsafe { *outer } {
 		if a.Coef == 0 {
 			continue
 		}
-		for _, b in *y {
+
+		acoef := a.Coef
+		aexp := a.Exp
+
+		for _, b in unsafe { *inner } {
 			if b.Coef == 0 {
 				continue
 			}
-			exp := a.Exp + b.Exp
-			temp[exp] += a.Coef * b.Coef
+
+			exp := aexp + b.Exp
+			temp[exp] += acoef * b.Coef
 		}
 	}
 
-	// Convert map to slice and eliminate zeroes.
+	if len(temp) == 0 {
+		*z = (*z)[:0]
+		return
+	}
+
 	*z = z.make(len(temp))
+
 	mut k := 0
 	for exp, coef in temp {
 		if coef != 0 {
-			(*z)[k] = Term{Coef: coef, Exp: exp}
+			(*z)[k] = Term{
+				Coef: coef,
+				Exp:  exp,
+			}
 			k++
 		}
 	}
 
-	// Trim to actual length.
-	// Zero coefficients ignored, so final length may be different.
 	*z = (*z)[:k]
 
-	// Sort terms by decreasing exponent.
-	if len(*z) > 1 {
+	if k > 1 {
 		sortByExp(z)
 	}
 }
@@ -1013,16 +1147,18 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 
 #disable boundary
 fn polyToCoeffs(mut &z: *[]cmplx128, &p: *Polynomial) {
-	for i in *p {
-		(*z)[(*p)[i].Exp] = cmplx((*p)[i].Coef, 0)
+	for _, term in *p {
+		(*z)[term.Exp] = cmplx(term.Coef, 0)
 	}
 }
 
-#disable boundary
+#disable nilptr boundary
 fn coeffsToPoly(mut &z: *Polynomial, coeffs: []cmplx128, tol: f64) {
 	*z = z.make(len(coeffs))
 	mut k := 0
-	for exp in coeffs {
+
+	mut exp := len(coeffs) - 1
+	for exp >= 0; exp-- {
 		coef := real(coeffs[exp])
 		if !jn::Tolerance(coef, 0, tol) {
 			(*z)[k] = Term{Coef: coef, Exp: exp}
@@ -1034,12 +1170,8 @@ fn coeffsToPoly(mut &z: *Polynomial, coeffs: []cmplx128, tol: f64) {
 	// Zero coefficients ignored, so final length may be different.
 	*z = (*z)[:k]
 
-	sortByExp(z)
+	// No need for: sortByExp(z)
 }
-
-// Threshold for switching to basic multiplication.
-// This value is crucial for performance, FFT algorithm is inefficient for small polynomials.
-const fftThreshold = 128
 
 #disable boundary
 fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
