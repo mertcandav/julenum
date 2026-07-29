@@ -4,12 +4,12 @@
 
 use "std/testing"
 
-struct formatTest {
-	p:    Polynomial
+struct sparseFormatTest {
+	p:    Sparse
 	want: string
 }
 
-let mut testsFormat: []formatTest = [
+let mut testsSparseFormat: []sparseFormatTest = [
 	{
 		p:    [],
 		want: "0",
@@ -53,8 +53,8 @@ let mut testsFormat: []formatTest = [
 ]
 
 #test
-fn testMatrixFormat(t: &testing::T) {
-	for (i, mut test) in testsFormat {
+fn testSparseFormat(t: &testing::T) {
+	for (i, mut test) in testsSparseFormat {
 		got := test.p.String()
 		if got != test.want {
 			t.Errorf("#{} failed, String({}) = {}, expected {}", i, []Term(test.p), got, test.want)

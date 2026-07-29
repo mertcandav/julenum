@@ -6,7 +6,7 @@ use jn "julenum"
 use "std/conv"
 use "std/unsafe"
 
-fn appendFormatPolynomial(&p: *Polynomial, mut buf: []byte): []byte {
+fn appendFormatSparse(&p: *Sparse, mut buf: []byte): []byte {
 	mut wr := false
 	for i, term in *p {
 		mut coef := term.Coef
@@ -65,14 +65,14 @@ fn appendFormatPolynomial(&p: *Polynomial, mut buf: []byte): []byte {
 	return buf
 }
 
-impl Polynomial {
+impl Sparse {
 	// Appends a human-readable string representation of the polynomial to buf and returns.
 	fn AppendFormat(*self, mut buf: []byte): []byte {
-		return appendFormatPolynomial(self, buf)
+		return appendFormatSparse(self, buf)
 	}
 
 	// Returns a human-readable string representation of the polynomial.
 	fn String(*self): string {
-		return unsafe::StringFromBytes(appendFormatPolynomial(self, nil))
+		return unsafe::StringFromBytes(appendFormatSparse(self, nil))
 	}
 }

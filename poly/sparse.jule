@@ -42,16 +42,16 @@ struct Term {
 //
 // Capacity of underlying slices is never changed for values; i.e. that there are
 // no 3-operand slice expressions. Any corruption of this rule is undefined behavior.
-type Polynomial: []Term
+type Sparse: []Term
 
-impl Polynomial {
-	// Returns new Polynomial buffer enough to store at least n values.
-	fn make(mut *self, n: int): Polynomial {
+impl Sparse {
+	// Returns new Sparse buffer enough to store at least n values.
+	fn make(mut *self, n: int): Sparse {
 		// Reuse self capacity, if there is enough space.
 		if n <= cap(*self) {
 			return (*self)[:n]
 		}
-		return make(Polynomial, n)
+		return make(Sparse, n)
 	}
 
 	// Returns the leading coefficient of the polynomial.
@@ -88,7 +88,7 @@ impl Polynomial {
 	// If self have enough capacity, Negate will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Negate(mut *self, &x: *Polynomial) {
+	fn Negate(mut *self, &x: *Sparse) {
 		*self = self.make(len(*x))
 		for i in *x {
 			(*self)[i] = Term{Coef: -(*x)[i].Coef, Exp: (*x)[i].Exp}
@@ -99,7 +99,7 @@ impl Polynomial {
 	//
 	// If self have enough capacity, Negate will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn Copy(mut *self, &x: *Polynomial) {
+	fn Copy(mut *self, &x: *Sparse) {
 		// self is an x for self, return immediately.
 		if self == x {
 			return
@@ -112,13 +112,13 @@ impl Polynomial {
 	// IT merges like terms and removes zero coefficients with tolerance.
 	//
 	// Result is sorted by decreasing exponent.
-	// If the Polynomial manually modified, this function may help to follow internal
-	// polynomial representation rules as described in Polynomial type.
+	// If the Sparse manually modified, this function may help to follow internal
+	// polynomial representation rules as described in Sparse type.
 	//
 	// If self have enough capacity, Simplify will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Simplify(mut *self, &p: *Polynomial, tol: f64) {
+	fn Simplify(mut *self, &p: *Sparse, tol: f64) {
 		if len(*p) <= 1 {
 			return // Already simplified.
 		}
@@ -152,7 +152,7 @@ impl Polynomial {
 	// If self have enough capacity, Add will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Add(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+	fn Add(mut *self, &x: *Sparse, &y: *Sparse, tol: f64) {
 		// If y is empty, just copy x.
 		if len(*y) == 0 {
 			// self is an x for self, return immediately.
@@ -174,12 +174,12 @@ impl Polynomial {
 			return
 		}
 
-		// Allocate result Polynomial.
-		let mut r: Polynomial
+		// Allocate result Sparse.
+		let mut r: Sparse
 		if self == x || self == y || alias(self, x) || alias(self, y) {
 			// self is an alias for x or y - cannot reuse.
-			// We have to allocate new Polynomial to compute properly.
-			r = make(Polynomial, len(*x)+len(*y))
+			// We have to allocate new Sparse to compute properly.
+			r = make(Sparse, len(*x)+len(*y))
 		} else {
 			r = self.make(len(*x) + len(*y))
 		}
@@ -224,7 +224,7 @@ impl Polynomial {
 	// If self have enough capacity, Sub will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Sub(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+	fn Sub(mut *self, &x: *Sparse, &y: *Sparse, tol: f64) {
 		// If y is empty, just copy x.
 		if len(*y) == 0 {
 			// self is an x for self, return immediately.
@@ -245,12 +245,12 @@ impl Polynomial {
 			return
 		}
 
-		// Allocate result Polynomial.
-		let mut r: Polynomial
+		// Allocate result Sparse.
+		let mut r: Sparse
 		if self == x || self == y || alias(self, x) || alias(self, y) {
 			// self is an alias for x or y - cannot reuse.
-			// We have to allocate new Polynomial to compute properly.
-			r = make(Polynomial, len(*x)+len(*y))
+			// We have to allocate new Sparse to compute properly.
+			r = make(Sparse, len(*x)+len(*y))
 		} else {
 			r = self.make(len(*x) + len(*y))
 		}
@@ -297,7 +297,7 @@ impl Polynomial {
 	// If self have enough capacity, Scale will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Scale(mut *self, &x: *Polynomial, k: f64, tol: f64) {
+	fn Scale(mut *self, &x: *Sparse, k: f64, tol: f64) {
 		if len(*x) == 0 || k == 1 {
 			// self is an alias for x, return immediately.
 			if self == x {
@@ -343,7 +343,7 @@ impl Polynomial {
 	// If self have enough capacity, Mul will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Mul(mut *self, &x: *Polynomial, &y: *Polynomial) {
+	fn Mul(mut *self, &x: *Sparse, &y: *Sparse) {
 		// Early return: x or y is zero.
 		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
@@ -369,7 +369,7 @@ impl Polynomial {
 	// If self have enough capacity, MulNaive will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn MulNaive(mut *self, &x: *Polynomial, &y: *Polynomial) {
+	fn MulNaive(mut *self, &x: *Sparse, &y: *Sparse) {
 		// Early return: x or y is zero.
 		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
@@ -388,7 +388,7 @@ impl Polynomial {
 	//
 	// If self have enough capacity, MulTol will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn MulTol(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+	fn MulTol(mut *self, &x: *Sparse, &y: *Sparse, tol: f64) {
 		// Early return: x or y is zero.
 		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
@@ -412,7 +412,7 @@ impl Polynomial {
 	//
 	// If self have enough capacity, MulFFT will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn MulFFT(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+	fn MulFFT(mut *self, &x: *Sparse, &y: *Sparse, tol: f64) {
 		// Early return: x or y is zero.
 		if len(*x) == 0 || len(*y) == 0 {
 			*self = (*self)[:0]
@@ -435,7 +435,7 @@ impl Polynomial {
 	//
 	// If self and rem have enough capacity, DivMod will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn DivMod(mut *self, &x: *Polynomial, &y: *Polynomial, mut &rem: *Polynomial) {
+	fn DivMod(mut *self, &x: *Sparse, &y: *Sparse, mut &rem: *Sparse) {
 		if len(*y) == 0 {
 			panic("poly: division by zero")
 		}
@@ -449,7 +449,7 @@ impl Polynomial {
 				fftDivMod(self, x, y, rem)
 			}
 		} else {
-			let mut _rem: Polynomial
+			let mut _rem: Sparse
 			match kind {
 			| 0 | 1:
 				basicDivMod(self, x, y, &_rem)
@@ -467,7 +467,7 @@ impl Polynomial {
 	//
 	// If self and rem have enough capacity, DivMod will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn DivModNaive(mut *self, &x: *Polynomial, &y: *Polynomial, mut &rem: *Polynomial) {
+	fn DivModNaive(mut *self, &x: *Sparse, &y: *Sparse, mut &rem: *Sparse) {
 		if len(*y) == 0 {
 			panic("poly: division by zero")
 		}
@@ -475,7 +475,7 @@ impl Polynomial {
 		if rem != nil {
 			basicDivMod(self, x, y, rem)
 		} else {
-			let mut _rem: Polynomial
+			let mut _rem: Sparse
 			basicDivMod(self, x, y, &_rem)
 		}
 	}
@@ -489,7 +489,7 @@ impl Polynomial {
 	// If self have enough capacity, Derivative will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Derivative(mut *self, &x: *Polynomial) {
+	fn Derivative(mut *self, &x: *Sparse) {
 		*self = self.make(len(*x))
 
 		mut k := 0
@@ -514,7 +514,7 @@ impl Polynomial {
 	// If self have enough capacity, Integral will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Integral(mut *self, &x: *Polynomial, C: f64) {
+	fn Integral(mut *self, &x: *Sparse, C: f64) {
 		n := len(*x)
 		*self = self.make(n + 1)
 
@@ -569,11 +569,11 @@ impl Polynomial {
 	//
 	// If self have enough capacity, GCD will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn GCD(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
-		let mut X: Polynomial
-		let mut Y: Polynomial
-		let mut R: Polynomial
-		let mut Q: Polynomial
+	fn GCD(mut *self, &x: *Sparse, &y: *Sparse, tol: f64) {
+		let mut X: Sparse
+		let mut Y: Sparse
+		let mut R: Sparse
+		let mut Q: Sparse
 		X.Copy(x)
 		Y.Copy(y)
 
@@ -602,15 +602,15 @@ impl Polynomial {
 	//
 	// If self have enough capacity, LCM will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn LCM(mut *self, &x: *Polynomial, &y: *Polynomial, tol: f64) {
+	fn LCM(mut *self, &x: *Sparse, &y: *Sparse, tol: f64) {
 		if x.Zero(tol) || y.Zero(tol) {
 			*self = (*self)[:0]
 			return
 		}
 
-		let mut product: Polynomial
+		let mut product: Sparse
 		product.MulTol(x, y, tol)
-		let mut gcd: Polynomial
+		let mut gcd: Sparse
 		gcd.GCD(x, y, tol)
 		self.DivMod(&product, &gcd, nil)
 
@@ -631,7 +631,7 @@ impl Polynomial {
 	// If self have enough capacity, Pow will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Pow(mut *self, &x: *Polynomial, mut n: int) {
+	fn Pow(mut *self, &x: *Sparse, mut n: int) {
 		if n < 0 {
 			panic("poly: negative exponent not supported")
 		}
@@ -652,8 +652,8 @@ impl Polynomial {
 			return
 		}
 
-		let mut base: Polynomial
-		base = make(Polynomial, len(*x))
+		let mut base: Sparse
+		base = make(Sparse, len(*x))
 		copy(base, *x)
 
 		// *self = 1
@@ -675,7 +675,7 @@ impl Polynomial {
 	// If self have enough capacity, Normalize will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Normalize(mut *self, &x: *Polynomial, tol: f64) {
+	fn Normalize(mut *self, &x: *Sparse, tol: f64) {
 		if len(*x) == 0 {
 			*self = (*self)[:0]
 			return // zero polynomial, do nothing
@@ -730,7 +730,7 @@ impl Polynomial {
 		mut i := 0
 		for i < n; i++ {
 			// Start with constant polynomial 1
-			mut basis := Polynomial([{1, 0}])
+			mut basis := Sparse([{1, 0}])
 			mut denom := 1.0
 
 			mut j := 0
@@ -742,7 +742,7 @@ impl Polynomial {
 					panic("poly: InterpolateLagrange: duplicate x values")
 				}
 				// Multiply by (x - xj)
-				mut tmp := Polynomial([{1, 1}, {-xs[j], 0}])
+				mut tmp := Sparse([{1, 1}, {-xs[j], 0}])
 				basis.MulTol(&basis, &tmp, tol)
 
 				// Denominator: (xi - xj)
@@ -760,7 +760,7 @@ impl Polynomial {
 //	1: denseMul
 //	2: fftMul
 #disable boundary
-fn selectMulAlgorithm(&x: *Polynomial, &y: *Polynomial): (int, int) {
+fn selectMulAlgorithm(&x: *Sparse, &y: *Sparse): (int, int) {
 	nx := len(*x)
 	ny := len(*y)
 
@@ -808,7 +808,7 @@ fn selectMulAlgorithm(&x: *Polynomial, &y: *Polynomial): (int, int) {
 }
 
 #disable boundary
-fn denseMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
+fn denseMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse) {
 	if len(*x) == 0 || len(*y) == 0 {
 		*z = (*z)[:0]
 		return
@@ -859,7 +859,7 @@ fn denseMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
 }
 
 #disable boundary
-fn dynamicTolerance(&x: *Polynomial, &y: *Polynomial, size: int): f64 {
+fn dynamicTolerance(&x: *Sparse, &y: *Sparse, size: int): f64 {
 	const (
 		machineEpsilon = 2.22e-16
 		safetyFactor   = 10000000.0 // Increase to be stricter, for large sizes.
@@ -896,7 +896,7 @@ fn dynamicTolerance(&x: *Polynomial, &y: *Polynomial, size: int): f64 {
 
 // z = x*y
 #disable boundary
-fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
+fn basicMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse) {
 	if len(*x) == 0 || len(*y) == 0 {
 		*z = (*z)[:0]
 		return
@@ -905,8 +905,8 @@ fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
 	// Keep the larger polynomial in the outer loop.
 	// This does not change complexity, but reduces loop overhead
 	// when one polynomial is much smaller than the other.
-	let mut outer: *Polynomial
-	let mut inner: *Polynomial
+	let mut outer: *Sparse
+	let mut inner: *Sparse
 	if len(*x) >= len(*y) {
 		outer = unsafe { *&x }
 		inner = unsafe { *&y }
@@ -967,7 +967,7 @@ fn basicMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial) {
 // quot = quotient x/y
 // rem = remainder x/y
 #disable boundary
-fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &rem: *Polynomial) {
+fn basicDivMod(mut &quot: *Sparse, &x: *Sparse, &y: *Sparse, mut &rem: *Sparse) {
 	if len(*x) == 0 {
 		*quot = (*quot)[:0]
 		if rem != nil {
@@ -998,18 +998,18 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 
 	mut k := degX - degY + 1
 
-	let mut zquot: Polynomial
+	let mut zquot: Sparse
 
 	if quot == y || alias(quot, y) {
 		// self is an alias y - cannot reuse.
-		// We have to allocate new Polynomial to compute properly.
-		zquot = make(Polynomial, k)
+		// We have to allocate new Sparse to compute properly.
+		zquot = make(Sparse, k)
 	} else {
 		zquot = quot.make(k)
 	}
 
 	k = 0
-	mut subtrahend := make(Polynomial, len(*y))
+	mut subtrahend := make(Sparse, len(*y))
 	for len(*rem) > 0 && (*rem)[0].Exp >= degDiv; k++ {
 		leadRem := (*rem)[0]
 		expDiff := leadRem.Exp - degDiv
@@ -1031,7 +1031,7 @@ fn basicDivMod(mut &quot: *Polynomial, &x: *Polynomial, &y: *Polynomial, mut &re
 
 // p(x) -> x^degree * p(1/x)
 #disable boundary
-fn reverse(mut &rev: *Polynomial, &p: *Polynomial, degree: int) {
+fn reverse(mut &rev: *Sparse, &p: *Sparse, degree: int) {
 	*rev = rev.make(len(*p))
 	for i, term in *p {
 		(*rev)[i] = Term{Coef: term.Coef, Exp: degree - term.Exp}
@@ -1041,7 +1041,7 @@ fn reverse(mut &rev: *Polynomial, &p: *Polynomial, degree: int) {
 
 // (mod x^k)
 #disable boundary
-fn truncate(mut &x: *Polynomial, k: int) {
+fn truncate(mut &x: *Sparse, k: int) {
 	mut i := 0
 	for _, term in *x {
 		if term.Exp < k {
@@ -1053,7 +1053,7 @@ fn truncate(mut &x: *Polynomial, k: int) {
 }
 
 // d(x), c(x)d(x) = 1 (mod x^k)
-fn inverse(mut &inv: *Polynomial, &c: *Polynomial, k: int) {
+fn inverse(mut &inv: *Sparse, &c: *Sparse, k: int) {
 	if k == 0 {
 		*inv = (*inv)[:0]
 		return
@@ -1069,27 +1069,27 @@ fn inverse(mut &inv: *Polynomial, &c: *Polynomial, k: int) {
 		if math::Abs(c0) == 0 {
 			panic("poly: constant zero term is illegal for inverse")
 		}
-		*inv = make(Polynomial, 1)
+		*inv = make(Sparse, 1)
 		(*inv)[0] = Term{Coef: 1.0 / c0, Exp: 0}
 		return
 	}
 
 	k_half := (k + 1) / 2
-	let mut d_prev: Polynomial
+	let mut d_prev: Sparse
 	inverse(&d_prev, c, k_half)
 
-	let mut temp: Polynomial
+	let mut temp: Sparse
 	temp.Mul(c, &d_prev)
 	truncate(&temp, k)
 
-	two := Polynomial([{Coef: 2, Exp: 0}])
+	two := Sparse([{Coef: 2, Exp: 0}])
 	temp.Sub(&two, &temp, 0)
 
 	inv.Mul(&d_prev, &temp)
 	truncate(inv, k)
 }
 
-fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Polynomial) {
+fn fftDivMod(mut &q: *Sparse, &a: *Sparse, &b: *Sparse, mut &r: *Sparse) {
 	if len(*b) == 0 || ((*b)[0].Exp == 0 && math::Abs((*b)[0].Coef) == 0) {
 		panic("poly: division by zero")
 	}
@@ -1117,17 +1117,17 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 
 	k := degA - degB + 1
 
-	let mut aRev: Polynomial
+	let mut aRev: Sparse
 	reverse(&aRev, a, degA)
-	let mut bRev: Polynomial
+	let mut bRev: Sparse
 	reverse(&bRev, b, degB)
 
 	// (mod x^k)
-	let mut invB: Polynomial
+	let mut invB: Sparse
 	inverse(&invB, &bRev, k)
 
 	// 3. qRev = aRev * invB mod x^k
-	let mut qRev: Polynomial
+	let mut qRev: Sparse
 	basicMul(&qRev, &aRev, &invB)
 
 	truncate(&qRev, k)
@@ -1136,7 +1136,7 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 	reverse(q, &qRev, k-1)
 
 	// qb = q * b
-	let mut qb: Polynomial
+	let mut qb: Sparse
 	basicMul(&qb, q, b)
 
 	// r = a - qb
@@ -1146,14 +1146,14 @@ fn fftDivMod(mut &q: *Polynomial, &a: *Polynomial, &b: *Polynomial, mut &r: *Pol
 }
 
 #disable boundary
-fn polyToCoeffs(mut &z: *[]cmplx128, &p: *Polynomial) {
+fn sparseToCoeffs(mut &z: *[]cmplx128, &p: *Sparse) {
 	for _, term in *p {
 		(*z)[term.Exp] = cmplx(term.Coef, 0)
 	}
 }
 
 #disable nilptr boundary
-fn coeffsToPoly(mut &z: *Polynomial, coeffs: []cmplx128, tol: f64) {
+fn coeffsToSparse(mut &z: *Sparse, coeffs: []cmplx128, tol: f64) {
 	*z = z.make(len(coeffs))
 	mut k := 0
 
@@ -1174,7 +1174,7 @@ fn coeffsToPoly(mut &z: *Polynomial, coeffs: []cmplx128, tol: f64) {
 }
 
 #disable boundary
-fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
+fn fftSize(&x: *Sparse, &y: *Sparse): int {
 	mut maxExpX, mut maxExpY := 0, 0
 	if len(*x) > 0 {
 		maxExpX = (*x)[0].Exp
@@ -1189,7 +1189,7 @@ fn fftSize(&x: *Polynomial, &y: *Polynomial): int {
 
 // z = x*y, using FFT.
 #disable boundary
-fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol: f64) {
+fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
 	// Allocate temporary slices with single allocation.
 	// size² should enough to store all coefficients for fa and fb.
 	// size/2 is the total size of a single slice.
@@ -1197,8 +1197,8 @@ fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol:
 	mut fa, mut fb := workspace[:size], workspace[size:]
 
 	// Convert to coeff arrays.
-	polyToCoeffs(&fa, x)
-	polyToCoeffs(&fb, y)
+	sparseToCoeffs(&fa, x)
+	sparseToCoeffs(&fb, y)
 
 	// Forward FFT.
 	fourier::FuseFFT(fa, fb, false)
@@ -1211,12 +1211,12 @@ fn fftMul(mut &z: *Polynomial, &x: *Polynomial, &y: *Polynomial, size: int, tol:
 	// Inverse FFT.
 	fourier::FFT(fa, true)
 
-	// Convert to Polynomial and assign to z.
-	coeffsToPoly(z, fa, tol)
+	// Convert to Sparse and assign to z.
+	coeffsToSparse(z, fa, tol)
 }
 
 // Sort terms of the polynomial p by decreasing exponent.
-fn sortByExp(mut &p: *Polynomial) {
+fn sortByExp(mut &p: *Sparse) {
 	slices::SortFunc([]Term(*p), fn|i, j| {
 		match {
 		| i.Exp == j.Exp:
@@ -1235,6 +1235,6 @@ fn sortByExp(mut &p: *Polynomial) {
 // is never changed for values; i.e. that there are
 // no 3-operand slice expressions in this code (or worse,
 // reflect-based operations to the same effect).
-fn alias(&x: *Polynomial, &y: *Polynomial): bool {
+fn alias(&x: *Sparse, &y: *Sparse): bool {
 	return imem::Alias([]Term(*x), []Term(*y))
 }

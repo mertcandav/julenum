@@ -8,8 +8,8 @@ use "std/slices"
 use "std/testing"
 
 struct ioTest {
-	input: Polynomial
-	want:  Polynomial
+	input: Sparse
+	want:  Sparse
 }
 
 let testsNegate: []ioTest = [
@@ -30,7 +30,7 @@ let testsNegate: []ioTest = [
 #test
 fn testNegate(t: &testing::T) {
 	for _, test in testsNegate {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Negate(&test.input)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Negate({}) = {}, expected {}", test.input, r, test.want)
@@ -56,7 +56,7 @@ let testsSimplify: []ioTest = [
 #test
 fn testSimplify(t: &testing::T) {
 	for _, test in testsSimplify {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Simplify(&test.input, 0)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Simplify({}, 0) = {}, expected {}", test.input, r, test.want)
@@ -65,9 +65,9 @@ fn testSimplify(t: &testing::T) {
 }
 
 struct testPolyCS {
-	x:    Polynomial
-	y:    Polynomial
-	want: Polynomial
+	x:    Sparse
+	y:    Sparse
+	want: Sparse
 }
 
 let testsAdd: []testPolyCS = [
@@ -116,7 +116,7 @@ let testsAdd: []testPolyCS = [
 #test
 fn testAdd(t: &testing::T) {
 	for _, test in testsAdd {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Add(&test.x, &test.y, 0)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Add({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
@@ -170,7 +170,7 @@ let testsSub: []testPolyCS = [
 #test
 fn testSub(t: &testing::T) {
 	for _, test in testsSub {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Sub(&test.x, &test.y, 0)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Sub({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
@@ -179,9 +179,9 @@ fn testSub(t: &testing::T) {
 }
 
 struct scaleTest {
-	p:    Polynomial
+	p:    Sparse
 	k:    f64
-	want: Polynomial
+	want: Sparse
 }
 
 let testsScale: []scaleTest = [
@@ -210,7 +210,7 @@ let testsScale: []scaleTest = [
 #test
 fn testScale(t: &testing::T) {
 	for _, test in testsScale {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Scale(&test.p, test.k, 0)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Scale({}, {}, 0) = {}, expected {}", test.p, test.k, r, test.want)
@@ -341,7 +341,7 @@ let testsMulNaive: []testPolyCS = [
 #test
 fn testMulNaive(t: &testing::T) {
 	for _, test in testsMulNaive {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.MulNaive(&test.x, &test.y)
 		if len(r) != len(test.want) {
 			t.Errorf("MulNaive({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
@@ -367,7 +367,7 @@ fn testMulFFT(t: &testing::T) {
 		size := fftSize(&test.x, &test.y)
 		tol := dynamicTolerance(&test.x, &test.y, size)
 
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.MulFFT(&test.x, &test.y, tol)
 		if len(r) != len(test.want) {
 			t.Errorf("MulFFT({}, {}) = {}, expected {}", test.x, test.y, r, test.want)
@@ -387,8 +387,8 @@ fn testMulFFT(t: &testing::T) {
 	// Test dynamic tolerance and FFT on large polynomials and exp.
 	sizes := [128, 158, 199, 256, 512, 1000, 2048, 1 << 14, 1 << 16]
 	for _, n in sizes {
-		mut x := make(Polynomial, n)
-		mut y := make(Polynomial, n)
+		mut x := make(Sparse, n)
+		mut y := make(Sparse, n)
 
 		mut i := 0
 		for i < n; i++ {
@@ -412,10 +412,10 @@ fn testMulFFT(t: &testing::T) {
 }
 
 struct testDiv {
-	x:    Polynomial
-	y:    Polynomial
-	quot: Polynomial
-	rem:  Polynomial
+	x:    Sparse
+	y:    Sparse
+	quot: Sparse
+	rem:  Sparse
 }
 
 let testsDivMod: []testDiv = [
@@ -514,10 +514,10 @@ let testsDivMod: []testDiv = [
 #test
 fn testDivMod(t: &testing::T) {
 	for _, test in testsDivMod {
-		let mut r: Polynomial
-		let mut rem: Polynomial
+		let mut r: Sparse
+		let mut rem: Sparse
 
-		testDivMod := fn(name: string, r: Polynomial, rem: Polynomial) {
+		testDivMod := fn(name: string, r: Sparse, rem: Sparse) {
 			if len(r) != len(test.quot) {
 				t.Errorf("{}({}, {}) = {}, expected {}", name, test.x, test.y, r, test.quot)
 				return
@@ -594,7 +594,7 @@ let testsDerivative: []ioTest = [
 #test
 fn testDerivative(t: &testing::T) {
 	for _, test in testsDerivative {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Derivative(&test.input)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Derivative({}) = {}, expected {}", test.input, r, test.want)
@@ -635,7 +635,7 @@ let testsIntegral: []scaleTest = [
 #test
 fn testIntegral(t: &testing::T) {
 	for _, test in testsIntegral {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Integral(&test.p, test.k)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Integral({}, {}) = {}, expected {}", test.p, test.k, r, test.want)
@@ -644,7 +644,7 @@ fn testIntegral(t: &testing::T) {
 }
 
 struct evalTest {
-	p:    Polynomial
+	p:    Sparse
 	x:    f64
 	want: f64
 }
@@ -730,7 +730,7 @@ let testsGCD: []testPolyCS = [
 #test
 fn testGCD(t: &testing::T) {
 	for _, test in testsGCD {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.GCD(&test.x, &test.y, 0)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("GCD({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
@@ -784,7 +784,7 @@ let testsLCM: []testPolyCS = [
 #test
 fn testLCM(t: &testing::T) {
 	for _, test in testsLCM {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.LCM(&test.x, &test.y, 0)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("LCM({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
@@ -793,9 +793,9 @@ fn testLCM(t: &testing::T) {
 }
 
 struct powTest {
-	p:    Polynomial
+	p:    Sparse
 	n:    int
-	want: Polynomial
+	want: Sparse
 }
 
 let testsPow: []powTest = [
@@ -829,7 +829,7 @@ let testsPow: []powTest = [
 #test
 fn testPow(t: &testing::T) {
 	for _, test in testsPow {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Pow(&test.p, test.n)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Pow({}, {}) = {}, expected {}", test.p, test.n, r, test.want)
@@ -838,9 +838,9 @@ fn testPow(t: &testing::T) {
 }
 
 struct ioTolTest {
-	input: Polynomial
+	input: Sparse
 	tol:   f64
-	want:  Polynomial
+	want:  Sparse
 }
 
 let testsNormalize: []ioTolTest = [
@@ -865,7 +865,7 @@ let testsNormalize: []ioTolTest = [
 #test
 fn testNormalize(t: &testing::T) {
 	for _, test in testsNormalize {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.Normalize(&test.input, test.tol)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Normalize({}, {}) = {}, expected {}", test.input, test.tol, r, test.want)
@@ -878,7 +878,7 @@ struct interpolateLinearTest {
 	x1:   f64
 	y0:   f64
 	y1:   f64
-	want: Polynomial
+	want: Sparse
 }
 
 let testsInterpolateLinear: []interpolateLinearTest = [
@@ -922,7 +922,7 @@ let testsInterpolateLinear: []interpolateLinearTest = [
 #test
 fn testInterpolateLinear(t: &testing::T) {
 	for _, test in testsInterpolateLinear {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.InterpolateLinear(test.x0, test.y0, test.x1, test.y1)
 		if !slices::Equal(r, test.want) {
 			t.Errorf("InterpolateLinear({}, {}, {}, {}) = {}, expected {}", test.x0, test.y0, test.x1, test.y1, r, test.want)
@@ -933,7 +933,7 @@ fn testInterpolateLinear(t: &testing::T) {
 struct interpolateLagrangeTest {
 	xs:   []f64
 	ys:   []f64
-	want: Polynomial
+	want: Sparse
 }
 
 let testsInterpolateLagrange: []interpolateLagrangeTest = [
@@ -1002,7 +1002,7 @@ let testsInterpolateLagrange: []interpolateLagrangeTest = [
 #test
 fn testInterpolateLagrange(t: &testing::T) {
 	for _, test in testsInterpolateLagrange {
-		let mut r: Polynomial
+		let mut r: Sparse
 		r.InterpolateLagrange(test.xs, test.ys, 1e-14)
 		if len(r) != len(test.want) {
 			t.Errorf("InterpolateLagrange({}, {}, 1e-14) = {}, expected {}", test.xs, test.ys, r, test.want)
