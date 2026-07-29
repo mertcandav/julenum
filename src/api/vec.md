@@ -8,11 +8,12 @@ Package for vectors.
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Add\(mut \*self, &amp;x: \*Vector\[T\], &amp;y: \*Vector\[T\]\)](#add)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Sub\(mut \*self, &amp;x: \*Vector\[T\], &amp;y: \*Vector\[T\]\)](#sub)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Dot\(\*self, &amp;y: \*Vector\[T\]\): T](#dot)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Scale\(mut \*self, &amp;x: \*Vector\[T\], k: f64\)](#scale)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Scale\(mut \*self, &amp;x: \*Vector\[T\], k: T\)](#scale)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Norm\(\*self\): f64](#norm)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Normalize\(mut \*self, &amp;x: \*Vector\[T\]\)](#normalize)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn AngleBetween\(\*self, &amp;y: \*Vector\[T\]\): f64](#anglebetween)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Proj\(mut \*self, &amp;x: \*Vector\[T\], &amp;y: \*Vector\[T\]\)](#proj)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn MatMul\(mut \*self, &amp;m: \*mat::Matrix\[T\], &amp;v: \*Vector\[T\]\)](#matmul)\
 [struct Vector2](#vector2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Add\(mut \*self, &amp;x: \*Vector2, &amp;y: \*Vector2\)](#add-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Sub\(mut \*self, &amp;x: \*Vector2, &amp;y: \*Vector2\)](#sub-1)\
@@ -71,7 +72,7 @@ Returns the dot product self\*y\. self any y must have same length\. Returns zer
 ### Scale
 ```jule
 #disable boundary
-fn Scale(mut *self, &x: *Vector[T], k: f64)
+fn Scale(mut *self, &x: *Vector[T], k: T)
 ```
 Sets self to to x scaled by k\.
 
@@ -106,6 +107,17 @@ fn Proj(mut *self, &x: *Vector[T], &y: *Vector[T])
 Sets self to projection of vector x onto y\. x any y must have same length\. If the vector y has zero norm, it returns the zero vector \(x₁=0, x₂=0, \.\.\., xₙ=0\) to avoid division by zero\.
 
 If self have enough capacity, Normalize will use it to avoid making allocation\. If length is zero, self will be zero\-length\. But keeps internal allocation\.
+
+### MatMul
+```jule
+#disable boundary
+fn MatMul(mut *self, &m: *mat::Matrix[T], &v: *Vector[T])
+```
+Multiplies the matrix by a vector and sets self to the resulting vector\.
+
+The matrix must have the same number of columns as the length of the vector\.
+
+If self have enough capacity, MatMul will use it to avoid making allocation\. If length is zero, self will be zero\-length\. But keeps internal allocation\.
 
 ## Vector2
 ```jule
