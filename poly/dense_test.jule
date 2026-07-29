@@ -100,3 +100,74 @@ fn testDenseNegate(t: &testing::T) {
 		}
 	}
 }
+
+struct testDenseCS {
+	x:    Dense
+	y:    Dense
+	want: Dense
+}
+
+let testsDenseAdd: []testDenseCS = [
+	{
+		x:    [],
+		y:    [],
+		want: [],
+	},
+	{
+		x:    [2, 0, 0, 1],
+		y:    [],
+		want: [2, 0, 0, 1],
+	},
+	{
+		x:    [],
+		y:    [2, 0, 0, 1],
+		want: [2, 0, 0, 1],
+	},
+	{
+		x:    [1, 2, 3],
+		y:    [4, 5, 6],
+		want: [5, 7, 9],
+	},
+	{
+		x:    [3, -4, 1],
+		y:    [-3, 4, -1],
+		want: [0, 0, 0],
+	},
+	{
+		x:    [1, 2, 3],
+		y:    [4, 5],
+		want: [5, 7, 3],
+	},
+	{
+		x:    [4, 5],
+		y:    [1, 2, 3],
+		want: [5, 7, 3],
+	},
+	{
+		x:    [3, 0, -2, 0, 5],
+		y:    [1, 4, 2],
+		want: [4, 4, 0, 0, 5],
+	},
+	{
+		x:    [1, 2, 0, 0, 3],
+		y:    [-1, -2],
+		want: [0, 0, 0, 0, 3],
+	},
+	{
+		x:    [1e-6, 2e-6, 3e-6],
+		y:    [1e-6, -2e-6, 4e-6],
+		want: [2e-6, 0, 7e-6],
+	},
+]
+
+#test
+fn testDenseAdd(t: &testing::T) {
+	for _, test in testsDenseAdd {
+		let mut r: Dense
+		r.Add(&test.x, &test.y, 0)
+
+		if !slices::Equal(r, test.want) {
+			t.Errorf("Add({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
+		}
+	}
+}

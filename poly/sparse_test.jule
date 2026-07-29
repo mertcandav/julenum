@@ -96,13 +96,13 @@ fn testSimplify(t: &testing::T) {
 	}
 }
 
-struct testPolyCS {
+struct testSparseCS {
 	x:    Sparse
 	y:    Sparse
 	want: Sparse
 }
 
-let testsAdd: []testPolyCS = [
+let testsAdd: []testSparseCS = [
 	{
 		x:    [],
 		y:    [],
@@ -156,7 +156,7 @@ fn testAdd(t: &testing::T) {
 	}
 }
 
-let testsSub: []testPolyCS = [
+let testsSub: []testSparseCS = [
 	{
 		x:    [],
 		y:    [],
@@ -250,7 +250,7 @@ fn testScale(t: &testing::T) {
 	}
 }
 
-let testsMulNaive: []testPolyCS = [
+let testsMulNaive: []testSparseCS = [
 	{
 		x:    [],
 		y:    [],
@@ -716,7 +716,7 @@ fn testEval(t: &testing::T) {
 	}
 }
 
-let testsGCD: []testPolyCS = [
+let testsGCD: []testSparseCS = [
 	{
 		x:    [], // 0
 		y:    [], // 0
@@ -770,7 +770,7 @@ fn testGCD(t: &testing::T) {
 	}
 }
 
-let testsLCM: []testPolyCS = [
+let testsLCM: []testSparseCS = [
 	{
 		x:    [], // 0
 		y:    [], // 0
