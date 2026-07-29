@@ -1,0 +1,63 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct denseFormatTest {
+	p:    Dense
+	want: string
+}
+
+let mut testsDenseFormat: []denseFormatTest = [
+	{
+		p:    [],
+		want: "0",
+	},
+	{
+		p:    [0],
+		want: "0",
+	},
+	{
+		p:    [1, -4, 3],
+		want: "3x^2 - 4x + 1",
+	},
+	{
+		p:    [0, -1, 0, 1],
+		want: "x^3 - x",
+	},
+	{
+		p:    [-1],
+		want: "-1",
+	},
+	{
+		p:    [1],
+		want: "1",
+	},
+	{
+		p:    [0, 0, -1],
+		want: "-x^2",
+	},
+	{
+		p:    [2, 3, 1],
+		want: "x^2 + 3x + 2",
+	},
+	{
+		p:    [1, -2, 0, 3],
+		want: "3x^3 - 2x + 1",
+	},
+	{
+		p:    [-8, 5, -1, 3, 2],
+		want: "2x^4 + 3x^3 - x^2 + 5x - 8",
+	},
+]
+
+#test
+fn testDenseFormat(t: &testing::T) {
+	for (i, mut test) in testsDenseFormat {
+		got := test.p.String()
+		if got != test.want {
+			t.Errorf("#{} failed, String({}) = {}, expected {}", i, []f64(test.p), got, test.want)
+		}
+	}
+}

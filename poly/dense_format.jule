@@ -1,0 +1,76 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/conv"
+use "std/unsafe"
+
+fn appendFormatDense(&p: *Dense, mut buf: []byte): []byte {
+	mut wr := false
+
+	mut i := len(*p)
+	for i > 0 {
+		i--
+		mut coef := (*p)[i]
+
+		// Skip zero coefficients (safety).
+		if jn::Close(coef, 0) {
+			continue
+		}
+
+		// Handle sign.
+		mut sign := byte('+')
+		if coef < 0 {
+			sign = '-'
+			coef = -coef
+		}
+
+		// Write sign for all except the first written term.
+		if wr {
+			buf = append(buf, ' ', sign, ' ')
+		} else if sign == '-' {
+			buf = append(buf, sign)
+		}
+
+		// Write coefficient.
+		mut writeCoef := true
+		if i != 0 && jn::Close(coef-1, 0) {
+			// coef=1 for non-constant term: omit coefficient.
+			writeCoef = false
+		}
+
+		if writeCoef {
+			buf = conv::AppendFloat(buf, coef, 'g', -1, 64)
+		}
+
+		// Write variable part.
+		if i > 0 {
+			buf = append(buf, 'x')
+			if i > 1 {
+				buf = append(buf, '^')
+				buf = conv::AppendInt(buf, i64(i), 10)
+			}
+		}
+
+		wr = true
+	}
+
+	if !wr {
+		buf = append(buf, '0')
+	}
+
+	return buf
+}
+
+impl Dense {
+	// Appends a human-readable string representation of the polynomial to buf and returns.
+	fn AppendFormat(*self, mut buf: []byte): []byte {
+		return appendFormatDense(self, buf)
+	}
+
+	// Returns a human-readable string representation of the polynomial.
+	fn String(*self): string {
+		return unsafe::StringFromBytes(appendFormatDense(self, nil))
+	}
+}

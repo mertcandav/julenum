@@ -1,0 +1,105 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+
+// Represents a polynomial by storing all coefficients from the
+// constant term to the highest-degree term.
+//
+// For a polynomial:
+//
+//	P(x) = a₀ + a₁*x + a₂*x² + ... + aₙ*xⁿ
+//
+// the coefficient at index i is the coefficient of xⁱ.
+//
+// For example:
+//
+//	3x² - 4x + 7 -> Dense{7, -4, 3}
+//
+// The zero polynomial is represented by an empty slice.
+//
+// Coefficients are stored in ascending order of exponent:
+//	coefficients[0] = coefficient of x⁰
+//	coefficients[1] = coefficient of x¹
+//	...
+//	coefficients[n] = coefficient of xⁿ
+//
+// The last coefficient must be non-zero for a non-zero polynomial.
+// Any corruption of this invariant is undefined behavior.
+//
+// Capacity of the underlying slice is never changed for values;
+// i.e. there are no 3-operand slice expressions.
+// Any corruption of this rule is undefined behavior.
+type Dense: []f64
+
+impl Dense {
+	// Returns a new Dense buffer enough to store at least n values.
+	fn make(mut *self, n: int): Dense {
+		// Reuse self capacity, if there is enough space.
+		if n <= cap(*self) {
+			return (*self)[:n]
+		}
+		return make(Dense, n)
+	}
+
+	// Sets self to the given coefficients.
+	//
+	// Coefficients are ordered by increasing exponent, where
+	// coefficients[i] is the coefficient of xⁱ.
+	//
+	// Coefficients that are zero within tolerance are removed.
+	// Since Dense stores coefficients by exponent, removing an
+	// interior coefficient means setting it to zero, while trailing
+	// zero coefficients are removed from the representation.
+	//
+	// The resulting polynomial is always in simplified canonical form.
+	//
+	// If self has enough capacity, Set will reuse it to avoid allocation.
+	// If coefficients is empty, self will be zero-length but keeps its
+	// capacity.
+	#disable boundary
+	fn Set(mut *self, coefficients: []f64, tol: f64) {
+		n := len(coefficients)
+
+		if n == 0 {
+			*self = (*self)[:0]
+			return
+		}
+
+		*self = self.make(n)
+		copy(*self, coefficients)
+
+		// Remove coefficients that are zero within tolerance.
+		mut i := 0
+		for i < n; i++ {
+			if jn::Tolerance((*self)[i], 0, tol) {
+				(*self)[i] = 0
+			}
+		}
+
+		// Remove trailing zero coefficients.
+		i = n
+		for i > 0 && (*self)[i-1] == 0 {
+			i--
+		}
+
+		*self = (*self)[:i]
+	}
+
+	// Sets self to simplified form of polynomial p.
+	//
+	// Coefficients that are zero within tolerance are set to zero.
+	// Trailing zero coefficients are removed.
+	//
+	// Result is stored in canonical Dense representation:
+	// the zero polynomial has length zero, and the highest-degree
+	// coefficient of a non-zero polynomial is non-zero.
+	//
+	// If self has enough capacity, Simplify will use it to avoid
+	// making allocation. If length is zero, self will be zero-length
+	// but keeps its internal allocation.
+	fn Simplify(mut *self, &p: *Dense, tol: f64) {
+		self.Set([]f64(*p), tol)
+	}
+}

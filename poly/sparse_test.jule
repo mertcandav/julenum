@@ -7,12 +7,12 @@ use "std/math"
 use "std/slices"
 use "std/testing"
 
-struct ioTest {
+struct sparseIOTest {
 	input: Sparse
 	want:  Sparse
 }
 
-let testsNegate: []ioTest = [
+let testsNegate: []sparseIOTest = [
 	{
 		input: [{3, 2}, {-4, 1}, {1, 0}],
 		want:  [{-3, 2}, {4, 1}, {-1, 0}],
@@ -38,7 +38,7 @@ fn testNegate(t: &testing::T) {
 	}
 }
 
-let testsSimplify: []ioTest = [
+let testsSimplify: []sparseIOTest = [
 	{
 		input: [],
 		want:  [],
@@ -586,7 +586,7 @@ fn testDivMod(t: &testing::T) {
 	}
 }
 
-let testsDerivative: []ioTest = [
+let testsDerivative: []sparseIOTest = [
 	// d/dx (5) = 0
 	{
 		input: [{5, 0}],

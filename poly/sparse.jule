@@ -172,7 +172,6 @@ impl Sparse {
 	//
 	// If self have enough capacity, Simplify will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	#disable boundary
 	fn Simplify(mut *self, &p: *Sparse, tol: f64) {
 		self.Set([]Term(*p), tol)
 	}
