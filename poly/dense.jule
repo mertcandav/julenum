@@ -186,4 +186,38 @@ impl Dense {
 			i++
 		}
 	}
+
+	// Sets self to difference x-y.
+	//
+	// If self has enough capacity, Sub will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable nilptr boundary
+	fn Sub(mut *self, &x: *Dense, &y: *Dense, tol: f64) {
+		// Due to disabling nilptr checks, we have to check manually.
+		if self == nil {
+			panic("Dense.Add: self receiver is nil")
+		}
+		if x == nil {
+			panic("Dense.Add: x is nil")
+		}
+		if y == nil {
+			panic("Dense.Add: y is nil")
+		}
+
+		n := ibits::Max(len(*x), len(*y))
+		*self = self.make(n)
+
+		mut i := 0
+		for i < n {
+			mut coef := f64(0)
+			if i < len(*x) {
+				coef = (*x)[i]
+			}
+			if i < len(*y) {
+				coef -= (*y)[i]
+			}
+			(*self)[i] = coef
+			i++
+		}
+	}
 }

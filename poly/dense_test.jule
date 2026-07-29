@@ -171,3 +171,63 @@ fn testDenseAdd(t: &testing::T) {
 		}
 	}
 }
+
+let testsDenseSub: []testDenseCS = [
+	{
+		x:    [],
+		y:    [],
+		want: [],
+	},
+	{
+		x:    [2, 0, 0, 1],
+		y:    [],
+		want: [2, 0, 0, 1],
+	},
+	{
+		x:    [],
+		y:    [2, 0, 0, 1],
+		want: [-2, 0, 0, -1],
+	},
+	{
+		x:    [5, 7, 9],
+		y:    [1, 2, 3],
+		want: [4, 5, 6],
+	},
+	{
+		x:    [3, -4, 1],
+		y:    [3, -4, 1],
+		want: [0, 0, 0],
+	},
+	{
+		x:    [5, 7, 3],
+		y:    [1, 2],
+		want: [4, 5, 3],
+	},
+	{
+		x:    [1, 2],
+		y:    [5, 7, 3],
+		want: [-4, -5, -3],
+	},
+	{
+		x:    [3, 0, -2, 0, 5],
+		y:    [1, 4, 2],
+		want: [2, -4, -4, 0, 5],
+	},
+	{
+		x:    [1, 2, 0, 0, 3],
+		y:    [-1, -2],
+		want: [2, 4, 0, 0, 3],
+	},
+]
+
+#test
+fn testDenseSub(t: &testing::T) {
+	for _, test in testsDenseSub {
+		let mut r: Dense
+		r.Sub(&test.x, &test.y, 0)
+
+		if !slices::Equal(r, test.want) {
+			t.Errorf("Sub({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
+		}
+	}
+}
