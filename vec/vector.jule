@@ -3,6 +3,8 @@
 // license that can be found in the LICENSE file.
 
 use "julenum/internal/chunk"
+use "julenum/internal/imem"
+use "julenum/mat"
 use "std/math"
 
 // General vector type for type T.
@@ -148,6 +150,47 @@ impl Vector {
 			xy := dot(x, y)
 			scale := xy / T(yn*yn)
 			self.Scale(y, scale)
+		}
+	}
+
+	// Multiplies the matrix by a vector and sets self to the resulting vector.
+	//
+	// The matrix must have the same number of columns as the length of the
+	// vector.
+	//
+	// If self have enough capacity, MatMul will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn MatMul(mut *self, &m: *mat::Matrix[T], &v: *Vector[T]) {
+		_M, _N := m.Dims()
+		if len(*v) != _N {
+			panic("matrix and vector dimensions do not match")
+		}
+
+		// Zero length.
+		if _N == 0 {
+			(*self) = (*self)[:0]
+			return
+		}
+
+		// Make sure the result data have enough space.
+		// We cannot use self buffer because of reuse of computation buffer.
+		let mut r: Vector[T]
+		if imem::Alias(*self, *v) {
+			r = make(Vector[T], _M)
+		} else {
+			r = self.make(_M)
+		}
+		defer { *self = r }
+
+		md := unsafe { (*&m).Data() } // We will not mutate it.
+		mut i := 0
+		for i < _N; i++ {
+			columnOffset := i * _M
+			mut j := 0
+			for j < _M; j++ {
+				r[j] += md[columnOffset+j] * (*v)[i]
+			}
 		}
 	}
 }

@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "julenum/mat"
 use "std/math"
 use "std/slices"
 use "std/testing"
@@ -197,4 +198,54 @@ fn testVectorProj(t: &testing::T) {
 		r.Proj(&test.x, &test.y)
 		return r, test.proj
 	})
+}
+
+struct matMulTest {
+	vec:  Vector[f64]
+	mat:  mat::Matrix[f64]
+	want: Vector[f64]
+}
+
+let matMulTests: []matMulTest = [
+	{
+		vec:  [],
+		mat:  mat::NewFrom[f64](nil),
+		want: [],
+	},
+	{
+		vec:  [10, 100],
+		mat:  mat::NewFrom[f64]([[1, 2]]),
+		want: [210],
+	},
+	{
+		vec:  [10, 20, 30],
+		mat:  mat::NewFrom[f64]([[1, 2, 3], [4, 5, 6]]),
+		want: [140, 320],
+	},
+	{
+		vec:  [10],
+		mat:  mat::NewFrom[f64]([[1], [2]]),
+		want: [10, 20],
+	},
+	{
+		vec: [89, 1334, -2, 4, 9, 24, 734],
+		mat: mat::NewFrom[f64]([
+			[1, 1, 1, 1, 1, 1, 1],
+			[1, 2, 2, 2, 2, 2, 1],
+			[1, 0, 3, 3, 3, 2, 1],
+			[1, 0, 3, 4, 3, 2, 1],
+		]),
+		want: [2192, 3561, 904, 908],
+	},
+]
+
+#test
+fn testMatMul(t: &testing::T) {
+	for _, test in matMulTests {
+		let mut r: Vector[f64]
+		r.MatMul(&test.mat, &test.vec)
+		if !slices::Equal(r, test.want) {
+			t.Errorf("MatMul({}, {}) = {}, expected {}", test.mat, test.vec, test.want)
+		}
+	}
 }
