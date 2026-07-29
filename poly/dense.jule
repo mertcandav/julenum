@@ -138,4 +138,17 @@ impl Dense {
 			(*self)[i] = -coef
 		}
 	}
+
+	// Copies polynomial x to self.
+	//
+	// If self has enough capacity, Copy will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn Copy(mut *self, &x: *Dense) {
+		// self is x, return immediately.
+		if self == x {
+			return
+		}
+		*self = self.make(len(*x))
+		copy(*self, *x)
+	}
 }
