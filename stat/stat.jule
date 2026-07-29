@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "julenum/internal/chunk"
 use "std/math"
 use "std/math/rand"
 
@@ -186,12 +187,8 @@ fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 		return 0
 	}
 	if len(weights) == 0 {
-		let mut z: f64
-		mut i := 0
-		for i < len(x); i++ {
-			z += f64(x[i]) * f64(x[i])
-		}
-		z /= f64(len(x))
+		mut t := chunk::SumMul(x, x)
+		z := f64(t) / f64(len(x))
 		return math::Sqrt(z)
 	}
 	mut weightedSum, mut weightsSum := 0.0, 0.0

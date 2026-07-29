@@ -293,3 +293,53 @@ fn DivScalar[T: numeric](mut z: []T, x: []T, k: T) {
 		}
 	}
 }
+
+// Returns he sum Σᵢ [ xᵢ * yᵢ ].
+// x and y should have enough size.
+#disable boundary
+fn SumMul[T: numeric](x: []T, y: []T): T {
+	let mut r: T
+
+	n := len(x)
+	if n == 0 {
+		return r
+	}
+
+	unsafe {
+		mut xPtr := &x[0]
+		mut yPtr := &y[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			r += xPtr[0] * yPtr[0]
+			r += xPtr[1] * yPtr[1]
+			r += xPtr[2] * yPtr[2]
+			r += xPtr[3] * yPtr[3]
+			r += xPtr[4] * yPtr[4]
+			r += xPtr[5] * yPtr[5]
+			r += xPtr[6] * yPtr[6]
+			r += xPtr[7] * yPtr[7]
+
+			xPtr += 8
+			yPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			r += xPtr[0] * yPtr[0]
+			r += xPtr[1] * yPtr[1]
+
+			xPtr += 2
+			yPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			r += xPtr[0] * yPtr[0]
+		}
+	}
+
+	return r
+}

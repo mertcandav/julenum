@@ -154,10 +154,5 @@ impl Vector {
 
 #disable boundary
 fn dot[T: integer | float](&x: *Vector[T], &y: *Vector[T]): T {
-	let mut dot: T
-	mut i := 0
-	for i < len(*x); i++ {
-		dot += (*x)[i] * (*y)[i]
-	}
-	return dot
+	return chunk::SumMul([]T(*x), []T(*y))
 }
