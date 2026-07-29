@@ -5,7 +5,6 @@
 use "julenum/internal/chunk"
 use "julenum/internal/ibits"
 use "julenum/internal/imem"
-use "julenum/vec"
 use "std/comptime"
 use "std/math"
 use "std/math/cmplx"
@@ -62,6 +61,12 @@ impl Matrix {
 		// Break immutability for but do not mutate them unsafely.
 		// This method requires extra attention.
 		return matrixView[T]{m: self.m, n: self.n, stride: self.m, data: unsafe { *(&self.data) }}
+	}
+
+	// Returns mutable copy of the internal data.
+	// This is an unsafe function, any mutation may cause corruptions.
+	unsafe fn Data(mut *self): []T {
+		return self.data
 	}
 
 	// Returns dimensions of the Matrix (M×N).
@@ -399,10 +404,7 @@ impl Matrix {
 			return
 		}
 
-		mut i := 0
-		for i < len(self.data); i++ {
-			self.data[i] = z.data[i] * k
-		}
+		chunk::MulScalar(self.data, z.data, k)
 	}
 
 	// Sets self to the sum x+y.
