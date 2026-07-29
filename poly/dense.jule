@@ -111,4 +111,9 @@ impl Dense {
 		}
 		return (*self)[len(*self)-1]
 	}
+
+	// Reports whether polynomial is zero within tolerance.
+	fn Zero(*self, tol: f64): bool {
+		return len(*self) == 0 || jn::Tolerance((*self)[len(*self)-1], 0, tol)
+	}
 }
