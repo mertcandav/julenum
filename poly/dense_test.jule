@@ -1019,3 +1019,169 @@ fn testDenseMulFFT(t: &testing::T) {
 		}
 	}
 }
+
+struct testDenseDiv {
+	x:    Dense
+	y:    Dense
+	quot: Dense
+	rem:  Dense
+}
+
+let testsDenseDivMod: []testDenseDiv = [
+	// 0 / (x + 1) = 0, remainder 0
+	{
+		x:    [],
+		y:    [1, 1],
+		quot: [],
+		rem:  [],
+	},
+	// (x^2 - 1) / (x^2 - x) = 1, remainder x - 1
+	{
+		x:    [-1, 0, 1],
+		y:    [0, -1, 1],
+		quot: [1],
+		rem:  [-1, 1],
+	},
+	// (x + 4) / (x^2 + 1) = 0, remainder x + 4
+	{
+		x:    [4, 1],
+		y:    [1, 0, 1],
+		quot: [],
+		rem:  [4, 1],
+	},
+	// (x^2 + 3x + 2) / (x + 1) = x + 2, remainder 0
+	{
+		x:    [2, 3, 1],
+		y:    [1, 1],
+		quot: [2, 1],
+		rem:  [],
+	},
+	// (2x^2 + 3x + 1) / (x + 1) = 2x + 1, remainder 0
+	{
+		x:    [1, 3, 2],
+		y:    [1, 1],
+		quot: [1, 2],
+		rem:  [],
+	},
+	// (x^3 - 2x + 4) / (x - 1) = x^2 + x - 1, remainder 3
+	{
+		x:    [4, -2, 0, 1],
+		y:    [-1, 1],
+		quot: [-1, 1, 1],
+		rem:  [3],
+	},
+	// (x^2 + 1) / (x^3 + 2) = quotient 0, remainder = dividend
+	{
+		x:    [1, 0, 1],
+		y:    [2, 0, 0, 1],
+		quot: [],
+		rem:  [1, 0, 1],
+	},
+	// (x^2 + 5x + 6) / (x + 2) = quotient x + 3, remainder 0
+	{
+		x:    [6, 5, 1],
+		y:    [2, 1],
+		quot: [3, 1],
+		rem:  [],
+	},
+	// (x^3 + 4x^2 + 7x - 5) / (x - 1) = quotient x^2 + 5x + 12, remainder 7
+	{
+		x:    [-5, 7, 4, 1],
+		y:    [-1, 1],
+		quot: [12, 5, 1],
+		rem:  [7],
+	},
+	// (2x^4 + 3x^3 - x^2 + 5x - 8) /
+	// (x^2 + x - 2) = quotient 2x^2 + x + 2, remainder 5x - 4
+	{
+		x:    [-8, 5, -1, 3, 2],
+		y:    [-2, 1, 1],
+		quot: [2, 1, 2],
+		rem:  [-4, 5],
+	},
+	// (x^5 + 1) / (x + 1) = x^4 - x^3 + x^2 - x + 1, remainder 0
+	{
+		x:    [1, 0, 0, 0, 0, 1],
+		y:    [1, 1],
+		quot: [1, -1, 1, -1, 1],
+		rem:  [],
+	},
+	// (3x^3 - 2x + 1) / (x^2 + 1) = 3x, remainder -5x + 1
+	{
+		x:    [1, -2, 0, 3],
+		y:    [1, 0, 1],
+		quot: [0, 3],
+		rem:  [1, -5],
+	},
+	// (x^3 - 1) / (x - 1) = x^2 + x + 1, remainder 0
+	{
+		x:    [-1, 0, 0, 1],
+		y:    [-1, 1],
+		quot: [1, 1, 1],
+		rem:  [],
+	},
+]
+
+#test
+fn testDenseDivMod(t: &testing::T) {
+	for _, test in testsDenseDivMod {
+		let mut r: Dense
+		let mut rem: Dense
+
+		testDenseDivMod := fn(name: string, r: Dense, rem: Dense) {
+			if len(r) != len(test.quot) {
+				t.Errorf("{}({}, {}) = {}, expected {}", name, test.x, test.y, r, test.quot)
+				return
+			}
+
+			mut i := 0
+			for i < len(r) {
+				if !jn::Close(r[i], test.quot[i]) {
+					t.Errorf(
+						"{}({}, {})[{}] = {}, expected {}",
+						name,
+						test.x,
+						test.y,
+						i,
+						r[i],
+						test.quot[i])
+					break
+				}
+				i++
+			}
+
+			if len(rem) != len(test.rem) {
+				t.Errorf(
+					"{}({}, {}) = rem {}, expected {}",
+					name,
+					test.x,
+					test.y,
+					rem,
+					test.rem)
+				return
+			}
+
+			i = 0
+			for i < len(rem) {
+				if !jn::Close(rem[i], test.rem[i]) {
+					t.Errorf(
+						"{}({}, {})[{}] = rem {}, expected {}",
+						name,
+						test.x,
+						test.y,
+						i,
+						rem[i],
+						test.rem[i])
+					break
+				}
+				i++
+			}
+		}
+
+		r.DivMod(&test.x, &test.y, &rem)
+		testDenseDivMod("DivMod", r, rem)
+
+		denseFFTDivMod(&r, &test.x, &test.y, &rem)
+		testDenseDivMod("DivModFFT", r, rem)
+	}
+}

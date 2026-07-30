@@ -371,6 +371,67 @@ impl Dense {
 		denseMulFFT(self, x, y, size, tol)
 	}
 
+	// Sets self to quotient x/y, sets rem to remainder x/y if it is not nil.
+	// Panics for divide by zero.
+	//
+	// It uses naive division for small inputs and FFT division for larger inputs.
+	// FFT division may have larger floating-point rounding errors.
+	//
+	// If self and rem have enough capacity, DivMod will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn DivMod(mut *self, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
+		if len(*y) == 0 {
+			panic("poly: division by zero")
+		}
+
+		if (*y)[len(*y)-1] == 0 {
+			panic("poly: leading coefficient of divisor is zero")
+		}
+
+		mut kind := selectDivAlgorithm(x, y)
+		kind = 1
+
+		if rem != nil {
+			match kind {
+			| 0:
+				denseBasicDivMod(self, x, y, rem)
+			|:
+				denseFFTDivMod(self, x, y, rem)
+			}
+		} else {
+			let mut _rem: Dense
+			match kind {
+			| 0:
+				denseBasicDivMod(self, x, y, &_rem)
+			|:
+				denseFFTDivMod(self, x, y, &_rem)
+			}
+		}
+	}
+
+	// Sets self to quotient x/y, sets rem to remainder x/y if it is not nil.
+	//
+	// Like DivMod but forces naive polynomial division and never uses FFT.
+	//
+	// If self and rem have enough capacity, DivModNaive will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn DivModNaive(mut *self, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
+		if len(*y) == 0 {
+			panic("poly: division by zero")
+		}
+
+		if (*y)[len(*y)-1] == 0 {
+			panic("poly: leading coefficient of divisor is zero")
+		}
+
+		if rem != nil {
+			denseBasicDivMod(self, x, y, rem)
+		} else {
+			let mut _rem: Dense
+			denseBasicDivMod(self, x, y, &_rem)
+		}
+	}
+
 	// Sets self to the first derivative of polynomial x.
 	//
 	//	If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
@@ -682,6 +743,274 @@ fn denseDynamicTolerance(&x: *Dense, &y: *Dense, size: int): f64 {
 		f64(size) *
 		math::Log2(f64(size)) *
 		safetyFactor
+}
+
+fn selectDivAlgorithm(&x: *Dense, &y: *Dense): int {
+	if len(*x) == 0 || len(*y) == 0 {
+		return 0
+	}
+
+	degX := len(*x) - 1
+	degY := len(*y) - 1
+
+	// No quotient is required when deg(x) < deg(y).
+	if degX < degY {
+		return 0
+	}
+
+	quotientSize := degX - degY + 1
+
+	// Naive division is preferable for small problems.
+	if quotientSize <= 64 || len(*y) <= 32 {
+		return 0
+	}
+
+	return 1
+}
+
+// Computes d such that c*d = 1 (mod x^k).
+fn denseInverse(mut &inv: *Dense, &c: *Dense, k: int, tol: f64) {
+	if k == 0 {
+		*inv = (*inv)[:0]
+		return
+	}
+
+	mut c0 := 0.0
+	if len(*c) > 0 {
+		c0 = (*c)[0]
+	}
+
+	if jn::Tolerance(c0, 0, tol) {
+		panic("poly: constant zero term is illegal for inverse")
+	}
+
+	*inv = inv.make(1)
+	(*inv)[0] = 1.0 / c0
+
+	if k == 1 {
+		return
+	}
+
+	mut m := 1
+
+	for m < k {
+		mut next := m * 2
+		if next > k {
+			next = k
+		}
+
+		// temp = c * inv mod x^next
+		let mut temp: Dense
+		temp.MulFFT(c, inv, tol)
+		denseTruncate(&temp, next)
+
+		// temp = 2 - c*inv
+		temp[0] = 2 - temp[0]
+		mut i := 1
+		for i < len(temp); i++ {
+			temp[i] = -temp[i]
+		}
+
+		// inv = inv * temp mod x^next
+		let mut nextInv: Dense
+		nextInv.MulFFT(inv, &temp, tol)
+		denseTruncate(&nextInv, next)
+
+		*inv = nextInv
+		m = next
+	}
+}
+
+fn denseTruncate(mut &x: *Dense, k: int) {
+	if len(*x) > k {
+		*x = (*x)[:k]
+	}
+}
+
+fn denseReverse(mut &rev: *Dense, &p: *Dense) {
+	n := len(*p)
+
+	*rev = rev.make(n)
+
+	mut i := 0
+	for i < n; i++ {
+		(*rev)[i] = (*p)[n-1-i]
+	}
+}
+
+fn denseDivisionTolerance(&x: *Dense, &y: *Dense): f64 {
+	const machineEpsilon = 2.22e-16
+
+	size := len(*x) + len(*y)
+
+	mut maxCoef := 0.0
+
+	for _, c in *x {
+		v := math::Abs(c)
+		if v > maxCoef {
+			maxCoef = v
+		}
+	}
+
+	for _, c in *y {
+		v := math::Abs(c)
+		if v > maxCoef {
+			maxCoef = v
+		}
+	}
+
+	if maxCoef == 0 {
+		return 0
+	}
+
+	return machineEpsilon * f64(size) * maxCoef * 100
+}
+
+fn denseZero(&p: *Dense, tol: f64): bool {
+	for _, coef in *p {
+		if !jn::Tolerance(coef, 0, tol) {
+			return false
+		}
+	}
+	return true
+}
+
+#disable boundary
+fn denseFFTDivMod(mut &q: *Dense, &a: *Dense, &b: *Dense, mut &r: *Dense) {
+	if len(*b) == 0 {
+		panic("poly: division by zero")
+	}
+
+	degB := len(*b) - 1
+	if (*b)[degB] == 0 {
+		panic("poly: leading coefficient of divisor is zero")
+	}
+
+	if len(*a) == 0 {
+		*q = (*q)[:0]
+
+		if r != nil {
+			*r = (*r)[:0]
+		}
+
+		return
+	}
+
+	degA := len(*a) - 1
+
+	if degA < degB {
+		*q = (*q)[:0]
+
+		if r != nil {
+			*r = r.make(len(*a))
+			copy(*r, *a)
+		}
+
+		return
+	}
+
+	k := degA - degB + 1
+
+	// Reverse a and b.
+	let mut aRev: Dense
+	denseReverse(&aRev, a)
+
+	let mut bRev: Dense
+	denseReverse(&bRev, b)
+
+	// Compute inverse of reversed divisor modulo x^k.
+	let mut invB: Dense
+	denseInverse(&invB, &bRev, k, 0)
+
+	// qRev = aRev * invB mod x^k.
+	let mut qRev: Dense
+	qRev.MulFFT(&aRev, &invB, 0)
+	denseTruncate(&qRev, k)
+
+	// Reverse qRev to obtain q.
+	denseReverse(q, &qRev)
+
+	// qb = q * b.
+	let mut qb: Dense
+	qb.MulFFT(q, b, 0)
+
+	tol := denseDivisionTolerance(a, b)
+
+	// r = a - qb.
+	r.Sub(a, &qb, tol)
+
+	// Remainder degree must be less than degB.
+	denseTruncate(r, degB)
+
+	if denseZero(r, tol) {
+		*r = (*r)[:0]
+	}
+}
+
+#disable boundary
+fn denseBasicDivMod(mut &z: *Dense, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
+	if len(*y) == 0 {
+		panic("poly: division by zero")
+	}
+
+	degY := len(*y) - 1
+	coefY := (*y)[degY]
+
+	if coefY == 0 {
+		panic("poly: leading coefficient of divisor is zero")
+	}
+
+	if len(*x) == 0 {
+		*z = (*z)[:0]
+		if rem != nil {
+			*rem = (*rem)[:0]
+		}
+		return
+	}
+
+	degX := len(*x) - 1
+
+	if degX < degY {
+		*z = (*z)[:0]
+
+		if rem != nil {
+			*rem = rem.make(len(*x))
+			copy(*rem, *x)
+		}
+
+		return
+	}
+
+	quotLen := degX - degY + 1
+
+	// Preserve the dividend because z/rem may alias x.
+	mut work := make(Dense, len(*x))
+	copy(work, *x)
+
+	*z = z.make(quotLen)
+
+	mut remDeg := degX
+	for remDeg >= degY; remDeg-- {
+		expDiff := remDeg - degY
+		coefQuot := work[remDeg] / coefY
+
+		(*z)[expDiff] = coefQuot
+
+		mut i := 0
+		for i <= degY; i++ {
+			work[i+expDiff] -= coefQuot * (*y)[i]
+		}
+	}
+
+	if rem != nil {
+		if degY == 0 {
+			*rem = (*rem)[:0]
+			return
+		}
+
+		*rem = rem.make(degY)
+		copy(*rem, work[:degY])
+	}
 }
 
 // Reports whether x and y share the same base array.
