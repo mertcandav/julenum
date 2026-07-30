@@ -515,10 +515,10 @@ impl Sparse {
 	//
 	// Constant terms (exp = 0) are omitted.
 	//
-	// If self have enough capacity, Derivative will use it to avoid making allocation.
+	// If self have enough capacity, Deriv will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	#disable boundary
-	fn Derivative(mut *self, &x: *Sparse) {
+	fn Deriv(mut *self, &x: *Sparse) {
 		*self = self.make(len(*x))
 
 		mut k := 0

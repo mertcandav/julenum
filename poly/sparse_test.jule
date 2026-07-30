@@ -586,7 +586,7 @@ fn testDivMod(t: &testing::T) {
 	}
 }
 
-let testsDerivative: []sparseIOTest = [
+let testsDeriv: []sparseIOTest = [
 	// d/dx (5) = 0
 	{
 		input: [{5, 0}],
@@ -624,12 +624,12 @@ let testsDerivative: []sparseIOTest = [
 ]
 
 #test
-fn testDerivative(t: &testing::T) {
-	for _, test in testsDerivative {
+fn testDeriv(t: &testing::T) {
+	for _, test in testsDeriv {
 		let mut r: Sparse
-		r.Derivative(&test.input)
+		r.Deriv(&test.input)
 		if !slices::Equal(r, test.want) {
-			t.Errorf("Derivative({}) = {}, expected {}", test.input, r, test.want)
+			t.Errorf("Deriv({}) = {}, expected {}", test.input, r, test.want)
 		}
 	}
 }

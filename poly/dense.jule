@@ -264,4 +264,28 @@ impl Dense {
 		}
 		*self = (*self)[:n]
 	}
+
+	// Sets self to the first derivative of polynomial x.
+	//
+	//	If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
+	//
+	// Constant terms (exp = 0) are omitted.
+	//
+	// If self have enough capacity, Deriv will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Deriv(mut *self, &x: *Dense) {
+		if len(*x) <= 1 {
+			*self = (*self)[:0]
+			return
+		}
+
+		*self = self.make(len(*x) - 1)
+
+		mut i := 1
+		for i < len(*x) {
+			(*self)[i-1] = f64(i) * (*x)[i]
+			i++
+		}
+	}
 }
