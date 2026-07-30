@@ -32,6 +32,13 @@ fn EqualWithinRel(a: f64, b: f64, tol: f64): bool {
 	return delta/math::Max(math::Abs(a), math::Abs(b)) <= tol
 }
 
+// Returns true when a and b are equal to within
+// the absolute or relative tolerances.
+// See EqualWithinAbs and EqualWithinRel for details.
+fn EqualWithinAbsOrRel(a: f64, b: f64, absTol: f64, relTol: f64): bool {
+	return EqualWithinAbs(a, b, absTol) || EqualWithinRel(a, b, relTol)
+}
+
 // Reports whether two values a and b are considered equal, allowing NaNs.
 fn Equal(a: f64, b: f64): bool {
 	return a == b || math::IsNaN(a) && math::IsNaN(b)
