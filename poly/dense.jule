@@ -510,6 +510,65 @@ impl Dense {
 		return result
 	}
 
+	// Sets self to product x^n.
+	//
+	// Condition n >= 0 must be true.
+	//
+	// If self have enough capacity, Pow will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	//
+	// The implementation uses exponentiation by squaring, equivalent to
+	// NumPy's polynomial power operation.
+	fn Pow(mut *self, &x: *Dense, mut n: int) {
+		if n < 0 {
+			panic("poly: negative exponent not supported")
+		}
+
+		// x^0 = 1, including 0^0.
+		if n == 0 {
+			*self = self.make(1)
+			(*self)[0] = 1
+			return
+		}
+
+		// x^1 = x.
+		if n == 1 {
+			if self == x {
+				return
+			}
+
+			*self = self.make(len(*x))
+			copy(*self, *x)
+			return
+		}
+
+		// Keep an independent copy of the base so self may alias x.
+		let mut base: Dense
+		base = make(Dense, len(*x))
+		copy(base, *x)
+
+		// result = 1.
+		*self = self.make(1)
+		(*self)[0] = 1
+
+		for n > 0 {
+			if n&1 == 1 {
+				let mut result: Dense
+				result.MulNaive(self, &base)
+				*self = result
+			}
+
+			n >>= 1
+			if n == 0 {
+				break
+			}
+
+			let mut squared: Dense
+			squared.MulNaive(&base, &base)
+			base = squared
+		}
+	}
+
 	// Sets self to a rescaled polynomial x, so that its leading coefficient is 1.
 	// If the polynomial is zero or its leading coefficient is very small, output
 	// length is zero.
