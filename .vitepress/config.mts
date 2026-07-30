@@ -69,6 +69,7 @@ export default defineConfig({
                 { text: 'dsp/fourier', link: '/api/dsp/fourier' },
               ]
             },
+            { text: 'integrate', link: '/api/integrate' },
             { text: 'interp', link: '/api/interp' },
             { text: 'mat', link: '/api/mat' },
             {
