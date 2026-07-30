@@ -9,6 +9,29 @@ fn EqualWithinAbs(a: f64, b: f64, tol: f64): bool {
 	return a == b || math::Abs(a-b) <= tol
 }
 
+// The smallest normal number.
+// For 64 bit IEEE-754 floats this is 2^{-1022}.
+const minNormalF64 = 0x1p-1022
+
+// Returns true when the difference between a and b
+// is not greater than tol times the greater absolute value of a and b,
+//
+//	abs(a-b) <= tol * max(abs(a), abs(b)).
+fn EqualWithinRel(a: f64, b: f64, tol: f64): bool {
+	if a == b {
+		return true
+	}
+	delta := math::Abs(a - b)
+	if delta <= minNormalF64 {
+		return delta <= tol*minNormalF64
+	}
+	// We depend on the division in this relationship to identify
+	// infinities (we rely on the NaN to fail the test) otherwise
+	// we compare Infs of the same sign and evaluate Infs as equal
+	// independent of sign.
+	return delta/math::Max(math::Abs(a), math::Abs(b)) <= tol
+}
+
 // Reports whether two values a and b are considered equal, allowing NaNs.
 fn Equal(a: f64, b: f64): bool {
 	return a == b || math::IsNaN(a) && math::IsNaN(b)
