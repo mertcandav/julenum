@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use jn "julenum"
 use "std/slices"
 use "std/testing"
 
@@ -228,6 +229,157 @@ fn testDenseSub(t: &testing::T) {
 
 		if !slices::Equal(r, test.want) {
 			t.Errorf("Sub({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
+		}
+	}
+}
+
+struct denseScaleTest {
+	p:    Dense
+	k:    f64
+	tol:  f64
+	want: Dense
+}
+
+let testsDenseScale: []denseScaleTest = [
+	// 1 - 2x + 3x^2 -> 2 - 4x + 6x^2
+	{
+		p:    [1, -2, 3],
+		k:    2,
+		tol:  0,
+		want: [2, -4, 6],
+	},
+
+	// 1 - 2x + 3x^2 -> -2 + 4x - 6x^2
+	{
+		p:    [1, -2, 3],
+		k:    -2,
+		tol:  0,
+		want: [-2, 4, -6],
+	},
+
+	// k = 0 -> zero polynomial.
+	{
+		p:    [1, -2, 3],
+		k:    0,
+		tol:  0,
+		want: [],
+	},
+
+	// k = 1 preserves the polynomial.
+	{
+		p:    [1, -2, 3],
+		k:    1,
+		tol:  0,
+		want: [1, -2, 3],
+	},
+
+	// Empty polynomial remains empty.
+	{
+		p:    [],
+		k:    100,
+		tol:  0,
+		want: [],
+	},
+
+	// Zero coefficients are removed.
+	{
+		p:    [1, 0, 3, 0],
+		k:    2,
+		tol:  0,
+		want: [2, 0, 6],
+	},
+
+	// Small coefficients are preserved with zero tolerance.
+	{
+		p:    [1, 1e-10, 3e-10],
+		k:    2,
+		tol:  0,
+		want: [2, 2e-10, 6e-10],
+	},
+
+	// 1 + 1e-10*x + 3e-10*x^2.
+	// After scaling: 2 + 2e-10*x + 6e-10*x^2.
+	// Small coefficients are removed by tolerance.
+	{
+		p:    [1, 1e-10, 3e-10],
+		k:    2,
+		tol:  1e-9,
+		want: [2],
+	},
+
+	// The scaled coefficient 8e-10 is below the 1e-9 tolerance.
+	{
+		p:    [1, 4e-10],
+		k:    2,
+		tol:  1e-9,
+		want: [2],
+	},
+
+	// All coefficients are below tolerance after scaling.
+	{
+		p:    [1e-10, -2e-10, 3e-10],
+		k:    2,
+		tol:  1e-9,
+		want: [],
+	},
+
+	// Trailing small coefficients are removed and the result is trimmed.
+	{
+		p:    [1, 2e-10, 3e-10],
+		k:    1,
+		tol:  1e-9,
+		want: [1],
+	},
+
+	// Internal small coefficients are removed while
+	// preserving the remaining coefficient positions.
+	{
+		p:    [1, 2e-10, 3, 4e-10, 5],
+		k:    2,
+		tol:  1e-9,
+		want: [2, 0, 6, 0, 10],
+	},
+
+	// Fractional scaling.
+	{
+		p:    [2, -4, 6],
+		k:    0.5,
+		tol:  0,
+		want: [1, -2, 3],
+	},
+]
+
+#test
+fn testDenseScale(t: &testing::T) {
+	for _, test in testsDenseScale {
+		let mut r: Dense
+		r.Scale(&test.p, test.k, test.tol)
+
+		if len(r) != len(test.want) {
+			t.Errorf(
+				"Scale({}, {}, {}) = {}, expected {}",
+				test.p,
+				test.k,
+				test.tol,
+				r,
+				test.want)
+			continue
+		}
+
+		mut i := 0
+		for i < len(r) {
+			if !jn::Close(r[i], test.want[i]) {
+				t.Errorf(
+					"Scale({}, {}, {})[{}] = {}, expected {}",
+					test.p,
+					test.k,
+					test.tol,
+					i,
+					r[i],
+					test.want[i])
+				break
+			}
+			i++
 		}
 	}
 }

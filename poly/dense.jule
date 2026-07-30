@@ -220,4 +220,48 @@ impl Dense {
 			i++
 		}
 	}
+
+	// Sets self to scaled coefficients of x by scalar k.
+	// For example, if k = 2, (3x^2 - x) becomes (6x^2 - 2x).
+	//
+	// If self have enough capacity, Scale will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	#disable boundary
+	fn Scale(mut *self, &x: *Dense, k: f64, tol: f64) {
+		if len(*x) == 0 {
+			// self is an alias for x, return immediately.
+			if self == x {
+				return
+			}
+			*self = self.make(0)
+			return
+		}
+
+		if k == 0 {
+			*self = (*self)[:0]
+			return
+		}
+
+		*self = self.make(len(*x))
+
+		mut i := 0
+		for _, coef in *x {
+			scaled := coef * k
+			if !jn::Tolerance(scaled, 0, tol) {
+				(*self)[i] = scaled
+				i++
+			} else {
+				// Preserve the exponent position in Dense.
+				(*self)[i] = 0
+				i++
+			}
+		}
+
+		// Remove trailing zero coefficients.
+		mut n := len(*self)
+		for n > 0 && (*self)[n-1] == 0 {
+			n--
+		}
+		*self = (*self)[:n]
+	}
 }
