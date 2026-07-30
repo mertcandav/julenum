@@ -15,6 +15,7 @@ Designed to be consistent, efficient, and high-performance, with a focus on prec
 - Statistics: Descriptive statistics, common probability distributions
 - Special Functions: Gamma, Beta, Erf, Airy, and other advanced mathematical functions
 - Number Sequences: Fibonacci, Catalan, and other integer sequences
+- Integration: Trapezoidal, Simpson, Romberg, Gaussian
 - Transforms: Fast Fourier Transform (FFT), trigonometric and unit conversions
 - Numerical Utilities: Floating-point tolerance comparisons, primality testing, and etc.
 - Mathematical Constants: Pi, Euler’s constant, Avogadro number, proton mass, and more
