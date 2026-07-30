@@ -1,0 +1,47 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct rombergTest {
+	name:      string
+	f:         []f64
+	dx:        f64
+	expected:  f64
+	tolerance: f64
+}
+
+let testsRomberg: []rombergTest = [
+	{
+		name:      "Constant function (k=1, len=3)",
+		f:         [2.0, 2.0, 2.0],
+		dx:        1.0,
+		expected:  4.0,
+		tolerance: 1e-12,
+	},
+	{
+		name:      "x^2 function (k=2, len=5)",
+		f:         [0.0, 0.25, 1.0, 2.25, 4.0],
+		dx:        0.5,
+		expected:  8.0 / 3.0, // ~2.6666666666666665
+		tolerance: 1e-12,
+	},
+	{
+		name:      "x^3 function (k=3, len=9)",
+		f:         [0.0, 0.015625, 0.125, 0.421875, 1.0, 1.953125, 3.375, 5.359375, 8.0],
+		dx:        0.25,
+		expected:  4.0,
+		tolerance: 1e-12,
+	},
+]
+
+#test
+fn testRomberg(t: &testing::T) {
+	for _, tt in testsRomberg {
+		got := Romberg(tt.f, tt.dx)
+		if got != tt.expected {
+			t.Errorf("{} failed: got {}, want {}", tt.name, got, tt.expected)
+		}
+	}
+}

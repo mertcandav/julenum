@@ -1,0 +1,78 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2016 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "std/math"
+use "std/math/bits"
+
+// Romberg returns an approximate value of the integral
+//
+//	\int_a^b f(x)dx
+//
+// computed using the Romberg's method. The function f is given
+// as a slice of equally-spaced samples, that is,
+//
+//	f[i] = f(a + i*dx)
+//
+// and dx is the spacing between the samples.
+//
+// The length of f must be 2^k + 1, where k is a positive integer,
+// and dx must be positive.
+//
+// See https://en.wikipedia.org/wiki/Romberg%27s_method for a description of
+// the algorithm.
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use 64-bit floating-point type.
+fn Romberg[T: integer | float](f: []T, dx: T): T {
+	if len(f) < 3 {
+		panic("integral: invalid slice length: must be at least 3")
+	}
+
+	if dx <= 0 {
+		panic("integral: invalid spacing: must be larger than 0")
+	}
+
+	n := len(f) - 1
+	k := bits::Len(uint(n - 1))
+
+	if len(f) != 1<<uint(k)+1 {
+		panic("integral: invalid slice length: must be 2^k + 1")
+	}
+
+	mut work := make([]f64, 2*(k+1))
+	mut prev := work[:k+1]
+	mut curr := work[k+1:]
+
+	mut h := f64(dx) * f64(n)
+	prev[0] = f64(f[0]+f[n]) * 0.5 * h
+
+	mut step := n
+	mut i := 1
+	for i <= k; i++ {
+		h /= 2
+		step /= 2
+		let mut estimate: f64
+		mut j := 0
+		for j < n/2; j += step {
+			estimate += f64(f[2*j+step])
+		}
+
+		curr[0] = estimate*h + 0.5*prev[0]
+		j = 1
+		for j <= i; j++ {
+			factor := math::Pow(4, f64(j))
+			curr[j] = (factor*curr[j-1] - prev[j-1]) / (factor - 1)
+		}
+
+		prev, curr = curr, prev
+	}
+	return T(prev[k])
+}
