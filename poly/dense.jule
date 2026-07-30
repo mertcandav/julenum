@@ -295,6 +295,7 @@ impl Dense {
 	// If self have enough capacity, Integral will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
 	// #disable boundary
+	#disable boundary
 	fn Integral(mut *self, &x: *Dense, C: f64) {
 		if len(*x) == 0 {
 			if C == 0 {
@@ -340,5 +341,48 @@ impl Dense {
 		}
 
 		return result
+	}
+
+	// Sets self to a rescaled polynomial x, so that its leading coefficient is 1.
+	// If the polynomial is zero or its leading coefficient is very small, output
+	// length is zero.
+	//
+	// If self have enough capacity, Normalize will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	// #disable boundary
+	#disable boundary
+	fn Normalize(mut *self, &x: *Dense, tol: f64) {
+		if len(*x) == 0 {
+			*self = (*self)[:0]
+			return
+		}
+
+		// Find the actual leading coefficient, ignoring trailing zeros.
+		mut n := len(*x)
+		for n > 0 && (*x)[n-1] == 0 {
+			n--
+		}
+
+		if n == 0 {
+			*self = (*self)[:0]
+			return
+		}
+
+		lead := (*x)[n-1]
+
+		// A very small leading coefficient is treated as zero.
+		if jn::Tolerance(lead, 0, tol) {
+			*self = (*self)[:0]
+			return
+		}
+
+		// self may alias x, so normalization is performed in-place.
+		*self = self.make(n)
+
+		mut i := 0
+		for i < n {
+			(*self)[i] = (*x)[i] / lead
+			i++
+		}
 	}
 }

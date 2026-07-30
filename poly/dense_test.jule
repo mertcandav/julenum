@@ -631,3 +631,114 @@ fn testDenseEval(t: &testing::T) {
 		}
 	}
 }
+
+struct denseNormalizeTest {
+	input: Dense
+	tol:   f64
+	want:  Dense
+}
+
+let testsDenseNormalize: []denseNormalizeTest = [
+	{
+		input: [],
+		tol:   0,
+		want:  [],
+	},
+	{
+		input: [3, 6, 3, 0],
+		tol:   0,
+		want:  [1, 2, 1],
+	},
+	{
+		input: [1, -2, 1],
+		tol:   0,
+		want:  [1, -2, 1],
+	},
+	{
+		input: [7],
+		tol:   0,
+		want:  [1],
+	},
+
+	// Trailing zero coefficients must not affect the leading coefficient.
+	{
+		input: [3, 6, 3, 0, 0],
+		tol:   0,
+		want:  [1, 2, 1],
+	},
+
+	// Zero polynomial.
+	{
+		input: [0, 0, 0],
+		tol:   0,
+		want:  [],
+	},
+
+	// Leading coefficient is within tolerance.
+	{
+		input: [1, 2, 1e-10],
+		tol:   1e-9,
+		want:  [],
+	},
+
+	// Leading coefficient is outside tolerance.
+	{
+		input: [1, 2, 1e-8],
+		tol:   1e-9,
+		want:  [1e8, 2e8, 1],
+	},
+
+	// Negative leading coefficient.
+	{
+		input: [2, -4, -2],
+		tol:   0,
+		want:  [-1, 2, 1],
+	},
+
+	// Constant polynomial.
+	{
+		input: [-5],
+		tol:   0,
+		want:  [1],
+	},
+
+	// All coefficients are scaled by the leading coefficient.
+	{
+		input: [2, 4, 6],
+		tol:   0,
+		want:  [1.0 / 3.0, 2.0 / 3.0, 1],
+	},
+]
+
+#test
+fn testDenseNormalize(t: &testing::T) {
+	for _, test in testsDenseNormalize {
+		let mut r: Dense
+		r.Normalize(&test.input, test.tol)
+
+		if len(r) != len(test.want) {
+			t.Errorf(
+				"Normalize({}, {}) = {}, expected {}",
+				test.input,
+				test.tol,
+				r,
+				test.want)
+			continue
+		}
+
+		mut i := 0
+		for i < len(r) {
+			if !jn::Close(r[i], test.want[i]) {
+				t.Errorf(
+					"Normalize({}, {})[{}] = {}, expected {}",
+					test.input,
+					test.tol,
+					i,
+					r[i],
+					test.want[i])
+				break
+			}
+			i++
+		}
+	}
+}
