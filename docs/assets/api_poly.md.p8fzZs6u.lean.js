@@ -1,0 +1,1 @@
+import{_ as a,c as e,o as n,ah as l}from"./chunks/framework._fWrWIYU.js";const d=JSON.parse('{"title":"julenum/poly","description":"","frontmatter":{},"headers":[],"relativePath":"api/poly.md","filePath":"api/poly.md"}'),o={name:"api/poly.md"};function p(r,s,t,c,i,F){return n(),e("div",null,s[0]||(s[0]=[l("",3)]))}const u=a(o,[["render",p]]);export{d as __pageData,u as default};
