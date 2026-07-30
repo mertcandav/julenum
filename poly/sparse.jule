@@ -509,6 +509,28 @@ impl Sparse {
 		}
 	}
 
+	// Sets self to quotient x/y, sets rem to remainder x/y if it is not nil.
+	// Panics for divide by zero.
+	//
+	// Like DivMod but forces FFT division and never uses naive division.
+	// Provides faster computations for large polynomials, but may introduce
+	// more floating-point rounding errors, especially in the remainder.
+	//
+	// If self and rem have enough capacity, DivModFFT will use it to avoid
+	// making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn DivModFFT(mut *self, &x: *Sparse, &y: *Sparse, mut &rem: *Sparse) {
+		if len(*y) == 0 {
+			panic("poly: division by zero")
+		}
+		if rem != nil {
+			fftDivMod(self, x, y, rem)
+		} else {
+			let mut _rem: Sparse
+			fftDivMod(self, x, y, &_rem)
+		}
+	}
+
 	// Sets self to the first derivative of polynomial x.
 	//
 	//	If x = ∑ᵢ [ aᵢ * xⁱ ], then self = ∑ᵢ [ (i*aᵢ)·xⁱ⁻¹ ] for i ≥ 1.
@@ -639,7 +661,7 @@ impl Sparse {
 		}
 
 		let mut product: Sparse
-		product.MulTol(x, y, tol)
+		product.MulNaive(x, y)
 		let mut gcd: Sparse
 		gcd.GCD(x, y, tol)
 		self.DivMod(&product, &gcd, nil)
@@ -693,9 +715,9 @@ impl Sparse {
 
 		for n > 0; n >>= 1 {
 			if n&1 == 1 {
-				self.Mul(self, &base)
+				self.MulNaive(self, &base)
 			}
-			base.Mul(&base, &base)
+			base.MulNaive(&base, &base)
 		}
 	}
 
@@ -773,7 +795,7 @@ impl Sparse {
 				}
 				// Multiply by (x - xj)
 				mut tmp := Sparse([{1, 1}, {-xs[j], 0}])
-				basis.MulTol(&basis, &tmp, tol)
+				basis.MulNaive(&basis, &tmp)
 
 				// Denominator: (xi - xj)
 				denom *= xs[i] - xs[j]

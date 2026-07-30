@@ -581,7 +581,7 @@ fn testDivMod(t: &testing::T) {
 
 		r.DivMod(&test.x, &test.y, &rem)
 		testDivMod("DivMod", r, rem)
-		fftDivMod(&r, &test.x, &test.y, &rem)
+		r.DivModFFT(&test.x, &test.y, &rem)
 		testDivMod("DivModFFT", r, rem)
 	}
 }

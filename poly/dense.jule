@@ -388,23 +388,22 @@ impl Dense {
 			panic("poly: leading coefficient of divisor is zero")
 		}
 
-		mut kind := selectDivAlgorithm(x, y)
-		kind = 1
-
+		tol := denseDivisionTolerance(x, y)
+		kind := selectDivAlgorithm(x, y)
 		if rem != nil {
 			match kind {
 			| 0:
-				denseBasicDivMod(self, x, y, rem)
+				denseBasicDivMod(self, x, y, rem, tol)
 			|:
-				denseFFTDivMod(self, x, y, rem)
+				denseFFTDivMod(self, x, y, rem, tol)
 			}
 		} else {
 			let mut _rem: Dense
 			match kind {
 			| 0:
-				denseBasicDivMod(self, x, y, &_rem)
+				denseBasicDivMod(self, x, y, &_rem, tol)
 			|:
-				denseFFTDivMod(self, x, y, &_rem)
+				denseFFTDivMod(self, x, y, &_rem, tol)
 			}
 		}
 	}
@@ -415,7 +414,7 @@ impl Dense {
 	//
 	// If self and rem have enough capacity, DivModNaive will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	fn DivModNaive(mut *self, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
+	fn DivModNaive(mut *self, &x: *Dense, &y: *Dense, mut &rem: *Dense, tol: f64) {
 		if len(*y) == 0 {
 			panic("poly: division by zero")
 		}
@@ -425,10 +424,37 @@ impl Dense {
 		}
 
 		if rem != nil {
-			denseBasicDivMod(self, x, y, rem)
+			denseBasicDivMod(self, x, y, rem, tol)
 		} else {
 			let mut _rem: Dense
-			denseBasicDivMod(self, x, y, &_rem)
+			denseBasicDivMod(self, x, y, &_rem, tol)
+		}
+	}
+
+	// Sets self to quotient x/y, sets rem to remainder x/y if it is not nil.
+	// Panics for divide by zero.
+	//
+	// Like DivMod but forces FFT division and never uses naive division.
+	// Provides faster computations for large polynomials, but may introduce
+	// more floating-point rounding errors, especially in the remainder.
+	//
+	// If self and rem have enough capacity, DivModFFT will use it to avoid
+	// making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	fn DivModFFT(mut *self, &x: *Dense, &y: *Dense, mut &rem: *Dense, tol: f64) {
+		if len(*y) == 0 {
+			panic("poly: division by zero")
+		}
+
+		if (*y)[len(*y)-1] == 0 {
+			panic("poly: leading coefficient of divisor is zero")
+		}
+
+		if rem != nil {
+			denseFFTDivMod(self, x, y, rem, tol)
+		} else {
+			let mut _rem: Dense
+			denseFFTDivMod(self, x, y, &_rem, tol)
 		}
 	}
 
@@ -860,7 +886,7 @@ fn denseInverse(mut &inv: *Dense, &c: *Dense, k: int, tol: f64) {
 
 		// temp = c * inv mod x^next
 		let mut temp: Dense
-		temp.MulFFT(c, inv, tol)
+		temp.MulTol(c, inv, tol)
 		denseTruncate(&temp, next)
 
 		// temp = 2 - c*inv
@@ -872,7 +898,7 @@ fn denseInverse(mut &inv: *Dense, &c: *Dense, k: int, tol: f64) {
 
 		// inv = inv * temp mod x^next
 		let mut nextInv: Dense
-		nextInv.MulFFT(inv, &temp, tol)
+		nextInv.MulTol(inv, &temp, tol)
 		denseTruncate(&nextInv, next)
 
 		*inv = nextInv
@@ -935,7 +961,7 @@ fn denseZero(&p: *Dense, tol: f64): bool {
 }
 
 #disable boundary
-fn denseFFTDivMod(mut &q: *Dense, &a: *Dense, &b: *Dense, mut &r: *Dense) {
+fn denseFFTDivMod(mut &q: *Dense, &a: *Dense, &b: *Dense, mut &r: *Dense, tol: f64) {
 	if len(*b) == 0 {
 		panic("poly: division by zero")
 	}
@@ -979,11 +1005,11 @@ fn denseFFTDivMod(mut &q: *Dense, &a: *Dense, &b: *Dense, mut &r: *Dense) {
 
 	// Compute inverse of reversed divisor modulo x^k.
 	let mut invB: Dense
-	denseInverse(&invB, &bRev, k, 0)
+	denseInverse(&invB, &bRev, k, tol)
 
 	// qRev = aRev * invB mod x^k.
 	let mut qRev: Dense
-	qRev.MulFFT(&aRev, &invB, 0)
+	qRev.MulFFT(&aRev, &invB, tol)
 	denseTruncate(&qRev, k)
 
 	// Reverse qRev to obtain q.
@@ -991,9 +1017,7 @@ fn denseFFTDivMod(mut &q: *Dense, &a: *Dense, &b: *Dense, mut &r: *Dense) {
 
 	// qb = q * b.
 	let mut qb: Dense
-	qb.MulFFT(q, b, 0)
-
-	tol := denseDivisionTolerance(a, b)
+	qb.MulFFT(q, b, tol)
 
 	// r = a - qb.
 	r.Sub(a, &qb, tol)
@@ -1007,7 +1031,7 @@ fn denseFFTDivMod(mut &q: *Dense, &a: *Dense, &b: *Dense, mut &r: *Dense) {
 }
 
 #disable boundary
-fn denseBasicDivMod(mut &z: *Dense, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
+fn denseBasicDivMod(mut &z: *Dense, &x: *Dense, &y: *Dense, mut &rem: *Dense, tol: f64) {
 	if len(*y) == 0 {
 		panic("poly: division by zero")
 	}
@@ -1035,6 +1059,9 @@ fn denseBasicDivMod(mut &z: *Dense, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
 		if rem != nil {
 			*rem = rem.make(len(*x))
 			copy(*rem, *x)
+			if denseZero(rem, tol) {
+				*rem = (*rem)[:0]
+			}
 		}
 
 		return
@@ -1061,6 +1088,11 @@ fn denseBasicDivMod(mut &z: *Dense, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
 		}
 	}
 
+	// Remove floating-point noise from quotient.
+	if denseZero(z, tol) {
+		*z = (*z)[:0]
+	}
+
 	if rem != nil {
 		if degY == 0 {
 			*rem = (*rem)[:0]
@@ -1069,6 +1101,11 @@ fn denseBasicDivMod(mut &z: *Dense, &x: *Dense, &y: *Dense, mut &rem: *Dense) {
 
 		*rem = rem.make(degY)
 		copy(*rem, work[:degY])
+
+		// Remove floating-point noise from remainder.
+		if denseZero(rem, tol) {
+			*rem = (*rem)[:0]
+		}
 	}
 }
 

@@ -1181,7 +1181,8 @@ fn testDenseDivMod(t: &testing::T) {
 		r.DivMod(&test.x, &test.y, &rem)
 		testDenseDivMod("DivMod", r, rem)
 
-		denseFFTDivMod(&r, &test.x, &test.y, &rem)
+		tol := denseDivisionTolerance(&test.x, &test.y)
+		r.DivModFFT(&test.x, &test.y, &rem, tol)
 		testDenseDivMod("DivModFFT", r, rem)
 	}
 }
