@@ -288,4 +288,39 @@ impl Dense {
 			i++
 		}
 	}
+
+	// Sets self to the indefinite integral of polynomial x with constant term C.
+	// That is, integrates each term and appends a constant term.
+	//
+	// If self have enough capacity, Integral will use it to avoid making allocation.
+	// If length is zero, self will be zero-length. But keeps internal allocation.
+	// #disable boundary
+	fn Integral(mut *self, &x: *Dense, C: f64) {
+		if len(*x) == 0 {
+			if C == 0 {
+				*self = (*self)[:0]
+				return
+			}
+
+			*self = self.make(1)
+			(*self)[0] = C
+			return
+		}
+
+		*self = self.make(len(*x) + 1)
+		(*self)[0] = C
+
+		mut i := 0
+		for i < len(*x) {
+			(*self)[i+1] = (*x)[i] / f64(i+1)
+			i++
+		}
+
+		// Remove trailing zero coefficients.
+		mut n := len(*self)
+		for n > 0 && (*self)[n-1] == 0 {
+			n--
+		}
+		*self = (*self)[:n]
+	}
 }

@@ -458,3 +458,86 @@ fn testDenseDeriv(t: &testing::T) {
 		}
 	}
 }
+
+struct denseIntegralTest {
+	p:    Dense
+	C:    f64
+	want: Dense
+}
+
+let testsDenseIntegral: []denseIntegralTest = [
+	{
+		p:    [3, 4, 0],
+		C:    0,
+		want: [0, 3, 2],
+	},
+	{
+		p:    [6, 2],
+		C:    5,
+		want: [5, 6, 1],
+	},
+	{
+		p:    [],
+		C:    7,
+		want: [7],
+	},
+	{
+		p:    [],
+		C:    0,
+		want: [],
+	},
+	{
+		p:    [0],
+		C:    5,
+		want: [5],
+	},
+	{
+		p:    [5],
+		C:    2,
+		want: [2, 5],
+	},
+	{
+		p:    [3, 0, 5],
+		C:    -2,
+		want: [-2, 3, 0, 1.6666666666666667],
+	},
+	{
+		// 2x + 4x^3 -> x^2 + x^4
+		p:    [0, 2, 0, 4],
+		C:    1,
+		want: [1, 0, 1, 0, 1],
+	},
+	{
+		p:    [1, -2, 3, -4],
+		C:    0,
+		want: [0, 1, -1, 1, -1],
+	},
+]
+
+#test
+fn testDenseIntegral(t: &testing::T) {
+	for _, test in testsDenseIntegral {
+		let mut r: Dense
+		r.Integral(&test.p, test.C)
+
+		if len(r) != len(test.want) {
+			t.Errorf("Integral({}, {}) = {}, expected {}", test.p, test.C, r, test.want)
+			continue
+		}
+
+		mut i := 0
+		for i < len(r) {
+			if !jn::Close(r[i], test.want[i]) {
+				t.Errorf(
+					"Integral({}, {})[{}] = {}, expected {}",
+					test.p,
+					test.C,
+					i,
+					r[i],
+					test.want[i])
+				break
+			}
+			i++
+		}
+	}
+}
