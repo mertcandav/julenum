@@ -1,0 +1,66 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/slices"
+
+// Returns an approximate value of the integral
+//
+//  \int_a^b f(x) dx
+//
+// computed using the 3-point Composite Gauss-Legendre Quadrature rule.
+//
+// The slice x represents the segment boundaries defining subintervals [x[i], x[i+1]].
+// The slice f contains the function samples evaluated at 3 Gauss nodes within each subinterval:
+//
+//  For subinterval i, the 3 nodes in physical space are:
+//    x_i,0 = mid - half * sqrt(3/5)
+//    x_i,1 = mid
+//    x_i,2 = mid + half * sqrt(3/5)
+//  where mid = (x[i+1] + x[i])/2 and half = (x[i+1] - x[i])/2.
+//
+// Thus, len(f) must be equal to 3 * (len(x) - 1).
+// The slice x must be sorted in strictly increasing order and len(x) >= 2.
+//
+// Computations are performed using 64-bit floating-point precision.
+// The result is returned as type T, which may cause rounding errors or loss of precision.
+// To preserve exact results, use 64-bit floating-point type.
+fn Gaussian[T: integer | float](x: []T, f: []T): T {
+	n := len(x)
+	if n < 2 {
+		panic("integrate: input data too small")
+	}
+
+	if !slices::IsSorted(x) {
+		panic("integrate: input must be sorted")
+	}
+
+	numIntervals := n - 1
+	if len(f) != 3*numIntervals {
+		panic("integrate: slice length mismatch for 3-point Gaussian quadrature")
+	}
+
+	// 3-point Gauss-Legendre weights on reference interval [-1, 1]
+	// w0 = 5/9, w1 = 8/9, w2 = 5/9
+	w0 := 5.0 / 9.0
+	w1 := 8.0 / 9.0
+	w2 := 5.0 / 9.0
+
+	let mut integral: f64
+	mut i := 0
+	for i < numIntervals; i++ {
+		h := f64(x[i+1]) - f64(x[i])
+		if h <= 0 {
+			panic("integrate: repeated or decreasing abscissa")
+		}
+
+		halfWidth := 0.5 * h
+		fIdx := 3 * i
+
+		// Sum weighted sample values and scale by half-width (dx/dt Jacobian).
+		intervalSum := w0*f64(f[fIdx]) + w1*f64(f[fIdx+1]) + w2*f64(f[fIdx+2])
+		integral += halfWidth * intervalSum
+	}
+
+	return T(integral)
+}

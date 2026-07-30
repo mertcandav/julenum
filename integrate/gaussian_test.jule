@@ -1,0 +1,65 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use jn "julenum"
+use "std/math"
+use "std/testing"
+
+struct gaussianTest {
+	name:     string
+	x:        []f64
+	f:        []f64
+	expected: f64
+}
+
+let sqrt35 = math::Sqrt(3.0 / 5.0)
+
+let testsGaussian: []gaussianTest = [
+	{
+		name: "Constant Function f(x) = 3 (Single interval [0, 2])",
+		x:    [0.0, 2.0],
+		// f[i] = 3.0 (all 3 nodes share the same value)
+		f:        [3.0, 3.0, 3.0],
+		expected: 6.0, // 3 * (2 - 0)
+	},
+	{
+		name: "Degree-5 Polynomial f(x) = x^5 (Single interval [0, 2])",
+		x:    [0.0, 2.0],
+		// mid = 1.0, half = 1.0
+		// x0 = 1.0 - sqrt(3/5), x1 = 1.0, x2 = 1.0 + sqrt(3/5)
+		f: [
+			math::Pow(1.0-sqrt35, 5), // f(x0)
+			math::Pow(1.0, 5),        // f(x1)
+			math::Pow(1.0+sqrt35, 5), // f(x2)
+		],
+		expected: 64.0 / 6.0, // \int_0^2 x^5 dx = [x^6 / 6]_0^2 = 10.666666666666666
+	},
+	{
+		name: "Multiple Irregular Intervals (Composite Gaussian, f(x) = x^2)",
+		x:    [0.0, 1.0, 3.0], // 2 subintervals: [0, 1] and [1, 3] -> 6 total nodes
+		// Interval 1 [0, 1]: mid=0.5, half=0.5
+		// Interval 2 [1, 3]: mid=2.0, half=1.0
+		f: [
+			// Nodes for interval [0, 1]
+			math::Pow(0.5-0.5*sqrt35, 2),
+			math::Pow(0.5, 2),
+			math::Pow(0.5+0.5*sqrt35, 2),
+			// Nodes for interval [1, 3]
+			math::Pow(2.0-1.0*sqrt35, 2),
+			math::Pow(2.0, 2),
+			math::Pow(2.0+1.0*sqrt35, 2),
+		],
+		expected: 27.0 / 3.0, // \int_0^3 x^2 dx = 9.0
+	},
+]
+
+#test
+fn testGaussian(t: &testing::T) {
+	for _, tt in testsGaussian {
+		got := Gaussian(tt.x, tt.f)
+		if !jn::VeryClose(got, tt.expected) {
+			t.Errorf("{} failed: got {}, want {}", tt.name, got, tt.expected)
+		}
+	}
+}
