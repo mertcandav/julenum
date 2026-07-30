@@ -385,4 +385,25 @@ impl Dense {
 			i++
 		}
 	}
+
+	// Sets self to the unique linear polynomial that passes through points (x0, y0) and (x1, y1).
+	//
+	// The resulting coefficients are stored in ascending order:
+	// self[0] = constant term, self[1] = x coefficient.
+	//
+	// If self have enough capacity, InterpolateLinear will use it to avoid making allocation.
+	#disable boundary
+	fn InterpolateLinear(mut *self, x0: f64, y0: f64, x1: f64, y1: f64) {
+		if x0 == x1 {
+			panic("poly: InterpolateLinear: x0 and x1 must be distinct")
+		}
+
+		// Compute slope and intercept.
+		slope := (y1 - y0) / (x1 - x0)
+		intercept := y0 - slope*x0
+
+		*self = self.make(2)
+		(*self)[0] = intercept
+		(*self)[1] = slope
+	}
 }

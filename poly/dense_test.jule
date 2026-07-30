@@ -742,3 +742,68 @@ fn testDenseNormalize(t: &testing::T) {
 		}
 	}
 }
+
+struct denseInterpolateLinearTest {
+	x0:   f64
+	x1:   f64
+	y0:   f64
+	y1:   f64
+	want: Dense
+}
+
+let testsDenseInterpolateLinear: []denseInterpolateLinearTest = [
+	{
+		x0:   0,
+		y0:   0,
+		x1:   1,
+		y1:   1,
+		want: [0, 1], // f(x) = x
+	},
+	{
+		x0:   -1,
+		y0:   -1,
+		x1:   1,
+		y1:   1,
+		want: [0, 1], // f(x) = x
+	},
+	{
+		x0:   0,
+		y0:   2,
+		x1:   2,
+		y1:   4,
+		want: [2, 1], // f(x) = x + 2
+	},
+	{
+		x0:   2,
+		y0:   4,
+		x1:   0,
+		y1:   2,
+		want: [2, 1], // same but reversed
+	},
+	{
+		x0:   1,
+		y0:   3,
+		x1:   3,
+		y1:   3,
+		want: [3, 0], // horizontal line f(x) = 3
+	},
+]
+
+#test
+fn testDenseInterpolateLinear(t: &testing::T) {
+	for _, test in testsDenseInterpolateLinear {
+		let mut r: Dense
+		r.InterpolateLinear(test.x0, test.y0, test.x1, test.y1)
+
+		if !slices::Equal(r, test.want) {
+			t.Errorf(
+				"InterpolateLinear({}, {}, {}, {}) = {}, expected {}",
+				test.x0,
+				test.y0,
+				test.x1,
+				test.y1,
+				r,
+				test.want)
+		}
+	}
+}
