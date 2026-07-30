@@ -4,6 +4,11 @@
 
 use "std/math"
 
+// Returns true when a and b have an absolute difference not greater than tol.
+fn EqualWithinAbs(a: f64, b: f64, tol: f64): bool {
+	return a == b || math::Abs(a-b) <= tol
+}
+
 // Reports whether two values a and b are considered equal, allowing NaNs.
 fn Equal(a: f64, b: f64): bool {
 	return a == b || math::IsNaN(a) && math::IsNaN(b)
