@@ -1,0 +1,49 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct simpsonsTest {
+	name:     string
+	x:        []f64
+	f:        []f64
+	expected: f64
+}
+
+let testsSimpsons: []simpsonsTest = [
+	{
+		name:     "Quadratic function (n=3, odd)",
+		x:        [0.0, 1.0, 2.0],
+		f:        [0.0, 1.0, 4.0], // x^2
+		expected: 8.0 / 3.0,
+	},
+	{
+		name:     "Quadratic function (n=4, even with boundary correction)",
+		x:        [0.0, 1.0, 2.0, 3.0],
+		f:        [0.0, 1.0, 4.0, 9.0], // x^2
+		expected: 9.0,
+	},
+	{
+		name:     "Irregularly spaced x (n=3)",
+		x:        [0.0, 0.5, 2.0],
+		f:        [1.0, 2.0, 5.0], // 2x + 1
+		expected: 6.0,
+	},
+	{
+		name:     "Cubic function (n=5, odd)",
+		x:        [0.0, 1.0, 2.0, 3.0, 4.0],
+		f:        [0.0, 1.0, 8.0, 27.0, 64.0], // x^3
+		expected: 64.0,
+	},
+]
+
+#test
+fn testSimpsons(t: &testing::T) {
+	for _, tt in testsSimpsons {
+		got := Simpsons(tt.x, tt.f)
+		if got != tt.expected {
+			t.Errorf("{} failed: got {}, want {}", tt.name, got, tt.expected)
+		}
+	}
+}

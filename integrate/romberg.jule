@@ -11,7 +11,7 @@
 use "std/math"
 use "std/math/bits"
 
-// Romberg returns an approximate value of the integral
+// Returns an approximate value of the integral
 //
 //	\int_a^b f(x)dx
 //
