@@ -323,4 +323,22 @@ impl Dense {
 		}
 		*self = (*self)[:n]
 	}
+
+	// Evaluates the polynomial at a given x.
+	#disable boundary
+	fn Eval(*self, x: f64): f64 {
+		if len(*self) == 0 {
+			return 0
+		}
+
+		mut result := (*self)[len(*self)-1]
+		mut i := len(*self) - 1
+
+		for i > 0 {
+			i--
+			result = result*x + (*self)[i]
+		}
+
+		return result
+	}
 }

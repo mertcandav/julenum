@@ -563,6 +563,7 @@ impl Sparse {
 	}
 
 	// Evaluates the polynomial at a given x.
+	#disable boundary
 	fn Eval(*self, x: f64): f64 {
 		match len(*self) {
 		| 0:
