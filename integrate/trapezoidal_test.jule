@@ -1,0 +1,43 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct trapezoidalTest {
+	name:     string
+	x:        []f64
+	f:        []f64
+	expected: f64
+}
+
+let testsTrapezoidal: []trapezoidalTest = [
+	{
+		name:     "Constant Function",
+		x:        [0.0, 1.0, 2.0, 3.0],
+		f:        [5.0, 5.0, 5.0, 5.0],
+		expected: 15.0,
+	},
+	{
+		name:     "Linear Function",
+		x:        [0.0, 1.0, 2.0, 3.0, 4.0],
+		f:        [0.0, 1.0, 2.0, 3.0, 4.0],
+		expected: 8.0,
+	},
+	{
+		name:     "Non-uniform Step Size",
+		x:        [0.0, 0.5, 1.5, 3.0],
+		f:        [2.0, 4.0, 1.0, 3.0],
+		expected: 7.0,
+	},
+]
+
+#test
+fn testTrapezoidal(t: &testing::T) {
+	for _, tt in testsTrapezoidal {
+		got := Trapezoidal(tt.x, tt.f)
+		if got != tt.expected {
+			t.Errorf("{} failed: got {}, want {}", tt.name, got, tt.expected)
+		}
+	}
+}
