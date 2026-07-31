@@ -7,7 +7,6 @@ use "julenum/internal/fourier"
 use "julenum/internal/ibits"
 use "julenum/internal/imem"
 use "std/math"
-use "std/math/cmplx"
 use "std/slices"
 
 // Represents a single term (monomial) of a polynomial.
@@ -378,14 +377,15 @@ impl Sparse {
 			*self = (*self)[:0]
 			return
 		}
-		kind, size := selectMulAlgorithm(x, y)
+		kind, tolSize := selectMulAlgorithm(x, y)
 		match kind {
 		| 0:
 			basicMul(self, x, y)
 		| 1:
 			denseMul(self, x, y)
 		|:
-			tol := dynamicTolerance(x, y, size)
+			tol := dynamicTolerance(x, y, tolSize)
+			size := fftSize(x, y)
 			fftMul(self, x, y, size, tol)
 		}
 	}
@@ -423,13 +423,14 @@ impl Sparse {
 			*self = (*self)[:0]
 			return
 		}
-		kind, size := selectMulAlgorithm(x, y)
+		kind, _ := selectMulAlgorithm(x, y)
 		match kind {
 		| 0:
 			basicMul(self, x, y)
 		| 1:
 			denseMul(self, x, y)
 		|:
+			size := fftSize(x, y)
 			fftMul(self, x, y, size, tol)
 		}
 	}
@@ -851,8 +852,7 @@ fn selectMulAlgorithm(&x: *Sparse, &y: *Sparse): (int, int) {
 
 	// FFT only when the coefficient domain is sufficiently dense.
 	if density >= 0.20 {
-		size := ibits::NextPowerOfTwo(degree)
-		return 2, size
+		return 2, degree
 	}
 
 	// Moderately sparse: direct multiplication is safer and often faster.
@@ -1197,13 +1197,6 @@ fn fftDivMod(mut &q: *Sparse, &a: *Sparse, &b: *Sparse, mut &r: *Sparse) {
 	truncate(r, degB)
 }
 
-#disable boundary
-fn sparseToCoeffs(mut &z: *[]cmplx128, &p: *Sparse) {
-	for _, term in *p {
-		(*z)[term.Exp] = cmplx(term.Coef, 0)
-	}
-}
-
 #disable nilptr boundary
 fn coeffsToSparse(mut &z: *Sparse, coeffs: []cmplx128, tol: f64) {
 	*z = z.make(len(coeffs))
@@ -1225,7 +1218,7 @@ fn coeffsToSparse(mut &z: *Sparse, coeffs: []cmplx128, tol: f64) {
 	// No need for: sortByExp(z)
 }
 
-#disable boundary
+#disable nilptr boundary
 fn fftSize(&x: *Sparse, &y: *Sparse): int {
 	mut maxExpX, mut maxExpY := 0, 0
 	if len(*x) > 0 {
@@ -1239,33 +1232,76 @@ fn fftSize(&x: *Sparse, &y: *Sparse): int {
 	return ibits::NextPowerOfTwo(maxExpX + maxExpY + 1)
 }
 
-// z = x*y, using FFT.
-#disable boundary
-fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
-	// Allocate temporary slices with single allocation.
-	// size² should enough to store all coefficients for fa and fb.
-	// size/2 is the total size of a single slice.
-	mut workspace := make([]cmplx128, size<<1)
-	mut fa, mut fb := workspace[:size], workspace[size:]
+#disable nilptr boundary
+fn sparsePairToCoeffs(mut &z: *[]cmplx128, &x: *Sparse, &y: *Sparse) {
+	for _, term in *x {
+		(*z)[term.Exp] += cmplx(term.Coef, 0)
+	}
+	for _, term in *y {
+		(*z)[term.Exp] += cmplx(0, term.Coef)
+	}
+}
 
-	// Convert to coeff arrays.
-	sparseToCoeffs(&fa, x)
-	sparseToCoeffs(&fb, y)
+#disable nilptr boundary
+fn packedMultiply(mut &z: *[]cmplx128) {
+	n := len(*z)
+	half := n >> 1
 
-	// Forward FFT.
-	fourier::CoefficientsRadix2(fa, false)
-	fourier::CoefficientsRadix2(fb, false)
-
-	// Point-wise multiply.
-	for i in fa {
-		fa[i] *= fb[i]
+	// DC component.
+	{
+		// For the DC component both recovered values are real.
+		v := (*z)[0]
+		(*z)[0] = cmplx(real(v)*imag(v), 0)
 	}
 
-	// Inverse FFT.
-	fourier::CoefficientsRadix2(fa, true)
+	// Positive frequencies.
+	mut k := 1
+	for k < half; k++ {
+		j := n - k
 
-	// Convert to Sparse and assign to z.
-	coeffsToSparse(z, fa, tol)
+		zk := (*z)[k]
+		zj := (*z)[j]
+
+		zkr := real(zk)
+		zki := imag(zk)
+		zjr := real(zj)
+		zji := imag(zj)
+
+		// Recover A[k].
+		//
+		// A = (Z[k] + conj(Z[n-k])) / 2
+		ar := 0.5 * (zkr + zjr)
+		ai := 0.5 * (zki - zji)
+
+		// Recover B[k].
+		//
+		// B = (Z[k] - conj(Z[n-k])) / (2i)
+		br := 0.5 * (zki + zji)
+		bi := -0.5 * (zkr - zjr)
+
+		// A * B.
+		cr := ar*br - ai*bi
+		ci := ar*bi + ai*br
+
+		(*z)[k] = cmplx(cr, ci)
+		(*z)[j] = cmplx(cr, -ci)
+	}
+
+	// Nyquist component.
+	{
+		v := (*z)[half]
+		(*z)[half] = cmplx(real(v)*imag(v), 0)
+	}
+}
+
+#disable boundary
+fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
+	mut spectrum := make([]cmplx128, size)
+	sparsePairToCoeffs(&spectrum, x, y)
+	fourier::CoefficientsRadix2(spectrum, false)
+	packedMultiply(&spectrum)
+	fourier::CoefficientsRadix2(spectrum, true)
+	coeffsToSparse(z, spectrum, tol)
 }
 
 // Sort terms of the polynomial p by decreasing exponent.
