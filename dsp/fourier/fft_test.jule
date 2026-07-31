@@ -1,0 +1,122 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum/nums"
+use "std/math/rand"
+use "std/slices"
+use "std/testing"
+
+#test
+fn testFFTNew(t: &testing::T) {
+	const tol = 1e-12
+
+	mut n := 1
+	for n <= 200; n++ {
+		fft := FFT.New(n)
+
+		mut want := make([]cmplx128, n)
+		for i in want {
+			want[i] = cmplx(rnd.F64(), rnd.F64())
+		}
+
+		coeff := fft.Coefficients(nil, want)
+		mut got := fft.Sequence(nil, coeff)
+		sf := cmplx(1/f64(n), 0)
+		for i in got {
+			got[i] *= sf
+		}
+
+		if !nums::EqualApprox(got, want, tol) {
+			t.Errorf("unexpected result for complex sequence(coefficients(x)) for length {}", n)
+		}
+	}
+}
+
+#test
+fn testFFTReset(t: &testing::T) {
+	const tol = 1e-12
+
+	mut fft := FFT.New(1000)
+	mut n := 1
+	for n <= 2000; n++ {
+		fft.Reset(n)
+
+		mut want := make([]cmplx128, n)
+		for i in want {
+			want[i] = cmplx(rnd.F64(), rnd.F64())
+		}
+
+		coeff := fft.Coefficients(nil, want)
+		mut got := fft.Sequence(nil, coeff)
+		sf := cmplx(1/f64(n), 0)
+		for i in got {
+			got[i] *= sf
+		}
+
+		if !nums::EqualApprox(got, want, tol) {
+			t.Errorf("unexpected result for complex sequence(coefficients(x)) for length {}", n)
+		}
+	}
+}
+
+struct fftFreqTest {
+	want: []f64
+}
+
+let testsFFTFreq: []fftFreqTest = [
+	{want: [0]},
+	{want: [0, -0.5]},
+	{want: [0, 1.0 / 3.0, -1.0 / 3.0]},
+	{want: [0, 0.25, -0.5, -0.25]},
+]
+
+#test
+fn testFFTFreq(t: &testing::T) {
+	let mut fft: FFT
+
+	for _, test in testsFFTFreq {
+		fft.Reset(len(test.want))
+		for i, want in test.want {
+			got := fft.Freq(i)
+			if got != want {
+				t.Errorf("unexpected result for freq({}) for length {}: got:{} want:{}",
+					i, len(test.want), got, want)
+			}
+		}
+	}
+}
+
+struct fftShiftTest {
+	index: []int
+	want:  []int
+}
+
+let testsFFTShift: []fftShiftTest = [
+	{index: [0], want: [0]},
+	{index: [0, -1], want: [-1, 0]},
+	{index: [0, 1, -1], want: [-1, 0, 1]},
+	{index: [0, 1, -2, -1], want: [-2, -1, 0, 1]},
+	{index: [0, 1, 2, -2, -1], want: [-2, -1, 0, 1, 2]},
+]
+
+#test
+fn testFFTShift(t: &testing::T) {
+	let mut fft: FFT
+	for _, test in testsFFTShift {
+		fft.Reset(len(test.index))
+		mut got := make([]int, len(test.index))
+		for i in test.index {
+			got[i] = test.index[fft.ShiftIdx(i)]
+			su := fft.UnshiftIdx(fft.ShiftIdx(i))
+			if su != i {
+				t.Errorf("unexpected result for unshift(shift({})) with length {}:\ngot: {}\nwant:{}",
+					i, len(test.index), su, i)
+			}
+		}
+		if !slices::Equal(got, test.want) {
+			t.Errorf("unexpected result for shift({}):\ngot: {}\nwant:{}",
+				test.index, got, test.want)
+		}
+	}
+}

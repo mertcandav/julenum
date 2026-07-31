@@ -750,7 +750,8 @@ fn denseMulFFT(mut &z: *Dense, &x: *Dense, &y: *Dense, size: int, tol: f64) {
 	}
 
 	// Forward FFT.
-	fourier::FuseFFT(fa, fb, false)
+	fourier::CoefficientsRadix2(fa, false)
+	fourier::CoefficientsRadix2(fb, false)
 
 	// Point-wise multiplication.
 	for i in fa {
@@ -758,7 +759,7 @@ fn denseMulFFT(mut &z: *Dense, &x: *Dense, &y: *Dense, size: int, tol: f64) {
 	}
 
 	// Inverse FFT.
-	fourier::FFT(fa, true)
+	fourier::CoefficientsRadix2(fa, true)
 
 	// Store only the mathematically required coefficient range.
 	*z = z.make(size)

@@ -1,0 +1,135 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "julenum/internal/chunk"
+use "julenum/nums"
+use "std/math"
+use "std/math/rand"
+use "std/testing"
+
+let rnd = rand::New(rand::NewPCG(1, 1))
+
+#test
+fn testRFFTNew(t: &testing::T) {
+	const tol = 1e-10
+
+	mut n := 1
+	for n <= 200; n++ {
+		fft := RFFT.New(n)
+
+		mut want := make([]f64, n)
+		for i in want {
+			want[i] = rnd.F64()
+		}
+
+		coeff := fft.Coefficients(nil, want)
+		mut got := fft.Sequence(nil, coeff)
+		chunk::MulScalar(got, got, 1/f64(n))
+
+		if !nums::EqualApprox(got, want, tol) {
+			t.Errorf("unexpected result for sequence(coefficients(x)) for length {}", n)
+		}
+	}
+}
+
+#test
+fn testRFFTReset(t: &testing::T) {
+	const tol = 1e-10
+
+	mut fft := RFFT.New(1000)
+	mut n := 1
+	for n <= 2000; n++ {
+		fft.Reset(n)
+
+		mut want := make([]f64, n)
+		for i in want {
+			want[i] = rnd.F64()
+		}
+
+		coeff := fft.Coefficients(nil, want)
+		mut got := fft.Sequence(nil, coeff)
+		chunk::MulScalar(got, got, 1/f64(n))
+
+		if !nums::EqualApprox(got, want, tol) {
+			t.Errorf("unexpected result for sequence(coefficients(x)) for length {}", n)
+		}
+	}
+}
+
+struct rfftKnownTest {
+	inp:  []f64
+	want: []cmplx128
+}
+
+let testsRFFTKnown: []rfftKnownTest = [
+	{
+		inp:  [1, 0, 1, 0, 1, 0, 1, 0],
+		want: [4, 0, 0, 0, 4],
+	},
+	{
+		inp: [1, 0, 1, 0, 1, 0, 1],
+		want: [
+			4,
+			0.5 + 0.24078730940376442i,
+			0.5 + 0.6269801688313512i,
+			0.5 + 2.190643133767413i,
+		],
+	},
+	{
+		inp: [1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0],
+		want: [
+			12,
+			-2.301937735804838 - 1.108554787638881i,
+			0.7469796037174659 + 0.9366827961047095i,
+			-0.9450418679126271 - 4.140498958131061i,
+			-0.9450418679126271 + 4.140498958131061i,
+			0.7469796037174659 - 0.9366827961047095i,
+			-2.301937735804838 + 1.108554787638881i,
+			12,
+		],
+	},
+]
+
+#test
+fn testRFFTKnown(t: &testing::T) {
+	const tol = 1e-10
+
+	// Values confirmed with reference to numpy rfft.
+	mut fft := RFFT.New(1000)
+	for _, test in testsRFFTKnown {
+		fft.Reset(len(test.inp))
+		got := fft.Coefficients(nil, test.inp)
+		if !nums::EqualApprox(got, test.want, tol) {
+			t.Errorf("unexpected result for coefficients({}):\ngot: {}\nwant:{}",
+				test.inp, got, test.want)
+		}
+	}
+}
+
+struct rfftFreqTest {
+	n:    int
+	want: []f64
+}
+
+let testsRFFTFreq: []rfftFreqTest = [
+	{n: 1, want: [0]},
+	{n: 2, want: [0, 0.5]},
+	{n: 3, want: [0, 1.0 / 3.0]},
+	{n: 4, want: [0, 0.25, 0.5]},
+]
+
+#test
+fn testRFFTFreq(t: &testing::T) {
+	let mut fft: RFFT
+	for _, test in testsRFFTFreq {
+		fft.Reset(test.n)
+		for i, want in test.want {
+			got := fft.Freq(i)
+			if got != want {
+				t.Errorf("unexpected result for freq({}) for length {}: got:{} want:{}",
+					i, test.n, got, want)
+			}
+		}
+	}
+}

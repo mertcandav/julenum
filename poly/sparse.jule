@@ -1253,7 +1253,8 @@ fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
 	sparseToCoeffs(&fb, y)
 
 	// Forward FFT.
-	fourier::FuseFFT(fa, fb, false)
+	fourier::CoefficientsRadix2(fa, false)
+	fourier::CoefficientsRadix2(fb, false)
 
 	// Point-wise multiply.
 	for i in fa {
@@ -1261,7 +1262,7 @@ fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
 	}
 
 	// Inverse FFT.
-	fourier::FFT(fa, true)
+	fourier::CoefficientsRadix2(fa, true)
 
 	// Convert to Sparse and assign to z.
 	coeffsToSparse(z, fa, tol)

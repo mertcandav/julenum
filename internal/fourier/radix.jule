@@ -1,0 +1,144 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2020 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "std/math"
+use "std/math/bits"
+use "std/math/cmplx"
+
+fn swap(c: cmplx128): cmplx128 {
+	return cmplx(imag(c), real(c))
+}
+
+fn negi(c: cmplx128): cmplx128 {
+	return cmplx::Conj(swap(c))
+}
+
+// Scales the complex number c by f.
+fn scale(f: f64, c: cmplx128): cmplx128 {
+	return cmplx(f*real(c), f*imag(c))
+}
+
+// bitReversePermute performs a bit-reversal permutation on x.
+#disable boundary
+fn bitReversePermute(mut x: []cmplx128) {
+	if len(x) < 2 || bits::OnesCount(uint(len(x))) != 1 {
+		panic("fourier: invalid bitReversePermute call")
+	}
+	lz := bits::LeadingZeros(uint(len(x) - 1))
+	mut i := 0
+	for i < len(x)/2; i++ {
+		j := int(bits::Reverse(uint(i)) >> lz)
+		if i < j {
+			x[i], x[j] = x[j], x[i]
+		}
+	}
+	i++
+	for i < len(x); i += 2 {
+		j := int(bits::Reverse(uint(i)) >> lz)
+		if i < j {
+			x[i], x[j] = x[j], x[i]
+		}
+	}
+}
+
+// Computes the Fourier coefficients of the input sequence,
+// converting the time series in seq into the frequency spectrum, in place.
+//
+// It does not allocate, requiring that FFT twiddle factors
+// be calculated lazily. For performance reasons, this is done by successive
+// multiplication, so numerical accuracies can accumulate for large inputs.
+//
+// If the length of seq is not an integer power of 2, it will panic.
+#disable boundary
+fn CoefficientsRadix2(mut x: []cmplx128, invert: bool) {
+	match len(x) {
+	| 0 | 1:
+		return
+	| 2:
+		x[0], x[1] = x[0]+x[1], x[0]-x[1]
+	| 4:
+		t := x[1] + x[3]
+		u := x[2]
+
+		mut v := x[1] - x[3]
+		if invert {
+			v = cmplx(-imag(v), real(v))
+		} else {
+			v = cmplx(imag(v), -real(v))
+		}
+
+		x[0], x[1], x[2], x[3] = x[0]+u+t, x[0]-u+v, x[0]+u-t, x[0]-u-v
+	|:
+		if bits::OnesCount(uint(len(x))) != 1 {
+			panic("fourier: radix-2 fft called with non-power 2 length")
+		}
+
+		bitReversePermute(x)
+
+		mut k := 0
+		for k < len(x) {
+			t := x[k+2] + x[k+3]
+			u := x[k+1]
+
+			mut v := x[k+2] - x[k+3]
+			if invert {
+				v = cmplx(-imag(v), real(v))
+			} else {
+				v = cmplx(imag(v), -real(v))
+			}
+
+			x[k], x[k+1], x[k+2], x[k+3] = x[k]+u+t, x[k]-u+v, x[k]+u-t, x[k]-u-v
+
+			k += 4
+		}
+
+		mut m := 4
+		for m < len(x) {
+			mut sin, cos := math::Sincos(math::Pi / f64(m))
+
+			if !invert {
+				sin = -sin
+			}
+
+			f := swap(cmplx(sin, cos))
+
+			k = 0
+			for k < len(x) {
+				mut w := 1 + 0i
+
+				mut j := 0
+				for j < m {
+					i := j + k
+
+					u := w * x[i+m]
+
+					x[i], x[i+m] = x[i]+u, x[i]-u
+
+					w *= f
+					j++
+				}
+
+				k += 2 * m
+			}
+
+			m *= 2
+		}
+	}
+
+	if invert {
+		invN := 1.0 / f64(len(x))
+		scale := cmplx(invN, 0)
+
+		mut i := 0
+		for i < len(x); i++ {
+			x[i] *= scale
+		}
+	}
+}

@@ -1,0 +1,77 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2020 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+use "julenum/internal/fourier"
+use "std/math/bits"
+
+// Computes the Fourier coefficients of the input sequence,
+// converting the time series in seq into the frequency spectrum,
+// in place and returning it. This transform is unnormalized; a call to
+// CoefficientsRadix2 followed by a call of SequenceRadix2 will multiply the
+// input sequence by the length of the sequence.
+//
+// It does not allocate, requiring that FFT twiddle factors
+// be calculated lazily. For performance reasons, this is done by successive
+// multiplication, so numerical accuracies can accumulate for large inputs.
+// If accuracy is needed, the RFFT or FFT types should be used.
+//
+// If the length of seq is not an integer power of 2, it will panic.
+fn CoefficientsRadix2(mut seq: []cmplx128, invert: bool): []cmplx128 {
+	fourier::CoefficientsRadix2(seq, invert)
+	return seq
+}
+
+// Computes the real periodic sequence from the Fourier coefficients,
+// converting the frequency spectrum in coeff into a time series,
+// in place and returning it. This transform is unnormalized; a
+// call to CoefficientsRadix2 followed by a call of SequenceRadix2 will
+// multiply the input sequence by the length of the sequence.
+//
+// It does not allocate, requiring that FFT twiddle factors
+// be calculated lazily. For performance reasons, this is done by successive
+// multiplication, so numerical accuracies can accumulate for large inputs.
+// If accuracy is needed, the RFFT or FFT types should be used.
+//
+// If the length of coeff is not an integer power of 2, it will panic.
+#disable boundary
+fn SequenceRadix2(mut coeff: []cmplx128): []cmplx128 {
+	mut i, mut j := 1, len(coeff)-1
+	for i < j; i, j = i+1, j-1 {
+		coeff[i], coeff[j] = coeff[j], coeff[i]
+	}
+	CoefficientsRadix2(coeff, false)
+	return coeff
+}
+
+// Returns the values in x in a slice that is an integer power of 2 long.
+// If x already has an integer power of 2 length it is returned unaltered.
+fn PadRadix2(mut x: []cmplx128): []cmplx128 {
+	if len(x) == 0 {
+		return x
+	}
+	b := bits::Len(uint(len(x)))
+	if len(x) == 1<<(b-1) {
+		return x
+	}
+	mut p := make([]cmplx128, 1<<b)
+	copy(p, x)
+	return p
+}
+
+// Returns the largest slice of x that is has an integer
+// power of 2 length, and a slice holding the remaining elements.
+#disable boundary
+fn TrimRadix2(mut x: []cmplx128): (even: []cmplx128, remains: []cmplx128) {
+	if len(x) == 0 {
+		return x, nil
+	}
+	n := 1 << (bits::Len(uint(len(x))) - 1)
+	return x[:n], x[n:]
+}

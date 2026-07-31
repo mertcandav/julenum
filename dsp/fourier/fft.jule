@@ -1,32 +1,152 @@
-// Copyright 2025 mertcandav.
+// Copyright 2026 mertcandav.
 // Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2020 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 use "julenum/internal/fourier"
 
-// Computes the discrete Fourier transform (DFT) of the given complex-valued slice
-// using the in-place Cooley–Tukey radix-2 algorithm.
-//
-// If invert is true, it computes the inverse FFT (IFFT) instead.
-// The input length must be a power of two; otherwise, the behavior is undefined.
-//
-// This function modifies the input slice in-place.
-// For inverse FFT, results are scaled by 1/len.
-fn FFT(mut a: []cmplx128, invert: bool) {
-	fourier::FFT(a, invert)
+// Implements Fast Fourier Transform and its inverse for complex sequences.
+struct FFT {
+	mut work: []f64
+	mut ifac: [15]int
+
+	// Temporarily store complex data as
+	// pairs of real values to allow passing to
+	// the backing code. The length of real
+	// must always be half the length of work.
+	mut real: []f64
 }
 
-// Computes the discrete Fourier transform (DFT) of the given complex-valued slices
-// using the in-place Cooley–Tukey radix-2 algorithm.
-//
-// Computes FFT for a and b, this is efficient than calling FFT for a and b separately;
-//	{ FFT(a, invert); FFT(b, invert) } == FuseFFT(a, b, invert)
-//
-// If invert is true, it computes the inverse FFT (IFFT) instead.
-// Length of the input slices must be equal and a power of two; otherwise, the behavior is undefined.
-//
-// This function modifies the input slices in-place.
-// For inverse FFT, results are scaled by 1/len.
-fn FuseFFT(mut a: []cmplx128, mut b: []cmplx128, invert: bool) {
-	fourier::FuseFFT(a, b, invert)
+impl FFT {
+	// Returns an FFT initialized for work on sequences of length n.
+	fn New(n: int): &FFT {
+		mut t := new(FFT)
+		t.Reset(n)
+		return t
+	}
+
+	// Returns the length of the acceptable input.
+	fn Len(*self): int { return len(self.work) / 4 }
+
+	// Reinitializes the FFT for work on sequences of length n.
+	#disable boundary
+	fn Reset(mut *self, n: int) {
+		if 4*n <= cap(self.work) {
+			self.work = self.work[:4*n]
+			self.real = self.real[:2*n]
+		} else {
+			self.work = make([]f64, 4*n)
+			self.real = make([]f64, 2*n)
+		}
+		fourier::FFTI(n, self.work, &self.ifac)
+	}
+
+	// Computes the Fourier coefficients of a complex input sequence,
+	// converting the time series in seq into the frequency spectrum, placing
+	// the result in dst and returning it. This transform is unnormalized; a call
+	// to Coefficients followed by a call of Sequence will multiply the input
+	// sequence by the length of the sequence.
+	//
+	// If the length of seq is not FFT.Len(), Coefficients will panic.
+	// If dst is nil, a new slice is allocated and returned. If dst is not nil and
+	// the length of dst does not equal the length of seq, Coefficients will panic.
+	// It is safe to use the same slice for dst and seq.
+	#disable boundary
+	fn Coefficients(*self, mut dst: []cmplx128, seq: []cmplx128): []cmplx128 {
+		if len(seq) != self.Len() {
+			panic("fourier: sequence length mismatch")
+		}
+		if dst == nil {
+			dst = make([]cmplx128, len(seq))
+		} else if len(dst) != len(seq) {
+			panic("fourier: destination length mismatch")
+		}
+		for i, cv in seq {
+			self.real[2*i] = real(cv)
+			self.real[2*i+1] = imag(cv)
+		}
+		fourier::FFTF(len(dst), self.real, self.work, &self.ifac)
+		for i in dst {
+			dst[i] = cmplx(self.real[2*i], self.real[2*i+1])
+		}
+		return dst
+	}
+
+	// Computes the complex periodic sequence from the Fourier coefficients,
+	// converting the frequency spectrum in coeff into a time series, placing the
+	// result in dst and returning it. This transform is unnormalized; a call to
+	// Coefficients followed by a call of Sequence will multiply the input sequence
+	// by the length of the sequence.
+	//
+	// If the length of coeff is not FFT.Len(), Sequence will panic.
+	// If dst is nil, a new slice is allocated and returned. If dst is not nil and
+	// the length of dst does not equal the length of coeff, Sequence will panic.
+	// It is safe to use the same slice for dst and coeff.
+	#disable boundary
+	fn Sequence(*self, mut dst: []cmplx128, coeff: []cmplx128): []cmplx128 {
+		if len(coeff) != self.Len() {
+			panic("fourier: coefficients length mismatch")
+		}
+		if dst == nil {
+			dst = make([]cmplx128, len(coeff))
+		} else if len(dst) != len(coeff) {
+			panic("fourier: destination length mismatch")
+		}
+		for i, cv in coeff {
+			self.real[2*i] = real(cv)
+			self.real[2*i+1] = imag(cv)
+		}
+		fourier::FFTB(len(dst), self.real, self.work, &self.ifac)
+		for i in dst {
+			dst[i] = cmplx(self.real[2*i], self.real[2*i+1])
+		}
+		return dst
+	}
+
+	// Returns the relative frequency center for coefficient i.
+	// Freq will panic if i is negative or greater than or equal to FFT.Len().
+	fn Freq(*self, i: int): f64 {
+		if i < 0 || self.Len() <= i {
+			panic("fourier: index out of range")
+		}
+		step := 1 / f64(self.Len())
+		if i < (self.Len()-1)/2+1 {
+			return step * f64(i)
+		}
+		return step * f64(i-self.Len())
+	}
+
+	// Returns a shifted index into a slice of coefficients
+	// returned by the FFT so that indexing into the coefficients
+	// places the zero frequency component at the center of the spectrum.
+	// ShiftIdx will panic if i is negative or greater than or equal to
+	// FFT.Len().
+	fn ShiftIdx(*self, i: int): int {
+		if i < 0 || self.Len() <= i {
+			panic("fourier: index out of range")
+		}
+		h := self.Len() / 2
+		if i < h {
+			return i + (self.Len()+1)/2
+		}
+		return i - h
+	}
+
+	// Returns inverse of ShiftIdx. UnshiftIdx will panic if i is
+	// negative or greater than or equal to FFT.Len().
+	fn UnshiftIdx(*self, i: int): int {
+		if i < 0 || self.Len() <= i {
+			panic("fourier: index out of range")
+		}
+		h := (self.Len() + 1) / 2
+		if i < h {
+			return i + self.Len()/2
+		}
+		return i - h
+	}
 }

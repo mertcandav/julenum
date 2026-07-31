@@ -1,0 +1,1276 @@
+// Copyright 2026 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Implementation derived from the gonum.
+//
+// Copyright ©2020 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// This is a translation of the FFTPACK rfft functions by
+// Paul N Swarztrauber, placed in the public domain at
+// http://www.netlib.org/fftpack/.
+
+use "std/math"
+use "std/math/cmplx"
+
+struct threeArray {
+	jStride: int
+	kStride: int
+	data:    []f64
+}
+
+impl threeArray {
+	#disable boundary
+	fn new(i: int, j: int, k: int, mut data: []f64): threeArray {
+		if len(data) < i*j*k {
+			panic("fourier: short data")
+		}
+		return threeArray{
+			jStride: i,
+			kStride: i * j,
+			data:    data[:i*j*k],
+		}
+	}
+
+	#disable nilptr boundary
+	fn at(*self, i: int, j: int, k: int): f64 {
+		return self.data[i+self.jStride*j+self.kStride*k]
+	}
+
+	#disable nilptr boundary
+	fn atCmplx(*self, i: int, j: int, k: int): cmplx128 {
+		return cmplx(self.data[i+self.jStride*j+self.kStride*k], self.data[i+self.jStride*j+self.kStride*k+1])
+	}
+
+	#disable nilptr boundary
+	fn set(mut *self, i: int, j: int, k: int, v: f64) {
+		self.data[i+self.jStride*j+self.kStride*k] = v
+	}
+
+	#disable nilptr boundary
+	fn setCmplx(mut *self, i: int, j: int, k: int, v: cmplx128) {
+		self.data[i+self.jStride*j+self.kStride*k] = real(v)
+		self.data[i+self.jStride*j+self.kStride*k+1] = imag(v)
+	}
+}
+
+struct twoArray {
+	jStride: int
+	data:    []f64
+}
+
+impl twoArray {
+	#disable boundary
+	fn new(i: int, j: int, mut data: []f64): twoArray {
+		if len(data) < i*j {
+			panic("fourier: short data")
+		}
+		return twoArray{
+			jStride: i,
+			data:    data[:i*j],
+		}
+	}
+
+	#disable nilptr boundary
+	fn at(*self, i: int, j: int): f64 {
+		return self.data[i+self.jStride*j]
+	}
+
+	#disable nilptr boundary
+	fn atCmplx(*self, i: int, j: int): cmplx128 {
+		return cmplx(self.data[i+self.jStride*j], self.data[i+self.jStride*j+1])
+	}
+
+	#disable nilptr boundary
+	fn set(mut *self, i: int, j: int, v: f64) {
+		self.data[i+self.jStride*j] = v
+	}
+
+	#disable nilptr boundary
+	fn setCmplx(mut *self, i: int, j: int, v: cmplx128) {
+		self.data[i+self.jStride*j] = real(v)
+		self.data[i+self.jStride*j+1] = imag(v)
+	}
+
+	#disable nilptr boundary
+	fn add(mut *self, i: int, j: int, v: f64) {
+		self.data[i+self.jStride*j] += v
+	}
+}
+
+// Initializes the array work which is used in both RFFTF
+// and RFFTB. The prime factorization of n together with a
+// tabulation of the trigonometric functions are computed and
+// stored in work.
+//
+//	Input parameter:
+//
+//	n      The length of the sequence to be transformed.
+//
+//	Output parameters:
+//
+//	work   A work array which must be dimensioned at least 2*n.
+//	       The same work array can be used for both RFFTF and RFFTB
+//	       as long as n remains unchanged. different work arrays
+//	       are required for different values of n. The contents of
+//	       work must not be changed between calls of RFFTF or RFFTB.
+//
+//	ifac   A work array containing the factors of n.
+fn RFFTI(n: int, mut work: []f64, mut &ifac: *[15]int) {
+	if len(work) < 2*n {
+		panic("fourier: short work")
+	}
+	if n == 1 {
+		return
+	}
+	rffti1(n, work[n:2*n], ifac)
+}
+
+#disable nilptr boundary
+fn rffti1(n: int, mut wa: []f64, mut &ifac: *[15]int) {
+	ntryh := [4]int([4, 2, 3, 5])
+
+	mut nl := n
+	mut nf := 0
+
+	mut j, mut ntry := 0, 0
+outer:
+	for ; j++ {
+		if j < 4 {
+			ntry = ntryh[j]
+		} else {
+			ntry += 2
+		}
+		for {
+			if nl%ntry != 0 {
+				continue outer
+			}
+
+			(*ifac)[nf+2] = ntry
+			nl /= ntry
+			nf++
+
+			if ntry == 2 && nf != 1 {
+				mut i := 1
+				for i < nf; i++ {
+					ib := nf - i + 1
+					(*ifac)[ib+1] = (*ifac)[ib]
+				}
+				(*ifac)[2] = 2
+			}
+
+			if nl == 1 {
+				break outer
+			}
+		}
+	}
+
+	(*ifac)[0] = n
+	(*ifac)[1] = nf
+	if nf == 1 {
+		return
+	}
+	argh := 2 * math::Pi / f64(n)
+
+	mut is := 0
+	mut l1 := 1
+	mut k1 := 0
+	for k1 < nf-1; k1++ {
+		ip := (*ifac)[k1+2]
+		mut ld := 0
+		l2 := l1 * ip
+		ido := n / l2
+		j = 0
+		for j < ip-1; j++ {
+			ld += l1
+			mut i := is
+			mut fi := 0.0
+			argld := f64(ld) * argh
+			mut ii := 2
+			for ii < ido; ii += 2 {
+				fi++
+				arg := fi * argld
+				wa[i] = math::Cos(arg)
+				wa[i+1] = math::Sin(arg)
+				i += 2
+			}
+			is += ido
+		}
+		l1 = l2
+	}
+}
+
+// Computes the Fourier coefficients of a real perodic sequence
+// (Fourier analysis). The transform is defined below at output
+// parameter r.
+//
+//	Input parameters:
+//
+//	n      The length of the array r to be transformed. The method
+//	       is most efficient when n is a product of small primes.
+//	       n may change so long as different work arrays are provided.
+//
+//	r      A real array of length n which contains the sequence
+//	       to be transformed.
+//
+//	work   a work array which must be dimensioned at least 2*n.
+//	       in the program that calls RFFTF. the work array must be
+//	       initialized by calling subroutine rffti(n,work,ifac) and a
+//	       different work array must be used for each different
+//	       value of n. This initialization does not have to be
+//	       repeated so long as n remains unchanged. Thus subsequent
+//	       transforms can be obtained faster than the first.
+//	       The same work array can be used by RFFTF and RFFTB.
+//
+//	ifac   A work array containing the factors of n. ifac must have
+//	       length of at least 15.
+//
+//	Output parameters:
+//
+//	r      r[0] = the sum from i=0 to i=n-1 of r[i]
+//
+//	       if n is even set l=n/2, if n is odd set l = (n+1)/2
+//	         then for k = 1, ..., l-1
+//	           r[2*k-1] = the sum from i = 0 to i = n-1 of
+//	             r[i]*cos(k*i*2*pi/n)
+//	           r[2*k] = the sum from i = 0 to i = n-1 of
+//	             -r[i]*sin(k*i*2*pi/n)
+//
+//	       if n is even
+//	         r[n-1] = the sum from i = 0 to i = n-1 of
+//	           (-1)^i*r[i]
+//
+//	This transform is unnormalized since a call of RFFTF
+//	followed by a call of RFFTB will multiply the input
+//	sequence by n.
+//
+//	work   contains results which must not be destroyed between
+//	       calls of RFFTF or RFFTB.
+//	ifac   contains results which must not be destroyed between
+//	       calls of RFFTF or RFFTB.
+fn RFFTF(n: int, mut r: []f64, mut work: []f64, mut &ifac: *[15]int) {
+	if len(r) < n {
+		panic("fourier: short sequence")
+	}
+	if len(work) < 2*n {
+		panic("fourier: short work")
+	}
+	if n == 1 {
+		return
+	}
+	rfftf1(n, r[:n], work[:n], work[n:2*n], ifac)
+}
+
+#disable nilptr boundary
+fn rfftf1(n: int, mut c: []f64, mut ch: []f64, mut wa: []f64, mut &ifac: *[15]int) {
+	nf := (*ifac)[1]
+	mut na := true
+	mut l2 := n
+	mut iw := n - 1
+
+	mut k1 := 1
+	for k1 <= nf; k1++ {
+		kh := nf - k1
+		ip := (*ifac)[kh+2]
+		l1 := l2 / ip
+		ido := n / l2
+		idl1 := ido * l1
+		iw -= (ip - 1) * ido
+		na = !na
+
+		match ip {
+		| 4:
+			ix2 := iw + ido
+			ix3 := ix2 + ido
+			if na {
+				radf4(ido, l1, ch, c, wa[iw:], wa[ix2:], wa[ix3:])
+			} else {
+				radf4(ido, l1, c, ch, wa[iw:], wa[ix2:], wa[ix3:])
+			}
+		| 2:
+			if na {
+				radf2(ido, l1, ch, c, wa[iw:])
+			} else {
+				radf2(ido, l1, c, ch, wa[iw:])
+			}
+		| 3:
+			ix2 := iw + ido
+			if na {
+				radf3(ido, l1, ch, c, wa[iw:], wa[ix2:])
+			} else {
+				radf3(ido, l1, c, ch, wa[iw:], wa[ix2:])
+			}
+		| 5:
+			ix2 := iw + ido
+			ix3 := ix2 + ido
+			ix4 := ix3 + ido
+			if na {
+				radf5(ido, l1, ch, c, wa[iw:], wa[ix2:], wa[ix3:], wa[ix4:])
+			} else {
+				radf5(ido, l1, c, ch, wa[iw:], wa[ix2:], wa[ix3:], wa[ix4:])
+			}
+		|:
+			if ido == 1 {
+				na = !na
+			}
+			if na {
+				radfg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa[iw:])
+				na = false
+			} else {
+				radfg(ido, ip, l1, idl1, c, c, c, ch, ch, wa[iw:])
+				na = true
+			}
+		}
+
+		l2 = l1
+	}
+
+	if na {
+		return
+	}
+	mut i := 0
+	for i < n; i++ {
+		c[i] = ch[i]
+	}
+}
+
+#disable boundary
+fn radf2(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64) {
+	mut cc3 := threeArray.new(ido, l1, 2, cc)
+	mut ch3 := threeArray.new(ido, 2, l1, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		ch3.set(0, 0, k, cc3.at(0, k, 0)+cc3.at(0, k, 1))
+		ch3.set(ido-1, 1, k, cc3.at(0, k, 0)-cc3.at(0, k, 1))
+	}
+	if ido < 2 {
+		return
+	}
+	if ido > 2 {
+		idp2 := ido + 1
+		k = 0
+		for k < l1; k++ {
+			mut i := 2
+			for i < ido; i += 2 {
+				ic := idp2 - (i + 1)
+
+				t2 := cmplx(wa1[i-2], -wa1[i-1]) * cc3.atCmplx(i-1, k, 1)
+				ch3.setCmplx(i-1, 0, k, cc3.atCmplx(i-1, k, 0)+t2)
+
+				// This is left as conj(z1)-conj(z2) rather than conj(z1-z2)
+				// to retain current signed zero behaviour.
+				ch3.setCmplx(ic-1, 1, k, cmplx::Conj(cc3.atCmplx(i-1, k, 0))-cmplx::Conj(t2))
+			}
+		}
+		if ido%2 == 1 {
+			return
+		}
+	}
+	k = 0
+	for k < l1; k++ {
+		ch3.set(0, 1, k, -cc3.at(ido-1, k, 1))
+		ch3.set(ido-1, 0, k, cc3.at(ido-1, k, 0))
+	}
+}
+
+#disable boundary
+fn radf3(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64, wa2: []f64) {
+	const (
+		taur = -0.5
+		taui = 0.866025403784439 // sqrt(3)/2
+	)
+
+	mut cc3 := threeArray.new(ido, l1, 3, cc)
+	mut ch3 := threeArray.new(ido, 3, l1, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		cr2 := cc3.at(0, k, 1) + cc3.at(0, k, 2)
+		ch3.set(0, 0, k, cc3.at(0, k, 0)+cr2)
+		ch3.set(0, 2, k, taui*(cc3.at(0, k, 2)-cc3.at(0, k, 1)))
+		ch3.set(ido-1, 1, k, cc3.at(0, k, 0)+taur*cr2)
+	}
+	if ido < 2 {
+		return
+	}
+	idp2 := ido + 1
+	k = 0
+	for k < l1; k++ {
+		mut i := 2
+		for i < ido; i += 2 {
+			ic := idp2 - (i + 1)
+
+			d2 := cmplx(wa1[i-2], -wa1[i-1]) * cc3.atCmplx(i-1, k, 1)
+			d3 := cmplx(wa2[i-2], -wa2[i-1]) * cc3.atCmplx(i-1, k, 2)
+			c2 := d2 + d3
+			ch3.setCmplx(i-1, 0, k, cc3.atCmplx(i-1, k, 0)+c2)
+
+			t2 := cc3.atCmplx(i-1, k, 0) + scale(taur, c2)
+			t3 := scale(taui, cmplx::Conj(swap(d2-d3)))
+			ch3.setCmplx(i-1, 2, k, t2+t3)
+			ch3.setCmplx(ic-1, 1, k, cmplx::Conj(t2-t3))
+		}
+	}
+}
+
+#disable boundary
+fn radf4(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64, wa2: []f64, wa3: []f64) {
+	const hsqt2 = math::Sqrt2 / 2
+
+	mut cc3 := threeArray.new(ido, l1, 4, cc)
+	mut ch3 := threeArray.new(ido, 4, l1, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		tr1 := cc3.at(0, k, 1) + cc3.at(0, k, 3)
+		tr2 := cc3.at(0, k, 0) + cc3.at(0, k, 2)
+		ch3.set(0, 0, k, tr1+tr2)
+		ch3.set(ido-1, 3, k, tr2-tr1)
+		ch3.set(ido-1, 1, k, cc3.at(0, k, 0)-cc3.at(0, k, 2))
+		ch3.set(0, 2, k, cc3.at(0, k, 3)-cc3.at(0, k, 1))
+	}
+	if ido < 2 {
+		return
+	}
+	if ido > 2 {
+		idp2 := ido + 1
+		k = 0
+		for k < l1; k++ {
+			mut i := 2
+			for i < ido; i += 2 {
+				ic := idp2 - (i + 1)
+
+				c2 := cmplx(wa1[i-2], -wa1[i-1]) * cc3.atCmplx(i-1, k, 1)
+				c3 := cmplx(wa2[i-2], -wa2[i-1]) * cc3.atCmplx(i-1, k, 2)
+				c4 := cmplx(wa3[i-2], -wa3[i-1]) * cc3.atCmplx(i-1, k, 3)
+				t1 := c2 + c4
+				t2 := cc3.atCmplx(i-1, k, 0) + c3
+				t3 := cc3.atCmplx(i-1, k, 0) - c3
+				t4 := cmplx::Conj(c4 - c2)
+				ch3.setCmplx(i-1, 0, k, t1+t2)
+				ch3.setCmplx(ic-1, 3, k, cmplx::Conj(t2-t1))
+				ch3.setCmplx(i-1, 2, k, swap(t4)+t3)
+				ch3.setCmplx(ic-1, 1, k, cmplx::Conj(t3-swap(t4)))
+			}
+		}
+
+		if ido%2 == 1 {
+			return
+		}
+	}
+	k = 0
+	for k < l1; k++ {
+		ti1 := -hsqt2 * (cc3.at(ido-1, k, 1) + cc3.at(ido-1, k, 3))
+		tr1 := hsqt2 * (cc3.at(ido-1, k, 1) - cc3.at(ido-1, k, 3))
+		ch3.set(ido-1, 0, k, tr1+cc3.at(ido-1, k, 0))
+		ch3.set(ido-1, 2, k, cc3.at(ido-1, k, 0)-tr1)
+		ch3.set(0, 1, k, ti1-cc3.at(ido-1, k, 2))
+		ch3.set(0, 3, k, ti1+cc3.at(ido-1, k, 2))
+	}
+}
+
+#disable boundary
+fn radf5(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64, wa2: []f64, wa3: []f64, wa4: []f64) {
+	const (
+		tr11 = 0.309016994374947
+		ti11 = 0.951056516295154
+		tr12 = -0.809016994374947
+		ti12 = 0.587785252292473
+	)
+
+	mut cc3 := threeArray.new(ido, l1, 5, cc)
+	mut ch3 := threeArray.new(ido, 5, l1, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		cr2 := cc3.at(0, k, 4) + cc3.at(0, k, 1)
+		cr3 := cc3.at(0, k, 3) + cc3.at(0, k, 2)
+		ci4 := cc3.at(0, k, 3) - cc3.at(0, k, 2)
+		ci5 := cc3.at(0, k, 4) - cc3.at(0, k, 1)
+		ch3.set(0, 0, k, cc3.at(0, k, 0)+cr2+cr3)
+		ch3.set(ido-1, 1, k, cc3.at(0, k, 0)+tr11*cr2+tr12*cr3)
+		ch3.set(0, 2, k, ti11*ci5+ti12*ci4)
+		ch3.set(ido-1, 3, k, cc3.at(0, k, 0)+tr12*cr2+tr11*cr3)
+		ch3.set(0, 4, k, ti12*ci5-ti11*ci4)
+	}
+
+	if ido < 2 {
+		return
+	}
+	idp2 := ido + 1
+	k = 0
+	for k < l1; k++ {
+		mut i := 2
+		for i < ido; i += 2 {
+			ic := idp2 - (i + 1)
+
+			d2 := cmplx(wa1[i-2], -wa1[i-1]) * cc3.atCmplx(i-1, k, 1)
+			d3 := cmplx(wa2[i-2], -wa2[i-1]) * cc3.atCmplx(i-1, k, 2)
+			d4 := cmplx(wa3[i-2], -wa3[i-1]) * cc3.atCmplx(i-1, k, 3)
+			d5 := cmplx(wa4[i-2], -wa4[i-1]) * cc3.atCmplx(i-1, k, 4)
+			c2 := d2 + d5
+			c3 := d3 + d4
+			c4 := cmplx::Conj(swap(d3 - d4))
+			c5 := cmplx::Conj(swap(d2 - d5))
+			ch3.setCmplx(i-1, 0, k, cc3.atCmplx(i-1, k, 0)+c2+c3)
+
+			t2 := cc3.atCmplx(i-1, k, 0) + scale(tr11, c2) + scale(tr12, c3)
+			t3 := cc3.atCmplx(i-1, k, 0) + scale(tr12, c2) + scale(tr11, c3)
+			t4 := scale(ti12, c5) - scale(ti11, c4)
+			t5 := scale(ti11, c5) + scale(ti12, c4)
+			ch3.setCmplx(ic-1, 1, k, cmplx::Conj(t2-t5))
+			ch3.setCmplx(i-1, 2, k, t2+t5)
+			ch3.setCmplx(ic-1, 3, k, cmplx::Conj(t3-t4))
+			ch3.setCmplx(i-1, 4, k, t3+t4)
+		}
+	}
+}
+
+#disable boundary
+fn radfg(ido: int, ip: int, l1: int, idl1: int, mut cc: []f64, mut c1: []f64, mut c2: []f64, mut ch: []f64, mut ch2: []f64, wa: []f64) {
+	mut cc3 := threeArray.new(ido, ip, l1, cc)
+	mut c13 := threeArray.new(ido, l1, ip, c1)
+	mut ch3 := threeArray.new(ido, l1, ip, ch)
+	mut c2m := twoArray.new(idl1, ip, c2)
+	mut ch2m := twoArray.new(idl1, ip, ch2)
+
+	arg := 2 * math::Pi / f64(ip)
+	dcp := math::Cos(arg)
+	dsp := math::Sin(arg)
+	ipph := (ip + 1) / 2
+	nbd := (ido - 1) / 2
+
+	if ido == 1 {
+		mut ik := 0
+		for ik < idl1; ik++ {
+			c2m.set(ik, 0, ch2m.at(ik, 0))
+		}
+	} else {
+		mut ik := 0
+		for ik < idl1; ik++ {
+			ch2m.set(ik, 0, c2m.at(ik, 0))
+		}
+		mut j := 1
+		for j < ip; j++ {
+			mut k := 0
+			for k < l1; k++ {
+				ch3.set(0, k, j, c13.at(0, k, j))
+			}
+		}
+
+		mut is := -ido - 1
+		if nbd > l1 {
+			j = 1
+			for j < ip; j++ {
+				is += ido
+				mut k := 0
+				for k < l1; k++ {
+					mut idij := is
+					mut i := 2
+					for i < ido; i += 2 {
+						idij += 2
+						ch3.setCmplx(i-1, k, j, cmplx(wa[idij-1], -wa[idij])*c13.atCmplx(i-1, k, j))
+					}
+				}
+			}
+		} else {
+			j = 1
+			for j < ip; j++ {
+				is += ido
+				mut idij := is
+				mut i := 2
+				for i < ido; i += 2 {
+					idij += 2
+					mut k := 0
+					for k < l1; k++ {
+						ch3.setCmplx(i-1, k, j, cmplx(wa[idij-1], -wa[idij])*c13.atCmplx(i-1, k, j))
+					}
+				}
+			}
+		}
+		if nbd < l1 {
+			j = 1
+			for j < ipph; j++ {
+				jc := ip - j
+				mut i := 2
+				for i < ido; i += 2 {
+					mut k := 0
+					for k < l1; k++ {
+						c13.setCmplx(i-1, k, j, ch3.atCmplx(i-1, k, j)+ch3.atCmplx(i-1, k, jc))
+						c13.setCmplx(i-1, k, jc, cmplx::Conj(swap(ch3.atCmplx(i-1, k, j)-ch3.atCmplx(i-1, k, jc))))
+					}
+				}
+			}
+		} else {
+			j = 1
+			for j < ipph; j++ {
+				jc := ip - j
+				mut k := 0
+				for k < l1; k++ {
+					mut i := 2
+					for i < ido; i += 2 {
+						c13.setCmplx(i-1, k, j, ch3.atCmplx(i-1, k, j)+ch3.atCmplx(i-1, k, jc))
+						c13.setCmplx(i-1, k, jc, cmplx::Conj(swap(ch3.atCmplx(i-1, k, j)-ch3.atCmplx(i-1, k, jc))))
+					}
+				}
+			}
+		}
+	}
+
+	mut j := 1
+	for j < ipph; j++ {
+		jc := ip - j
+		mut k := 0
+		for k < l1; k++ {
+			c13.set(0, k, j, ch3.at(0, k, j)+ch3.at(0, k, jc))
+			c13.set(0, k, jc, ch3.at(0, k, jc)-ch3.at(0, k, j))
+		}
+	}
+	mut ar1 := 1.0
+	mut ai1 := 0.0
+	mut l := 1
+	for l < ipph; l++ {
+		lc := ip - l
+		ar1h := dcp*ar1 - dsp*ai1
+		ai1 = dcp*ai1 + dsp*ar1
+		ar1 = ar1h
+		mut ik := 0
+		for ik < idl1; ik++ {
+			ch2m.set(ik, l, c2m.at(ik, 0)+ar1*c2m.at(ik, 1))
+			ch2m.set(ik, lc, ai1*c2m.at(ik, ip-1))
+		}
+		dc2 := ar1
+		ds2 := ai1
+		mut ar2 := ar1
+		mut ai2 := ai1
+		j = 2
+		for j < ipph; j++ {
+			jc := ip - j
+			ar2h := dc2*ar2 - ds2*ai2
+			ai2 = dc2*ai2 + ds2*ar2
+			ar2 = ar2h
+			ik = 0
+			for ik < idl1; ik++ {
+				ch2m.add(ik, l, ar2*c2m.at(ik, j))
+				ch2m.add(ik, lc, ai2*c2m.at(ik, jc))
+			}
+		}
+	}
+	j = 1
+	for j < ipph; j++ {
+		mut ik := 0
+		for ik < idl1; ik++ {
+			ch2m.add(ik, 0, c2m.at(ik, j))
+		}
+	}
+
+	if ido < l1 {
+		mut i := 0
+		for i < ido; i++ {
+			mut k := 0
+			for k < l1; k++ {
+				cc3.set(i, 0, k, ch3.at(i, k, 0))
+			}
+		}
+	} else {
+		mut k := 0
+		for k < l1; k++ {
+			mut i := 0
+			for i < ido; i++ {
+				cc3.set(i, 0, k, ch3.at(i, k, 0))
+			}
+		}
+	}
+	j = 1
+	for j < ipph; j++ {
+		jc := ip - j
+		j2 := 2 * j
+		mut k := 0
+		for k < l1; k++ {
+			cc3.set(ido-1, j2-1, k, ch3.at(0, k, j))
+			cc3.set(0, j2, k, ch3.at(0, k, jc))
+		}
+	}
+
+	if ido == 1 {
+		return
+	}
+	if nbd < l1 {
+		j = 1
+		for j < ipph; j++ {
+			jc := ip - j
+			j2 := 2 * j
+			mut i := 2
+			for i < ido; i += 2 {
+				ic := ido - i
+				mut k := 0
+				for k < l1; k++ {
+					cc3.setCmplx(i-1, j2, k, ch3.atCmplx(i-1, k, j)+ch3.atCmplx(i-1, k, jc))
+					cc3.setCmplx(ic-1, j2-1, k, cmplx::Conj(ch3.atCmplx(i-1, k, j)-ch3.atCmplx(i-1, k, jc)))
+				}
+			}
+		}
+		return
+	}
+	j = 1
+	for j < ipph; j++ {
+		jc := ip - j
+		j2 := 2 * j
+		mut k := 0
+		for k < l1; k++ {
+			mut i := 2
+			for i < ido; i += 2 {
+				ic := ido - i
+
+				cc3.setCmplx(i-1, j2, k, ch3.atCmplx(i-1, k, j)+ch3.atCmplx(i-1, k, jc))
+				cc3.setCmplx(ic-1, j2-1, k, cmplx::Conj(ch3.atCmplx(i-1, k, j)-ch3.atCmplx(i-1, k, jc)))
+			}
+		}
+	}
+}
+
+// Computes the real perodic sequence from its Fourier
+// coefficients (Fourier synthesis). The transform is defined
+// below at output parameter r.
+//
+//	Input parameters
+//
+//	n      The length of the array r to be transformed. The method
+//	       is most efficient when n is a product of small primes.
+//	       n may change so long as different work arrays are provided.
+//
+//	r      A real array of length n which contains the sequence
+//	       to be transformed.
+//
+//	work   A work array which must be dimensioned at least 2*n.
+//	       in the program that calls RFFTB. The work array must be
+//	       initialized by calling subroutine rffti(n,work,ifac) and a
+//	       different work array must be used for each different
+//	       value of n. This initialization does not have to be
+//	       repeated so long as n remains unchanged thus subsequent
+//	       transforms can be obtained faster than the first.
+//	       The same work array can be used by RFFTF and RFFTB.
+//
+//	ifac   A work array containing the factors of n.
+//
+//	output parameters
+//
+//	r      for n even and for i = 0, ..., n
+//	         r[i] = r[0]+(-1)^i*r[n-1]
+//	           plus the sum from k=1 to k=n/2-1 of
+//	             2*r(2*k-1)*cos(k*i*2*pi/n)
+//	             -2*r(2*k)*sin(k*i*2*pi/n)
+//
+//	       for n odd and for i = 0, ..., n-1
+//	         r[i] = r[0] plus the sum from k=1 to k=(n-1)/2 of
+//	           2*r(2*k-1)*cos(k*i*2*pi/n)
+//	           -2*r(2*k)*sin(k*i*2*pi/n)
+//
+//	This transform is unnormalized since a call of RFFTF
+//	followed by a call of RFFTB will multiply the input
+//	sequence by n.
+//
+//	work   Contains results which must not be destroyed between
+//	       calls of RFFTF or RFFTB.
+//	ifac   Contains results which must not be destroyed between
+//	       calls of RFFTF or RFFTB.
+fn RFFTB(n: int, mut r: []f64, mut work: []f64, mut &ifac: *[15]int) {
+	if len(r) < n {
+		panic("fourier: short sequence")
+	}
+	if len(work) < 2*n {
+		panic("fourier: short work")
+	}
+	if n == 1 {
+		return
+	}
+	rfftb1(n, r[:n], work[:n], work[n:2*n], ifac)
+}
+
+#disable nilptr boundary
+fn rfftb1(n: int, mut c: []f64, mut ch: []f64, wa: []f64, mut &ifac: *[15]int) {
+	nf := (*ifac)[1]
+	mut na := false
+	mut l1 := 1
+	mut iw := 0
+
+	mut k1 := 1
+	for k1 <= nf; k1++ {
+		ip := (*ifac)[k1+1]
+		l2 := ip * l1
+		ido := n / l2
+		idl1 := ido * l1
+
+		match ip {
+		| 4:
+			ix2 := iw + ido
+			ix3 := ix2 + ido
+			if na {
+				radb4(ido, l1, ch, c, wa[iw:], wa[ix2:], wa[ix3:])
+			} else {
+				radb4(ido, l1, c, ch, wa[iw:], wa[ix2:], wa[ix3:])
+			}
+			na = !na
+		| 2:
+			if na {
+				radb2(ido, l1, ch, c, wa[iw:])
+			} else {
+				radb2(ido, l1, c, ch, wa[iw:])
+			}
+			na = !na
+		| 3:
+			ix2 := iw + ido
+			if na {
+				radb3(ido, l1, ch, c, wa[iw:], wa[ix2:])
+			} else {
+				radb3(ido, l1, c, ch, wa[iw:], wa[ix2:])
+			}
+			na = !na
+		| 5:
+			ix2 := iw + ido
+			ix3 := ix2 + ido
+			ix4 := ix3 + ido
+			if na {
+				radb5(ido, l1, ch, c, wa[iw:], wa[ix2:], wa[ix3:], wa[ix4:])
+			} else {
+				radb5(ido, l1, c, ch, wa[iw:], wa[ix2:], wa[ix3:], wa[ix4:])
+			}
+			na = !na
+		|:
+			if na {
+				radbg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa[iw:])
+			} else {
+				radbg(ido, ip, l1, idl1, c, c, c, ch, ch, wa[iw:])
+			}
+			if ido == 1 {
+				na = !na
+			}
+		}
+
+		l1 = l2
+		iw += (ip - 1) * ido
+	}
+
+	if na {
+		mut i := 0
+		for i < n; i++ {
+			c[i] = ch[i]
+		}
+	}
+}
+
+#disable boundary
+fn radb2(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64) {
+	mut cc3 := threeArray.new(ido, 2, l1, cc)
+	mut ch3 := threeArray.new(ido, l1, 2, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		ch3.set(0, k, 0, cc3.at(0, 0, k)+cc3.at(ido-1, 1, k))
+		ch3.set(0, k, 1, cc3.at(0, 0, k)-cc3.at(ido-1, 1, k))
+	}
+
+	if ido < 2 {
+		return
+	}
+	if ido > 2 {
+		idp2 := ido + 1
+		k = 0
+		for k < l1; k++ {
+			mut i := 2
+			for i < ido; i += 2 {
+				ic := idp2 - (i + 1)
+
+				ch3.setCmplx(i-1, k, 0, cc3.atCmplx(i-1, 0, k)+cmplx::Conj(cc3.atCmplx(ic-1, 1, k)))
+
+				t2 := cc3.atCmplx(i-1, 0, k) - cmplx::Conj(cc3.atCmplx(ic-1, 1, k))
+				ch3.setCmplx(i-1, k, 1, cmplx(wa1[i-2], wa1[i-1])*t2)
+			}
+		}
+
+		if ido%2 == 1 {
+			return
+		}
+	}
+	k = 0
+	for k < l1; k++ {
+		ch3.set(ido-1, k, 0, 2*cc3.at(ido-1, 0, k))
+		ch3.set(ido-1, k, 1, -2*cc3.at(0, 1, k))
+	}
+}
+
+#disable boundary
+fn radb3(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64, wa2: []f64) {
+	const (
+		taur = -0.5
+		taui = 0.866025403784439 // sqrt(3)/2
+	)
+
+	cc3 := threeArray.new(ido, 3, l1, cc)
+	mut ch3 := threeArray.new(ido, l1, 3, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		tr2 := cc3.at(ido-1, 1, k) + cc3.at(ido-1, 1, k)
+		cr2 := cc3.at(0, 0, k) + taur*tr2
+		ch3.set(0, k, 0, cc3.at(0, 0, k)+tr2)
+		ci3 := taui * (cc3.at(0, 2, k) + cc3.at(0, 2, k))
+		ch3.set(0, k, 1, cr2-ci3)
+		ch3.set(0, k, 2, cr2+ci3)
+	}
+
+	if ido == 1 {
+		return
+	}
+
+	idp2 := ido + 1
+	k = 0
+	for k < l1; k++ {
+		mut i := 2
+		for i < ido; i += 2 {
+			ic := idp2 - (i + 1)
+
+			t2 := cc3.atCmplx(i-1, 2, k) + cmplx::Conj(cc3.atCmplx(ic-1, 1, k))
+			c2 := cc3.atCmplx(i-1, 0, k) + scale(taur, t2)
+			ch3.setCmplx(i-1, k, 0, cc3.atCmplx(i-1, 0, k)+t2)
+
+			c3 := scale(taui, cc3.atCmplx(i-1, 2, k)-cmplx::Conj(cc3.atCmplx(ic-1, 1, k)))
+			d2 := c2 - cmplx::Conj(swap(c3))
+			d3 := c2 + cmplx::Conj(swap(c3))
+			ch3.setCmplx(i-1, k, 1, cmplx(wa1[i-2], wa1[i-1])*d2)
+			ch3.setCmplx(i-1, k, 2, cmplx(wa2[i-2], wa2[i-1])*d3)
+		}
+	}
+}
+
+#disable boundary
+fn radb4(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64, wa2: []f64, wa3: []f64) {
+	cc3 := threeArray.new(ido, 4, l1, cc)
+	mut ch3 := threeArray.new(ido, l1, 4, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		tr1 := cc3.at(0, 0, k) - cc3.at(ido-1, 3, k)
+		tr2 := cc3.at(0, 0, k) + cc3.at(ido-1, 3, k)
+		tr3 := cc3.at(ido-1, 1, k) + cc3.at(ido-1, 1, k)
+		tr4 := cc3.at(0, 2, k) + cc3.at(0, 2, k)
+		ch3.set(0, k, 0, tr2+tr3)
+		ch3.set(0, k, 1, tr1-tr4)
+		ch3.set(0, k, 2, tr2-tr3)
+		ch3.set(0, k, 3, tr1+tr4)
+	}
+
+	if ido < 2 {
+		return
+	}
+	if ido > 2 {
+		idp2 := ido + 1
+		k = 0
+		for k < l1; k++ {
+			mut i := 2
+			for i < ido; i += 2 {
+				ic := idp2 - (i + 1)
+
+				t1 := cc3.atCmplx(i-1, 0, k) - cmplx::Conj(cc3.atCmplx(ic-1, 3, k))
+				t2 := cc3.atCmplx(i-1, 0, k) + cmplx::Conj(cc3.atCmplx(ic-1, 3, k))
+				t3 := cc3.atCmplx(i-1, 2, k) + cmplx::Conj(cc3.atCmplx(ic-1, 1, k))
+				t4 := swap(cc3.atCmplx(i-1, 2, k) - cmplx::Conj(cc3.atCmplx(ic-1, 1, k)))
+				ch3.setCmplx(i-1, k, 0, t2+t3)
+
+				c2 := t1 - cmplx::Conj(t4)
+				c3 := t2 - t3
+				c4 := t1 + cmplx::Conj(t4)
+				ch3.setCmplx(i-1, k, 1, cmplx(wa1[i-2], wa1[i-1])*c2)
+				ch3.setCmplx(i-1, k, 2, cmplx(wa2[i-2], wa2[i-1])*c3)
+				ch3.setCmplx(i-1, k, 3, cmplx(wa3[i-2], wa3[i-1])*c4)
+			}
+		}
+
+		if ido%2 == 1 {
+			return
+		}
+	}
+	k = 0
+	for k < l1; k++ {
+		tr1 := cc3.at(ido-1, 0, k) - cc3.at(ido-1, 2, k)
+		ti1 := cc3.at(0, 1, k) + cc3.at(0, 3, k)
+		tr2 := cc3.at(ido-1, 0, k) + cc3.at(ido-1, 2, k)
+		ti2 := cc3.at(0, 3, k) - cc3.at(0, 1, k)
+		ch3.set(ido-1, k, 0, tr2+tr2)
+		ch3.set(ido-1, k, 1, math::Sqrt2*(tr1-ti1))
+		ch3.set(ido-1, k, 2, ti2+ti2)
+		ch3.set(ido-1, k, 3, -math::Sqrt2*(tr1+ti1))
+	}
+}
+
+#disable boundary
+fn radb5(ido: int, l1: int, mut cc: []f64, mut ch: []f64, wa1: []f64, wa2: []f64, wa3: []f64, wa4: []f64) {
+	const (
+		tr11 = 0.309016994374947
+		ti11 = 0.951056516295154
+		tr12 = -0.809016994374947
+		ti12 = 0.587785252292473
+	)
+
+	cc3 := threeArray.new(ido, 5, l1, cc)
+	mut ch3 := threeArray.new(ido, l1, 5, ch)
+
+	mut k := 0
+	for k < l1; k++ {
+		tr2 := cc3.at(ido-1, 1, k) + cc3.at(ido-1, 1, k)
+		tr3 := cc3.at(ido-1, 3, k) + cc3.at(ido-1, 3, k)
+		ti4 := cc3.at(0, 4, k) + cc3.at(0, 4, k)
+		ti5 := cc3.at(0, 2, k) + cc3.at(0, 2, k)
+		ch3.set(0, k, 0, cc3.at(0, 0, k)+tr2+tr3)
+
+		cr2 := cc3.at(0, 0, k) + tr11*tr2 + tr12*tr3
+
+		cr3 := cc3.at(0, 0, k) + tr12*tr2 + tr11*tr3
+
+		ci4 := ti12*ti5 - ti11*ti4
+
+		ci5 := ti11*ti5 + ti12*ti4
+
+		ch3.set(0, k, 1, cr2-ci5)
+		ch3.set(0, k, 2, cr3-ci4)
+		ch3.set(0, k, 3, cr3+ci4)
+		ch3.set(0, k, 4, cr2+ci5)
+	}
+
+	if ido == 1 {
+		return
+	}
+
+	idp2 := ido + 1
+	k = 0
+	for k < l1; k++ {
+		mut i := 2
+		for i < ido; i += 2 {
+			ic := idp2 - (i + 1)
+
+			t2 := cc3.atCmplx(i-1, 2, k) + cmplx::Conj(cc3.atCmplx(ic-1, 1, k))
+			t3 := cc3.atCmplx(i-1, 4, k) + cmplx::Conj(cc3.atCmplx(ic-1, 3, k))
+			t4 := cc3.atCmplx(i-1, 4, k) - cmplx::Conj(cc3.atCmplx(ic-1, 3, k))
+			t5 := cc3.atCmplx(i-1, 2, k) - cmplx::Conj(cc3.atCmplx(ic-1, 1, k))
+			ch3.setCmplx(i-1, k, 0, cc3.atCmplx(i-1, 0, k)+t2+t3)
+
+			c2 := cc3.atCmplx(i-1, 0, k) + scale(tr11, t2) + scale(tr12, t3)
+			c3 := cc3.atCmplx(i-1, 0, k) + scale(tr12, t2) + scale(tr11, t3)
+			c4 := scale(ti12, t5) - scale(ti11, t4)
+			c5 := scale(ti11, t5) + scale(ti12, t4)
+			d2 := c2 - cmplx::Conj(swap(c5))
+			d3 := c3 - cmplx::Conj(swap(c4))
+			d4 := c3 + cmplx::Conj(swap(c4))
+			d5 := c2 + cmplx::Conj(swap(c5))
+			ch3.setCmplx(i-1, k, 1, cmplx(wa1[i-2], wa1[i-1])*d2)
+			ch3.setCmplx(i-1, k, 2, cmplx(wa2[i-2], wa2[i-1])*d3)
+			ch3.setCmplx(i-1, k, 3, cmplx(wa3[i-2], wa3[i-1])*d4)
+			ch3.setCmplx(i-1, k, 4, cmplx(wa4[i-2], wa4[i-1])*d5)
+		}
+	}
+}
+
+#disable boundary
+fn radbg(ido: int, ip: int, l1: int, idl1: int, mut cc: []f64, mut c1: []f64, mut c2: []f64, mut ch: []f64, mut ch2: []f64, wa: []f64) {
+	cc3 := threeArray.new(ido, ip, l1, cc)
+	mut c13 := threeArray.new(ido, l1, ip, c1)
+	mut ch3 := threeArray.new(ido, l1, ip, ch)
+	mut c2m := twoArray.new(idl1, ip, c2)
+	mut ch2m := twoArray.new(idl1, ip, ch2)
+
+	arg := 2 * math::Pi / f64(ip)
+	dcp := math::Cos(arg)
+	dsp := math::Sin(arg)
+	ipph := (ip + 1) / 2
+	nbd := (ido - 1) / 2
+
+	if ido < l1 {
+		mut i := 0
+		for i < ido; i++ {
+			mut k := 0
+			for k < l1; k++ {
+				ch3.set(i, k, 0, cc3.at(i, 0, k))
+			}
+		}
+	} else {
+		mut k := 0
+		for k < l1; k++ {
+			mut i := 0
+			for i < ido; i++ {
+				ch3.set(i, k, 0, cc3.at(i, 0, k))
+			}
+		}
+	}
+
+	mut j := 1
+	for j < ipph; j++ {
+		jc := ip - j
+		j2 := 2 * j
+		mut k := 0
+		for k < l1; k++ {
+			ch3.set(0, k, j, cc3.at(ido-1, j2-1, k)+cc3.at(ido-1, j2-1, k))
+			ch3.set(0, k, jc, cc3.at(0, j2, k)+cc3.at(0, j2, k))
+		}
+	}
+
+	if ido != 1 {
+		if nbd < l1 {
+			j = 1
+			for j < ipph; j++ {
+				jc := ip - j
+				j2 := 2 * j
+				mut i := 2
+				for i < ido; i += 2 {
+					ic := ido - i
+					mut k := 0
+					for k < l1; k++ {
+						ch3.setCmplx(i-1, k, j, cc3.atCmplx(i-1, j2, k)+cmplx::Conj(cc3.atCmplx(ic-1, j2-1, k)))
+						ch3.setCmplx(i-1, k, jc, cc3.atCmplx(i-1, j2, k)-cmplx::Conj(cc3.atCmplx(ic-1, j2-1, k)))
+					}
+				}
+			}
+		} else {
+			j = 1
+			for j < ipph; j++ {
+				jc := ip - j
+				j2 := 2 * j
+				mut k := 0
+				for k < l1; k++ {
+					mut i := 2
+					for i < ido; i += 2 {
+						ic := ido - i
+						ch3.setCmplx(i-1, k, j, cc3.atCmplx(i-1, j2, k)+cmplx::Conj(cc3.atCmplx(ic-1, j2-1, k)))
+						ch3.setCmplx(i-1, k, jc, cc3.atCmplx(i-1, j2, k)-cmplx::Conj(cc3.atCmplx(ic-1, j2-1, k)))
+					}
+				}
+			}
+		}
+	}
+
+	mut ar1 := 1.0
+	mut ai1 := 0.0
+	mut l := 1
+	for l < ipph; l++ {
+		lc := ip - l
+		ar1h := dcp*ar1 - dsp*ai1
+		ai1 = dcp*ai1 + dsp*ar1
+		ar1 = ar1h
+		mut ik := 0
+		for ik < idl1; ik++ {
+			c2m.set(ik, l, ch2m.at(ik, 0)+ar1*ch2m.at(ik, 1))
+			c2m.set(ik, lc, ai1*ch2m.at(ik, ip-1))
+		}
+		dc2 := ar1
+		ds2 := ai1
+		mut ar2 := ar1
+		mut ai2 := ai1
+		j = 2
+		for j < ipph; j++ {
+			jc := ip - j
+			ar2h := dc2*ar2 - ds2*ai2
+			ai2 = dc2*ai2 + ds2*ar2
+			ar2 = ar2h
+			ik = 0
+			for ik < idl1; ik++ {
+				c2m.add(ik, l, ar2*ch2m.at(ik, j))
+				c2m.add(ik, lc, ai2*ch2m.at(ik, jc))
+			}
+		}
+	}
+
+	j = 1
+	for j < ipph; j++ {
+		mut ik := 0
+		for ik < idl1; ik++ {
+			ch2m.add(ik, 0, ch2m.at(ik, j))
+		}
+	}
+	j = 1
+	for j < ipph; j++ {
+		jc := ip - j
+		mut k := 0
+		for k < l1; k++ {
+			ch3.set(0, k, j, c13.at(0, k, j)-c13.at(0, k, jc))
+			ch3.set(0, k, jc, c13.at(0, k, j)+c13.at(0, k, jc))
+		}
+	}
+
+	if ido != 1 {
+		if nbd < l1 {
+			j = 1
+			for j < ipph; j++ {
+				jc := ip - j
+				mut i := 2
+				for i < ido; i += 2 {
+					mut k := 0
+					for k < l1; k++ {
+						ch3.setCmplx(i-1, k, j, c13.atCmplx(i-1, k, j)-cmplx::Conj(swap(c13.atCmplx(i-1, k, jc))))
+						ch3.setCmplx(i-1, k, jc, c13.atCmplx(i-1, k, j)+cmplx::Conj(swap(c13.atCmplx(i-1, k, jc))))
+					}
+				}
+			}
+		} else {
+			j = 1
+			for j < ipph; j++ {
+				jc := ip - j
+				mut k := 0
+				for k < l1; k++ {
+					mut i := 2
+					for i < ido; i += 2 {
+						ch3.setCmplx(i-1, k, j, c13.atCmplx(i-1, k, j)-cmplx::Conj(swap(c13.atCmplx(i-1, k, jc))))
+						ch3.setCmplx(i-1, k, jc, c13.atCmplx(i-1, k, j)+cmplx::Conj(swap(c13.atCmplx(i-1, k, jc))))
+					}
+				}
+			}
+		}
+	}
+
+	if ido == 1 {
+		return
+	}
+	mut ik := 0
+	for ik < idl1; ik++ {
+		c2m.set(ik, 0, ch2m.at(ik, 0))
+	}
+	j = 1
+	for j < ip; j++ {
+		mut k := 0
+		for k < l1; k++ {
+			c13.set(0, k, j, ch3.at(0, k, j))
+		}
+	}
+
+	mut is := -ido - 1
+	if nbd > l1 {
+		j = 1
+		for j < ip; j++ {
+			is += ido
+			mut k := 0
+			for k < l1; k++ {
+				mut idij := is
+				mut i := 2
+				for i < ido; i += 2 {
+					idij += 2
+					c13.setCmplx(i-1, k, j, cmplx(wa[idij-1], wa[idij])*ch3.atCmplx(i-1, k, j))
+				}
+			}
+		}
+		return
+	}
+	j = 1
+	for j < ip; j++ {
+		is += ido
+		mut idij := is
+		mut i := 2
+		for i < ido; i += 2 {
+			idij += 2
+			mut k := 0
+			for k < l1; k++ {
+				c13.setCmplx(i-1, k, j, cmplx(wa[idij-1], wa[idij])*ch3.atCmplx(i-1, k, j))
+			}
+		}
+	}
+}
