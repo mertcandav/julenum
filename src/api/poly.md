@@ -187,7 +187,6 @@ If self have enough capacity, Scale will use it to avoid making allocation\. If 
 
 ### Mul
 ```jule
-#disable boundary
 fn Mul(mut *self, &x: *Dense, &y: *Dense)
 ```
 Sets self to product x\*y\.
@@ -200,7 +199,6 @@ If self have enough capacity, Mul will use it to avoid making allocation\. If le
 
 ### MulNaive
 ```jule
-#disable boundary
 fn MulNaive(mut *self, &x: *Dense, &y: *Dense)
 ```
 Sets self to product x\*y\.
