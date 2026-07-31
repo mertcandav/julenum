@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/comptime"
 use "std/math"
 
 // Returns true when a and b have an absolute difference not greater than tol.
@@ -60,6 +61,19 @@ fn Same(a: f64, b: f64): bool {
 }
 
 // Clamps x to the range [min, max].
-fn Clamp(x: f64, min: f64, max: f64): f64 {
-	return math::Max(min, math::Min(x, max))
+fn Clamp[T: integer | float](x: T, min: T, max: T): T {
+	const t = comptime::Typeof(T)
+	match t.Kind() {
+	| comptime::F32 | comptime::F64:
+		return T(math::Max(f64(min), math::Min(f64(x), f64(max))))
+	|:
+		mut z := x
+		if z > max {
+			z = max
+		}
+		if min > z {
+			z = min
+		}
+		return z
+	}
 }
