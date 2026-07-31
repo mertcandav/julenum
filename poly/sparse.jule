@@ -1233,25 +1233,32 @@ fn fftSize(&x: *Sparse, &y: *Sparse): int {
 }
 
 #disable nilptr boundary
-fn sparsePairToCoeffs(mut &z: *[]cmplx128, &x: *Sparse, &y: *Sparse) {
+fn sparsePairToCoeffs(mut z: []cmplx128, &x: *Sparse, &y: *Sparse) {
 	for _, term in *x {
-		(*z)[term.Exp] += cmplx(term.Coef, 0)
+		z[term.Exp] += cmplx(term.Coef, 0)
 	}
 	for _, term in *y {
-		(*z)[term.Exp] += cmplx(0, term.Coef)
+		z[term.Exp] += cmplx(0, term.Coef)
 	}
 }
 
-#disable nilptr boundary
-fn packedMultiply(mut &z: *[]cmplx128) {
-	n := len(*z)
+#disable boundary
+fn packedMultiply(mut z: []cmplx128) {
+	n := len(z)
+
+	if n == 1 {
+		v := z[0]
+		z[0] = cmplx(real(v)*imag(v), 0)
+		return
+	}
+
 	half := n >> 1
 
 	// DC component.
 	{
 		// For the DC component both recovered values are real.
-		v := (*z)[0]
-		(*z)[0] = cmplx(real(v)*imag(v), 0)
+		v := z[0]
+		z[0] = cmplx(real(v)*imag(v), 0)
 	}
 
 	// Positive frequencies.
@@ -1259,8 +1266,8 @@ fn packedMultiply(mut &z: *[]cmplx128) {
 	for k < half; k++ {
 		j := n - k
 
-		zk := (*z)[k]
-		zj := (*z)[j]
+		zk := z[k]
+		zj := z[j]
 
 		zkr := real(zk)
 		zki := imag(zk)
@@ -1283,23 +1290,23 @@ fn packedMultiply(mut &z: *[]cmplx128) {
 		cr := ar*br - ai*bi
 		ci := ar*bi + ai*br
 
-		(*z)[k] = cmplx(cr, ci)
-		(*z)[j] = cmplx(cr, -ci)
+		z[k] = cmplx(cr, ci)
+		z[j] = cmplx(cr, -ci)
 	}
 
 	// Nyquist component.
 	{
-		v := (*z)[half]
-		(*z)[half] = cmplx(real(v)*imag(v), 0)
+		v := z[half]
+		z[half] = cmplx(real(v)*imag(v), 0)
 	}
 }
 
 #disable boundary
 fn fftMul(mut &z: *Sparse, &x: *Sparse, &y: *Sparse, size: int, tol: f64) {
 	mut spectrum := make([]cmplx128, size)
-	sparsePairToCoeffs(&spectrum, x, y)
+	sparsePairToCoeffs(spectrum, x, y)
 	fourier::CoefficientsRadix2(spectrum, false)
-	packedMultiply(&spectrum)
+	packedMultiply(spectrum)
 	fourier::CoefficientsRadix2(spectrum, true)
 	coeffsToSparse(z, spectrum, tol)
 }

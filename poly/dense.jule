@@ -280,7 +280,6 @@ impl Dense {
 	//
 	// If self have enough capacity, Mul will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	#disable boundary
 	fn Mul(mut *self, &x: *Dense, &y: *Dense) {
 		// Early return: x or y is zero.
 		if len(*x) == 0 || len(*y) == 0 {
@@ -313,7 +312,6 @@ impl Dense {
 	//
 	// If self have enough capacity, MulNaive will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	#disable boundary
 	fn MulNaive(mut *self, &x: *Dense, &y: *Dense) {
 		// Early return: x or y is zero.
 		if len(*x) == 0 || len(*y) == 0 {
@@ -661,7 +659,7 @@ impl Dense {
 }
 
 // z = x*y using the native O(n²) convolution algorithm.
-#disable boundary
+#disable nilptr boundary
 fn denseMulNaive(mut &z: *Dense, &x: *Dense, &y: *Dense) {
 	if len(*x) == 0 || len(*y) == 0 {
 		*z = (*z)[:0]
@@ -731,35 +729,25 @@ fn denseMulNaive(mut &z: *Dense, &x: *Dense, &y: *Dense) {
 	*z = (*z)[:n]
 }
 
+#disable nilptr boundary
+fn densePairToCoeffs(mut z: []cmplx128, &x: *Dense, &y: *Dense) {
+	for i, coef in *x {
+		z[i] += cmplx(coef, 0)
+	}
+	for i, coef in *y {
+		z[i] += cmplx(0, coef)
+	}
+}
+
 // z = x*y using FFT convolution.
-#disable boundary
+#disable nilptr boundary
 fn denseMulFFT(mut &z: *Dense, &x: *Dense, &y: *Dense, size: int, tol: f64) {
 	fftSize := ibits::NextPowerOfTwo(size)
-
-	// One allocation for both complex coefficient arrays.
-	mut workspace := make([]cmplx128, fftSize<<1)
-	mut fa, mut fb := workspace[:fftSize], workspace[fftSize:]
-
-	// Copy real coefficients into the complex arrays.
-	for i, coef in *x {
-		fa[i] = cmplx(coef, 0)
-	}
-
-	for i, coef in *y {
-		fb[i] = cmplx(coef, 0)
-	}
-
-	// Forward FFT.
-	fourier::CoefficientsRadix2(fa, false)
-	fourier::CoefficientsRadix2(fb, false)
-
-	// Point-wise multiplication.
-	for i in fa {
-		fa[i] *= fb[i]
-	}
-
-	// Inverse FFT.
-	fourier::CoefficientsRadix2(fa, true)
+	mut spectrum := make([]cmplx128, fftSize)
+	densePairToCoeffs(spectrum, x, y)
+	fourier::CoefficientsRadix2(spectrum, false)
+	packedMultiply(spectrum)
+	fourier::CoefficientsRadix2(spectrum, true)
 
 	// Store only the mathematically required coefficient range.
 	*z = z.make(size)
@@ -770,7 +758,7 @@ fn denseMulFFT(mut &z: *Dense, &x: *Dense, &y: *Dense, size: int, tol: f64) {
 	// Apply the caller-provided tolerance here.
 	mut i := 0
 	for i < size; i++ {
-		coef := real(fa[i])
+		coef := real(spectrum[i])
 
 		if jn::Tolerance(coef, 0, tol) {
 			(*z)[i] = 0
