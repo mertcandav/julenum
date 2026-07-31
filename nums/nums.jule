@@ -3,20 +3,35 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "std/comptime"
 
 // Returns true when the slices have equal lengths and
 // all element pairs have an absolute tolerance less than tol or a
 // relative tolerance less than tol.
 #disable boundary
-fn EqualApprox(a: []f64, b: []f64, tol: f64): bool {
+fn EqualApprox[T: ~f64 | ~cmplx128](a: []T, b: []T, tol: f64): bool {
 	if len(a) != len(b) {
 		return false
 	}
-	mut i := 0
-	for i < len(a); i++ {
-		if !jn::EqualWithinAbsOrRel(a[i], b[i], tol, tol) {
-			return false
+	const t = comptime::Typeof(T)
+	const match t.Kind() {
+	| comptime::F64:
+		mut i := 0
+		for i < len(a); i++ {
+			if !jn::EqualWithinAbsOrRel(a[i], b[i], tol, tol) {
+				return false
+			}
 		}
+	| comptime::Cmplx128:
+		mut i := 0
+		for i < len(a); i++ {
+			if !jn::EqualWithinAbsOrRel(real(a[i]), real(b[i]), tol, tol) ||
+				!jn::EqualWithinAbsOrRel(imag(a[i]), imag(b[i]), tol, tol) {
+				return false
+			}
+		}
+	|:
+		panic("unreachable")
 	}
 	return true
 }
