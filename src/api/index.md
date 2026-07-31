@@ -3,6 +3,8 @@
 The main package of the julenum.\
 Provides common numerical functions.
 
+::: v-pre
+
 ## Index
 
 [Variables](#variables)\
@@ -44,9 +46,12 @@ Provides common numerical functions.
 [fn MvLgamma\(v: f64, dim: int\): f64](#mvlgamma)\
 [fn NaN\(payload: u64\): f64](#nan)\
 [fn NaNPayload\(f: f64\): \(payload: u64, ok: bool\)](#nanpayload)\
+[fn EqualWithinAbs\(a: f64, b: f64, tol: f64\): bool](#equalwithinabs)\
+[fn EqualWithinRel\(a: f64, b: f64, tol: f64\): bool](#equalwithinrel)\
+[fn EqualWithinAbsOrRel\(a: f64, b: f64, absTol: f64, relTol: f64\): bool](#equalwithinabsorrel)\
 [fn Equal\(a: f64, b: f64\): bool](#equal)\
 [fn Same\(a: f64, b: f64\): bool](#same)\
-[fn Clamp\(x: f64, min: f64, max: f64\): f64](#clamp)\
+[fn Clamp\[T: integer \| float\]\(x: T, min: T, max: T\): T](#clamp)\
 [fn Prime\(x: u64\): bool](#prime)\
 [fn Round\(mut x: f64, prec: int\): f64](#round)\
 [fn RoundEven\(mut x: f64, prec: int\): f64](#roundeven)\
@@ -217,7 +222,7 @@ Returns the value of the regularized incomplete beta function I\(x;a,b\)\. It is
 
 ```
 I(x;a,b) = B(x;a,b) / B(a,b)
-			= Γ(a+b) / (Γ(a)*Γ(b)) * int_0^x u^(a-1) * (1-u)^(b-1) du.
+         = Γ(a+b) / (Γ(a)*Γ(b)) * int_0^x u^(a-1) * (1-u)^(b-1) du.
 ```
 The domain of definition is 0 &lt;= x &lt;= 1, and the parameters a and b must be positive\. For other values of x, a, and b, it will panic\.
 
@@ -487,7 +492,7 @@ Computes the complemented regularized incomplete Gamma integral\.
 
 ```
 GammaIncRegComp(a,x) = 1 - GammaIncReg(a,x)
-							= (1/ Γ(a)) \int_x^\infty e^{-t} t^{a-1} dt
+                     = (1/ Γ(a)) \int_x^\infty e^{-t} t^{a-1} dt
 ```
 The input argument a must be positive and x must be non\-negative or it will panic\.
 
@@ -533,6 +538,29 @@ fn NaNPayload(f: f64): (payload: u64, ok: bool)
 ```
 Returns the lowest 51 bits payload of an IEEE 754 &#34;quiet not\-a\-number&#34;\. Returns zero and false, if f is not a &#34;quiet not\-a\-number&#34;\.
 
+## EqualWithinAbs
+```jule
+fn EqualWithinAbs(a: f64, b: f64, tol: f64): bool
+```
+Returns true when a and b have an absolute difference not greater than tol\.
+
+## EqualWithinRel
+```jule
+fn EqualWithinRel(a: f64, b: f64, tol: f64): bool
+```
+Returns true when the difference between a and b is not greater than tol times the greater absolute value of a and b,
+
+```
+abs(a-b) <= tol * max(abs(a), abs(b)).
+```
+
+
+## EqualWithinAbsOrRel
+```jule
+fn EqualWithinAbsOrRel(a: f64, b: f64, absTol: f64, relTol: f64): bool
+```
+Returns true when a and b are equal to within the absolute or relative tolerances\. See EqualWithinAbs and EqualWithinRel for details\.
+
 ## Equal
 ```jule
 fn Equal(a: f64, b: f64): bool
@@ -547,7 +575,7 @@ Reports whether two values a and b are considered same\. It returns true if both
 
 ## Clamp
 ```jule
-fn Clamp(x: f64, min: f64, max: f64): f64
+fn Clamp[T: integer | float](x: T, min: T, max: T): T
 ```
 Clamps x to the range \[min, max\]\.
 
@@ -751,3 +779,5 @@ Reports whether two values a and b are approximately equal within an extremely t
 fn CmplxAlike(a: cmplx128, b: cmplx128): bool
 ```
 Reports whether two values a and b are considered alike\. It returns true if both are NaN \(Not a Number\), or if they are exactly equal including matching their sign bits \(distinguishing \+0 and \-0\)\.
+
+:::
