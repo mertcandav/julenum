@@ -26,7 +26,7 @@ fn Equal[S: ~[]T, T: numeric](a: S, b: S): bool {
 // all element pairs have an absolute tolerance less than tol or a
 // relative tolerance less than tol.
 #disable boundary
-fn EqualApprox[S: []T, T: ~f64 | ~cmplx128](a: S, b: S, tol: f64): bool {
+fn EqualApprox[S: ~[]T, T: ~f64 | ~cmplx128](a: S, b: S, tol: f64): bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -58,7 +58,7 @@ fn EqualApprox[S: []T, T: ~f64 | ~cmplx128](a: S, b: S, tol: f64): bool {
 // Formula:
 //	sum = Σᵢ [ xᵢ ]
 #disable boundary
-fn Sum[S: []T, T: numeric](x: S): T {
+fn Sum[S: ~[]T, T: numeric](x: S): T {
 	let mut sum: T
 	mut i := 0
 	for i < len(x); i++ {
@@ -90,5 +90,18 @@ fn Sub[S: ~[]T, T: numeric](mut z: S, x: S, y: S): S {
 		panic("nums: Sub: all slices must have same length")
 	}
 	chunk::Sub(z, x, y)
+	return z
+}
+
+// Sets z to the product x*y and returning it.
+// All slices must have same length.
+//
+// Formula:
+//	zᵢ = xᵢ*yᵢ
+fn Mul[S: ~[]T, T: numeric](mut z: S, x: S, y: S): S {
+	if len(z) != len(x) || len(z) != len(y) {
+		panic("nums: Mul: all slices must have same length")
+	}
+	chunk::Mul(z, x, y)
 	return z
 }
