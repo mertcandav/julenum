@@ -144,3 +144,16 @@ fn SubScalar[S: ~[]T, T: numeric](mut z: S, x: S, k: T): S {
 	chunk::SubScalar(z, x, k)
 	return z
 }
+
+// Sets z to the product x*k and returning it.
+// All slices must have same length.
+//
+// Formula:
+//	zᵢ = xᵢ*k
+fn MulScalar[S: ~[]T, T: numeric](mut z: S, x: S, k: T): S {
+	if len(z) != len(x) {
+		panic("nums: MulScalar: all slices must have same length")
+	}
+	chunk::MulScalar(z, x, k)
+	return z
+}
