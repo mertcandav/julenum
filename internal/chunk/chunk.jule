@@ -354,6 +354,15 @@ fn SumMul[S: ~[]T, T: numeric](x: S, y: S): T {
 		return r
 	}
 
+	let mut r0: T
+	let mut r1: T
+	let mut r2: T
+	let mut r3: T
+	let mut r4: T
+	let mut r5: T
+	let mut r6: T
+	let mut r7: T
+
 	unsafe {
 		mut xPtr := &x[0]
 		mut yPtr := &y[0]
@@ -362,14 +371,14 @@ fn SumMul[S: ~[]T, T: numeric](x: S, y: S): T {
 		// Instruction-Level Parallelism (ILP).
 		mut i := 0
 		for i <= n-8; i += 8 {
-			r += xPtr[0] * yPtr[0]
-			r += xPtr[1] * yPtr[1]
-			r += xPtr[2] * yPtr[2]
-			r += xPtr[3] * yPtr[3]
-			r += xPtr[4] * yPtr[4]
-			r += xPtr[5] * yPtr[5]
-			r += xPtr[6] * yPtr[6]
-			r += xPtr[7] * yPtr[7]
+			r0 += xPtr[0] * yPtr[0]
+			r1 += xPtr[1] * yPtr[1]
+			r2 += xPtr[2] * yPtr[2]
+			r3 += xPtr[3] * yPtr[3]
+			r4 += xPtr[4] * yPtr[4]
+			r5 += xPtr[5] * yPtr[5]
+			r6 += xPtr[6] * yPtr[6]
+			r7 += xPtr[7] * yPtr[7]
 
 			xPtr += 8
 			yPtr += 8
@@ -377,8 +386,8 @@ fn SumMul[S: ~[]T, T: numeric](x: S, y: S): T {
 
 		// 2-Way Tail Loop for remaining elements.
 		for i <= n-2; i += 2 {
-			r += xPtr[0] * yPtr[0]
-			r += xPtr[1] * yPtr[1]
+			r0 += xPtr[0] * yPtr[0]
+			r1 += xPtr[1] * yPtr[1]
 
 			xPtr += 2
 			yPtr += 2
@@ -386,9 +395,9 @@ fn SumMul[S: ~[]T, T: numeric](x: S, y: S): T {
 
 		// 1-Way Cleanup for odd remaining element.
 		if i < n {
-			r += xPtr[0] * yPtr[0]
+			r0 += xPtr[0] * yPtr[0]
 		}
 	}
 
-	return r
+	return (r0 + r1) + (r2 + r3) + (r4 + r5) + (r6 + r7)
 }
