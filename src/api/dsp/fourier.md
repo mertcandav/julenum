@@ -35,6 +35,8 @@ fn CoefficientsRadix2(mut seq: []cmplx128, invert: bool): []cmplx128
 ```
 Computes the Fourier coefficients of the input sequence, converting the time series in seq into the frequency spectrum, in place and returning it\. This transform is unnormalized; a call to CoefficientsRadix2 followed by a call of SequenceRadix2 will multiply the input sequence by the length of the sequence\.
 
+The invert parameter controls the direction of the transform: passing false performs a forward Fast Fourier Transform \(FFT\) to convert time\-series data into the frequency spectrum, while passing true performs an Inverse FFT \(IFFT\) to restore the frequency spectrum back to the original time domain\. When invert is true, the function also normalizes the output by scaling all elements by 1/N \(where N = len\(x\)\) to guarantee that the original amplitudes are accurately recovered\.
+
 It does not allocate, requiring that FFT twiddle factors be calculated lazily\. For performance reasons, this is done by successive multiplication, so numerical accuracies can accumulate for large inputs\. If accuracy is needed, the RFFT or FFT types should be used\.
 
 If the length of seq is not an integer power of 2, it will panic\.
