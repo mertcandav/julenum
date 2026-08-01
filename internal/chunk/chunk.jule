@@ -5,7 +5,7 @@
 // Sets z to the sum x+y.
 // z must have enough space for the sum x+y.
 #disable boundary
-fn Add[T: numeric](mut z: []T, x: []T, y: []T) {
+fn Add[S: ~[]T, T: numeric](mut z: S, x: S, y: S) {
 	n := len(z)
 	if n == 0 {
 		return
@@ -54,7 +54,7 @@ fn Add[T: numeric](mut z: []T, x: []T, y: []T) {
 // Sets z to the difference x-y.
 // z must be have enough space for the difference x-y.
 #disable boundary
-fn Sub[T: numeric](mut z: []T, x: []T, y: []T) {
+fn Sub[S: ~[]T, T: numeric](mut z: S, x: S, y: S) {
 	n := len(z)
 	if n == 0 {
 		return
@@ -100,10 +100,10 @@ fn Sub[T: numeric](mut z: []T, x: []T, y: []T) {
 	}
 }
 
-// Sets z to the sum x+y.
-// z must have enough space for the sum x+y.
+// Sets z to the product x*y.
+// z must have enough space for the product x*y.
 #disable boundary
-fn Mul[T: numeric](mut z: []T, x: []T, y: []T) {
+fn Mul[S: ~[]T, T: numeric](mut z: S, x: S, y: S) {
 	n := len(z)
 	if n == 0 {
 		return
@@ -149,7 +149,7 @@ fn Mul[T: numeric](mut z: []T, x: []T, y: []T) {
 	}
 }
 
-// Sets z to the sum xᵢ+y.
+// Sets z to the sum xᵢ+k.
 // z must have enough space for the sum xᵢ+k.
 #disable boundary
 fn AddScalar[T: numeric](mut z: []T, x: []T, k: T) {
@@ -202,7 +202,7 @@ fn SubScalar[T: numeric](mut z: []T, k: T) {
 	AddScalar(z, -k)
 }
 
-// Sets z to the product xᵢ*y.
+// Sets z to the product xᵢ*k.
 // z must have enough space for the product xᵢ*k.
 #disable boundary
 fn MulScalar[T: numeric](mut z: []T, x: []T, k: T) {
@@ -248,7 +248,7 @@ fn MulScalar[T: numeric](mut z: []T, x: []T, k: T) {
 	}
 }
 
-// Sets z to the division xᵢ/y.
+// Sets z to the division xᵢ/k.
 // z must have enough space for the division xᵢ/k.
 #disable boundary
 fn DivScalar[T: numeric](mut z: []T, x: []T, k: T) {

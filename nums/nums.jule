@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "julenum/internal/chunk"
 use "std/comptime"
 
 // Returns true when the slices have equal lengths and
@@ -64,4 +65,18 @@ fn Sum[S: []T, T: numeric](x: S): T {
 		sum += x[i]
 	}
 	return sum
+}
+
+// Sets z to the sum x+y and returning it.
+// All slices must have same length.
+//
+// Formula:
+//	zᵢ = xᵢ+yᵢ
+#disable boundary
+fn Add[S: ~[]T, T: numeric](mut z: S, x: S, y: S): S {
+	if len(z) != len(x) || len(z) != len(y) {
+		panic("nums: Add: all slices must have same length")
+	}
+	chunk::Add(z, x, y)
+	return z
 }
