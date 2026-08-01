@@ -157,3 +157,16 @@ fn MulScalar[S: ~[]T, T: numeric](mut z: S, x: S, k: T): S {
 	chunk::MulScalar(z, x, k)
 	return z
 }
+
+// Sets z to the division x/k and returning it.
+// All slices must have same length.
+//
+// Formula:
+//	zᵢ = xᵢ/k
+fn DivScalar[S: ~[]T, T: numeric](mut z: S, x: S, k: T): S {
+	if len(z) != len(x) {
+		panic("nums: DivScalar: all slices must have same length")
+	}
+	chunk::DivScalar(z, x, k)
+	return z
+}
