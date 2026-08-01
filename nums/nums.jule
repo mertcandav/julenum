@@ -118,3 +118,16 @@ fn Div[S: ~[]T, T: numeric](mut z: S, x: S, y: S): S {
 	chunk::Div(z, x, y)
 	return z
 }
+
+// Sets z to the sum x+k and returning it.
+// All slices must have same length.
+//
+// Formula:
+//	zᵢ = xᵢ+k
+fn AddScalar[S: ~[]T, T: numeric](mut z: S, x: S, k: T): S {
+	if len(z) != len(x) {
+		panic("nums: AddScalar: all slices must have same length")
+	}
+	chunk::AddScalar(z, x, k)
+	return z
+}
