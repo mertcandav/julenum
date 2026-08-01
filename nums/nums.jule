@@ -6,10 +6,26 @@ use jn "julenum"
 use "std/comptime"
 
 // Returns true when the slices have equal lengths and
+// all elements are numerically identical.
+#disable boundary
+fn Equal[S: ~[]T, T: numeric](a: S, b: S): bool {
+	if len(a) != len(b) {
+		return false
+	}
+	mut i := 0
+	for i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// Returns true when the slices have equal lengths and
 // all element pairs have an absolute tolerance less than tol or a
 // relative tolerance less than tol.
 #disable boundary
-fn EqualApprox[T: ~f64 | ~cmplx128](a: []T, b: []T, tol: f64): bool {
+fn EqualApprox[S: []T, T: ~f64 | ~cmplx128](a: S, b: S, tol: f64): bool {
 	if len(a) != len(b) {
 		return false
 	}

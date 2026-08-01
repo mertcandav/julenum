@@ -4,8 +4,8 @@
 
 use jn "julenum"
 use "julenum/mat"
+use "julenum/nums"
 use "std/math"
-use "std/slices"
 use "std/testing"
 
 struct vectorCSTest {
@@ -95,7 +95,7 @@ let mut testsVectorCS: []vectorCSTest = [
 fn testVectorCS(t: &testing::T, name: string, f: fn(mut vectorCSTest): (Vector[f64], Vector[f64])) {
 	for (_, mut test) in testsVectorCS {
 		got, want := f(test)
-		if !slices::Equal(got, want) {
+		if !nums::Equal(got, want) {
 			t.Errorf("{}({}, {}) = {}, expected {}", name, test.x, test.y, got, want)
 		}
 	}
@@ -244,7 +244,7 @@ fn testMatMul(t: &testing::T) {
 	for _, test in matMulTests {
 		let mut r: Vector[f64]
 		r.MatMul(&test.mat, &test.vec)
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf("MatMul({}, {}) = {}, expected {}", test.mat, test.vec, test.want)
 		}
 	}

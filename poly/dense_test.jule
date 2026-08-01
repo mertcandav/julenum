@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
-use "std/slices"
+use "julenum/nums"
 use "std/testing"
 
 struct denseIOTest {
@@ -70,7 +70,7 @@ fn testDenseSimplify(t: &testing::T) {
 	for _, test in testsDenseSimplify {
 		let mut r: Dense
 		r.Simplify(&test.input, 0)
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf("Simplify({}, 0) = {}, expected {}", test.input, r, test.want)
 		}
 	}
@@ -96,7 +96,7 @@ fn testDenseNegate(t: &testing::T) {
 	for _, test in testsDenseNegate {
 		let mut r: Dense
 		r.Negate(&test.input)
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf("Negate({}) = {}, expected {}", test.input, r, test.want)
 		}
 	}
@@ -167,7 +167,7 @@ fn testDenseAdd(t: &testing::T) {
 		let mut r: Dense
 		r.Add(&test.x, &test.y, 0)
 
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf("Add({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
@@ -227,7 +227,7 @@ fn testDenseSub(t: &testing::T) {
 		let mut r: Dense
 		r.Sub(&test.x, &test.y, 0)
 
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf("Sub({}, {}, 0) = {}, expected {}", test.x, test.y, r, test.want)
 		}
 	}
@@ -449,7 +449,7 @@ fn testDenseDeriv(t: &testing::T) {
 		let mut r: Dense
 		r.Deriv(&test.input)
 
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf(
 				"Deriv({}) = {}, expected {}",
 				test.input,
@@ -795,7 +795,7 @@ fn testDenseInterpolateLinear(t: &testing::T) {
 		let mut r: Dense
 		r.InterpolateLinear(test.x0, test.y0, test.x1, test.y1)
 
-		if !slices::Equal(r, test.want) {
+		if !nums::Equal(r, test.want) {
 			t.Errorf(
 				"InterpolateLinear({}, {}, {}, {}) = {}, expected {}",
 				test.x0,

@@ -4,7 +4,6 @@
 
 use "julenum/nums"
 use "std/math/rand"
-use "std/slices"
 use "std/testing"
 
 #test
@@ -114,7 +113,7 @@ fn testFFTShift(t: &testing::T) {
 					i, len(test.index), su, i)
 			}
 		}
-		if !slices::Equal(got, test.want) {
+		if !nums::Equal(got, test.want) {
 			t.Errorf("unexpected result for shift({}):\ngot: {}\nwant:{}",
 				test.index, got, test.want)
 		}

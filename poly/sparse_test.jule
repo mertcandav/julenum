@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use jn "julenum"
+use "julenum/nums"
 use "std/math"
 use "std/slices"
 use "std/testing"
