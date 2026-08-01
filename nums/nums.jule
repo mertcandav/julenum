@@ -105,3 +105,16 @@ fn Mul[S: ~[]T, T: numeric](mut z: S, x: S, y: S): S {
 	chunk::Mul(z, x, y)
 	return z
 }
+
+// Sets z to the product x/y and returning it.
+// All slices must have same length.
+//
+// Formula:
+//	zᵢ = xᵢ/yᵢ
+fn Div[S: ~[]T, T: numeric](mut z: S, x: S, y: S): S {
+	if len(z) != len(x) || len(z) != len(y) {
+		panic("nums: Div: all slices must have same length")
+	}
+	chunk::Div(z, x, y)
+	return z
+}

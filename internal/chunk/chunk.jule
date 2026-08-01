@@ -149,6 +149,55 @@ fn Mul[S: ~[]T, T: numeric](mut z: S, x: S, y: S) {
 	}
 }
 
+// Sets z to the division x/y.
+// z must have enough space for the division x/y.
+#disable boundary
+fn Div[S: ~[]T, T: numeric](mut z: S, x: S, y: S) {
+	n := len(z)
+	if n == 0 {
+		return
+	}
+
+	unsafe {
+		mut zPtr := &z[0]
+		mut xPtr := &x[0]
+		mut yPtr := &y[0]
+
+		// 8-Way Scalar Unrolling to maximize
+		// Instruction-Level Parallelism (ILP).
+		mut i := 0
+		for i <= n-8; i += 8 {
+			zPtr[0] = xPtr[0] / yPtr[0]
+			zPtr[1] = xPtr[1] / yPtr[1]
+			zPtr[2] = xPtr[2] / yPtr[2]
+			zPtr[3] = xPtr[3] / yPtr[3]
+			zPtr[4] = xPtr[4] / yPtr[4]
+			zPtr[5] = xPtr[5] / yPtr[5]
+			zPtr[6] = xPtr[6] / yPtr[6]
+			zPtr[7] = xPtr[7] / yPtr[7]
+
+			zPtr += 8
+			xPtr += 8
+			yPtr += 8
+		}
+
+		// 2-Way Tail Loop for remaining elements.
+		for i <= n-2; i += 2 {
+			zPtr[0] = xPtr[0] / yPtr[0]
+			zPtr[1] = xPtr[1] / yPtr[1]
+
+			zPtr += 2
+			xPtr += 2
+			yPtr += 2
+		}
+
+		// 1-Way Cleanup for odd remaining element.
+		if i < n {
+			zPtr[0] = xPtr[0] / yPtr[0]
+		}
+	}
+}
+
 // Sets z to the sum xᵢ+k.
 // z must have enough space for the sum xᵢ+k.
 #disable boundary
