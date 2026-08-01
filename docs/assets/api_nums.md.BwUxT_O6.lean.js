@@ -1,0 +1,1 @@
+import{_ as a,c as n,o as l,ah as e}from"./chunks/framework._fWrWIYU.js";const u=JSON.parse('{"title":"julenum/nums","description":"","frontmatter":{},"headers":[],"relativePath":"api/nums.md","filePath":"api/nums.md"}'),o={name:"api/nums.md"};function p(r,s,c,t,i,F){return l(),n("div",null,s[0]||(s[0]=[e("",3)]))}const y=a(o,[["render",p]]);export{u as __pageData,y as default};
