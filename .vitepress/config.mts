@@ -81,6 +81,7 @@ export default defineConfig({
                 { text: 'quat', link: '/api/num/quat' },
               ]
             },
+            { text: 'nums', link: '/api/nums' },
             { text: 'poly', link: '/api/poly' },
             { text: 'seq', link: '/api/seq' },
             {
