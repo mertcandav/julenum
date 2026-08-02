@@ -744,6 +744,49 @@ fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 	return max, maxCount
 }
 
+// Computes the weighted mixed moment between the samples x and y.
+//
+//	E[(x - μ_x)^r*(y - μ_y)^s]
+//
+// No degrees of freedom correction is done.
+// The lengths of x and y must be equal. If weights is nil then all of the
+// weights are 1. If weights is not nil, then len(x) must equal len(weights).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+#disable boundary
+fn BivariateMoment[T: integer | float](r: f64, s: f64, x: []T, y: []T, weights: []T): f64 {
+	meanX := Mean(x, weights)
+	meanY := Mean(y, weights)
+	if len(x) != len(y) {
+		panic("stat: slice length mismatch")
+	}
+	if weights == nil {
+		let mut m: f64
+		mut i := 0
+		for i < len(x); i++ {
+			vx := f64(x[i])
+			vy := f64(y[i])
+			m += math::Pow(vx-meanX, r) * math::Pow(vy-meanY, s)
+		}
+		return m / f64(len(x))
+	}
+	if len(weights) != len(x) {
+		panic("stat: slice length mismatch")
+	}
+	let mut m: f64
+	let mut sumWeights: f64
+	mut i := 0
+	for i < len(x); i++ {
+		vx := f64(x[i])
+		vy := f64(y[i])
+		w := f64(weights[i])
+		m += w * math::Pow(vx-meanX, r) * math::Pow(vy-meanY, s)
+		sumWeights += w
+	}
+	return m / sumWeights
+}
+
 // Computes the posterior probability P(A|B) using Bayes' Theorem:
 //	P(A|B) = P(B|A) * P(A) / P(B)
 fn Bayes[T: float](prior: T, likelihood: T, evidence: T): T {
