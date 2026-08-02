@@ -42,9 +42,6 @@ impl Gamma {
 		if x < 0 {
 			return 0
 		}
-		if x == 0 {
-			return 0
-		}
 		return jn::GammaIncReg(self.K, self.Theta*x)
 	}
 
@@ -56,22 +53,7 @@ impl Gamma {
 	//	PDF(x) = (1 / (Γ(k) * θ^k)) * x^(k-1) * e^(-x/θ)
 	//	where Γ is the Gamma function.
 	fn PDF(*self, x: f64): f64 {
-		if x < 0 {
-			return 0
-		}
-		if x == 0 {
-			if self.K == 1 { // Exponential distribution case, PDF is 1/theta at x=0
-				return 1 / self.Theta
-			}
-			if self.K < 1 { // PDF goes to infinity at x=0 for k < 1
-				return math::Inf(1)
-			}
-			return 0 // PDF is 0 at x=0 for k > 1
-		}
-
-		denominator := math::Gamma(self.K) * math::Pow(self.Theta, self.K)
-		numerator := math::Pow(x, self.K-1) * math::Exp(-x/self.Theta)
-		return numerator / denominator
+		return math::Exp(self.LogPDF(x))
 	}
 
 	// Computes the natural logarithm of the Probability Density Function (PDF) at x.
@@ -85,19 +67,14 @@ impl Gamma {
 		if x < 0 {
 			return math::Inf(-1)
 		}
-		if x == 0 {
-			if self.K == 1 { // Exponential distribution case, PDF is 1/theta at x=0
-				return math::Log(1 / self.Theta)
-			}
-			if self.K < 1 { // PDF goes to infinity at x=0 for k < 1
-				return math::Inf(1)
-			}
-			return math::Inf(-1) // PDF is 0 at x=0 for k > 1
+
+		k := self.K
+		t := self.Theta
+		lg, _ := math::Lgamma(k)
+		if k == 1 {
+			return math::Log(t) - lg - t*x
 		}
-
-		logGammaK, _ := math::Lgamma(self.K) // natural log of Gamma(k)
-
-		return (self.K-1)*math::Log(x) - (x / self.Theta) - logGammaK - self.K*math::Log(self.Theta)
+		return k*math::Log(t) - lg + (k-1)*math::Log(x) - t*x
 	}
 
 	// Computes the Moment Generating Function (MGF) of the distribution.
@@ -126,12 +103,6 @@ impl Gamma {
 		if p < 0 || p > 1 {
 			return math::NaN()
 		}
-		if p == 0 {
-			return 0
-		}
-		if p == 1 {
-			return math::Inf(1) // Goes to infinity for p=1
-		}
 		return jn::GammaIncRegInv(self.K, p) / self.Theta
 	}
 
@@ -155,11 +126,8 @@ impl Gamma {
 	}
 
 	// Computes the mean (expected value) of the distribution.
-	//
-	// Formula:
-	//	E[X] = k * θ
 	fn Mean(*self): f64 {
-		return self.K * self.Theta
+		return self.K / self.Theta
 	}
 
 	// Computes the mode of the distribution.
@@ -167,11 +135,11 @@ impl Gamma {
 	// Returns 0 if k<1.
 	//
 	// Formula:
-	//	- If k >= 1: Mode = (k - 1) * θ
+	//	- If k >= 1: Mode = (k - 1) / θ
 	//	- If k < 1: The mode is at x = 0 (or undefined for k<=0, but handled by constructor).
 	fn Mode(*self): f64 {
 		if self.K >= 1 {
-			return (self.K - 1) * self.Theta
+			return (self.K - 1) / self.Theta
 		}
 		return 0 // Mode is at 0 for k < 1
 	}
@@ -277,49 +245,13 @@ impl Gamma {
 	}
 
 	// Computes the variance of the distribution.
-	// Variance measures how far the numbers are spread out from the average value.
-	//
-	// Formula:
-	//	Var(X) = k * θ²
 	fn Variance(*self): f64 {
-		return self.K * self.Theta * self.Theta
+		return self.K / self.Theta / self.Theta
 	}
 
 	// Computes the standard deviation of the distribution.
 	// The standard deviation is the square root of the variance, measuring the spread of the distribution.
-	//
-	// Formula:
-	//	StdDev = sqrt(k * θ^2) = θ * sqrt(k)
 	fn StdDev(*self): f64 {
-		return math::Sqrt(self.Variance())
-	}
-
-	// Estimates the parameters (k, θ) of the distribution from sample data
-	// using the method of moments. Requires at least 2 non-negative samples.
-	fn Fit(mut *self, samples: []f64) {
-		n := len(samples)
-		if n < 2 {
-			panic("dist: Fit requires at least 2 samples for Gamma distribution")
-		}
-
-		let mut sum: f64
-		let mut sumsq: f64
-		for _, x in samples {
-			if x < 0 {
-				panic("dist: negative sample value")
-			}
-			sum += x
-			sumsq += x * x
-		}
-
-		mean := sum / f64(n)
-		variance := (sumsq - f64(n)*mean*mean) / f64(n-1)
-
-		if variance <= 0 {
-			panic("dist: non-positive sample variance")
-		}
-
-		self.K = mean * mean / variance
-		self.Theta = variance / mean
+		return math::Sqrt(self.K) / self.Theta
 	}
 }

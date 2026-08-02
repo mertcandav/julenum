@@ -210,7 +210,7 @@ impl Bernoulli {
 	//	Note: Returns NaN if p is 0 or 1.
 	fn Skewness(*self): f64 {
 		if self.P == 0 || self.P == 1 {
-			return math::NaN() // Skewness is undefined for degenerate distributions
+			return math::NaN() // Skewness is undefined for degenerate distributions.
 		}
 		return (1 - 2*self.P) / math::Sqrt(self.P*(1-self.P))
 	}

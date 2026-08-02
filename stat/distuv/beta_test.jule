@@ -113,28 +113,3 @@ fn testBetaRand(t: &testing::T) {
 		t.Errorf("Rand() = {}, expected in [0, 1]", sample)
 	}
 }
-
-#test
-fn testBetaFit(t: &testing::T) {
-	// Known parameters
-	trueAlpha := 2.0
-	trueBeta := 5.0
-	b := Beta{Alpha: trueAlpha, Beta: trueBeta}
-
-	// Generate samples
-	mut samples := make([]f64, 50000)
-	for i in samples {
-		samples[i] = b.Rand()
-	}
-
-	// Fit to new Gamma
-	let mut fitted: Gamma
-	fitted.Fit(samples)
-
-	if !jn::Tolerance(fitted.Mean(), b.Mean(), b.Mean()*0.15) {
-		t.Errorf("Fitted mean off: got {}, want ~{}", fitted.Mean(), b.Mean())
-	}
-	if !jn::Tolerance(fitted.Variance(), b.Variance(), b.Variance()*0.25) {
-		t.Errorf("Fitted variance off: got {}, want ~{}", fitted.Variance(), b.Variance())
-	}
-}

@@ -262,33 +262,4 @@ impl Beta {
 	fn StdDev(*self): f64 {
 		return math::Sqrt(self.Variance())
 	}
-
-	// Estimates the parameters α and β of the distribution
-	// from sample data using the method of moments.
-	// All sample values must be either 0 or 1.
-	fn Fit(mut *self, samples: []f64) {
-		if len(samples) == 0 {
-			panic("dist: cannot fit Beta distribution to empty sample")
-		}
-		let mut sum: f64
-		let mut sumSq: f64
-		for _, x in samples {
-			if x < 0 || x > 1 {
-				panic("dist: invalid sample value, expected in range [0, 1]")
-			}
-			sum += x
-			sumSq += x * x
-		}
-		n := f64(len(samples))
-		mean := sum / n
-		variance := (sumSq - n*mean*mean) / (n - 1)
-
-		if variance <= 0 {
-			panic("dist: non-positive sample variance")
-		}
-
-		common := mean*(1-mean)/variance - 1
-		self.Alpha = mean * common
-		self.Beta = (1 - mean) * common
-	}
 }
