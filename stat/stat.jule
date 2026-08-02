@@ -20,7 +20,7 @@ use "std/math/rand"
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn ChiSquare[T: float](obs: []T, exp: []T): f64 {
+fn ChiSquare[S: ~[]T, T: float](obs: S, exp: S): f64 {
 	if len(obs) != len(exp) {
 		panic("stat: ChiSquare: different vector lengths")
 	}
@@ -46,7 +46,7 @@ fn ChiSquare[T: float](obs: []T, exp: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
+fn ChiSquareDistance[S: ~[]T, T: float](x: S, y: S): f64 {
 	if len(x) != len(y) {
 		panic("stat: ChiSquareDistance: different vector lengths")
 	}
@@ -74,7 +74,7 @@ fn ChiSquareDistance[T: float](x: []T, y: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn Mean[T: integer | float](x: []T, weights: []T): f64 {
+fn Mean[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: Mean: len(x) != len(weights)")
 	}
@@ -106,7 +106,7 @@ fn Mean[T: integer | float](x: []T, weights: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
+fn GeometricMean[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: GeometricMean: len(x) != len(weights)")
 	}
@@ -143,7 +143,7 @@ fn GeometricMean[T: integer | float](x: []T, weights: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
+fn HarmonicMean[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: HarmonicMean: len(x) != len(weights)")
 	}
@@ -179,7 +179,7 @@ fn HarmonicMean[T: integer | float](x: []T, weights: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
+fn RootMeanSquare[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: RootMeanSquare: len(x) != len(weights)")
 	}
@@ -212,7 +212,7 @@ fn RootMeanSquare[T: integer | float](x: []T, weights: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
+fn CircularMean[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: CircularMean: len(x) != len(weights)")
 	}
@@ -240,7 +240,7 @@ fn CircularMean[T: integer | float](x: []T, weights: []T): f64 {
 }
 
 #disable boundary
-fn quickSelect[T: comparable](mut x: []T, k: int): T {
+fn quickSelect[S: ~[]T, T: comparable](mut x: S, k: int): T {
 	mut left, mut right := 0, len(x)-1
 	for {
 		if left == right {
@@ -263,7 +263,7 @@ fn quickSelect[T: comparable](mut x: []T, k: int): T {
 
 // Rearranges elements and returns the pivot's final index.
 #disable boundary
-fn partition[T: comparable](mut x: []T, left: int, right: int, pivotIndex: int): int {
+fn partition[S: ~[]T, T: comparable](mut x: S, left: int, right: int, pivotIndex: int): int {
 	pivotValue := x[pivotIndex]
 	// Move pivot to end.
 	x[pivotIndex], x[right] = x[right], x[pivotIndex]
@@ -280,7 +280,7 @@ fn partition[T: comparable](mut x: []T, left: int, right: int, pivotIndex: int):
 	return storeIndex
 }
 
-fn medianInPlace[T: integer | float](mut x: []T): f64 {
+fn medianInPlace[S: ~[]T, T: integer | float](mut x: S): f64 {
 	n := len(x)
 	mid := n >> 1
 	if n&1 == 1 {
@@ -300,11 +300,11 @@ fn medianInPlace[T: integer | float](mut x: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn Median[T: integer | float](x: []T): f64 {
+fn Median[S: ~[]T, T: integer | float](x: S): f64 {
 	if len(x) == 0 {
 		panic("stat: Median: median of empty slice")
 	}
-	mut xc := make([]T, len(x))
+	mut xc := make(S, len(x))
 	copy(xc, x)
 	return medianInPlace(xc)
 }
@@ -316,7 +316,7 @@ fn Median[T: integer | float](x: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn MedianInPlace[T: integer | float](mut x: []T): f64 {
+fn MedianInPlace[S: ~[]T, T: integer | float](mut x: S): f64 {
 	if len(x) == 0 {
 		panic("stat: MedianInPlace: median of empty slice")
 	}
@@ -335,7 +335,7 @@ fn MedianInPlace[T: integer | float](mut x: []T): f64 {
 //	Biased covariance:   covXY / sumW
 //	Unbiased covariance: covXY / (sumW - sumW2/sumW)
 #disable boundary
-fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64, sumW2: f64, meanX: f64, meanY: f64, varX: f64, varY: f64, covXY: f64) {
+fn meanCovariance[S: ~[]T, T: integer | float](x: S, y: S, weights: S): (sumW: f64, sumW2: f64, meanX: f64, meanY: f64, varX: f64, varY: f64, covXY: f64) {
 	mut compensationX, mut compensationY := 0.0, 0.0
 	if len(weights) == 0 {
 		sumW = f64(len(x))
@@ -407,7 +407,7 @@ fn meanCovariance[T: integer | float](x: []T, y: []T, weights: []T): (sumW: f64,
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn Correlation[T: integer | float](x: []T, y: []T, weights: []T): f64 {
+fn Correlation[S: ~[]T, T: integer | float](x: S, y: S, weights: S): f64 {
 	if len(x) != len(y) {
 		panic("stat: Correlation: len(x) != len(y)")
 	}
@@ -433,7 +433,7 @@ fn Correlation[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 // The two-pass method first computes the mean, then computes
 // the variance using the mean, reducing floating-point errors.
 #disable boundary
-fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f64) {
+fn meanVariance[S: ~[]T, T: integer | float](x: S, weights: S): (meanX: f64, varX: f64) {
 	mut n := f64(len(x))
 	mut compensationX := 0.0
 	if len(weights) == 0 {
@@ -491,7 +491,7 @@ fn meanVariance[T: integer | float](x: []T, weights: []T): (meanX: f64, varX: f6
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn MeanVariance[T: integer | float](x: []T, weights: []T): (f64, f64) {
+fn MeanVariance[S: ~[]T, T: integer | float](x: S, weights: S): (f64, f64) {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: MeanVariance: len(x) != len(weights)")
 	}
@@ -508,7 +508,7 @@ fn MeanVariance[T: integer | float](x: []T, weights: []T): (f64, f64) {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn Variance[T: integer | float](x: []T, weights: []T): f64 {
+fn Variance[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	if len(weights) > 0 && len(x) != len(weights) {
 		panic("stat: Variance: len(x) != len(weights)")
 	}
@@ -527,7 +527,7 @@ fn Variance[T: integer | float](x: []T, weights: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn Covariance[T: integer | float](x: []T, y: []T, weights: []T): f64 {
+fn Covariance[S: ~[]T, T: integer | float](x: S, y: S, weights: S): f64 {
 	if len(x) != len(y) {
 		panic("stat: Covariance: len(x) != len(y)")
 	}
@@ -550,7 +550,7 @@ fn Covariance[T: integer | float](x: []T, y: []T, weights: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn Entropy[T: integer | float](p: []T): f64 {
+fn Entropy[S: ~[]T, T: integer | float](p: S): f64 {
 	mut e := 0.0
 	for _, p_i in p {
 		// 0 * logₑ(0) == 0
@@ -572,7 +572,7 @@ fn Entropy[T: integer | float](p: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
+fn CrossEntropy[S: ~[]T, T: integer | float](p: S, q: S): f64 {
 	if len(p) != len(q) {
 		panic("stat: CrossEntropy: len(p) != len(q)")
 	}
@@ -597,7 +597,7 @@ fn CrossEntropy[T: integer | float](p: []T, q: []T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn EuclideanDistance[T: integer | float](p1: []T, p2: []T): f64 {
+fn EuclideanDistance[S: ~[]T, T: integer | float](p1: S, p2: S): f64 {
 	if len(p1) != len(p2) {
 		panic("stat: EuclideanDistance: len(p1) != len(p2)")
 	}
@@ -646,7 +646,7 @@ fn Sigmoid[T: integer | float](x: T): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bool): (alpha: f64, beta: f64) {
+fn LinearRegression[S: ~[]T, T: integer | float](x: S, y: S, weights: S, origin: bool): (alpha: f64, beta: f64) {
 	if len(x) != len(y) {
 		panic("stat: LinearRegression: len(x) != len(y)")
 	}
@@ -686,7 +686,7 @@ fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bo
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn MeanStdDev[T: integer | float](x: []T, weights: []T): (mean: f64, std: f64) {
+fn MeanStdDev[S: ~[]T, T: integer | float](x: S, weights: S): (mean: f64, std: f64) {
 	mean, variance := MeanVariance(x, weights)
 	return mean, math::Sqrt(variance)
 }
@@ -698,7 +698,7 @@ fn MeanStdDev[T: integer | float](x: []T, weights: []T): (mean: f64, std: f64) {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn StdDev[T: integer | float](x: []T, weights: []T): f64 {
+fn StdDev[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	var := Variance(x, weights)
 	return math::Sqrt(var)
 }
@@ -727,7 +727,7 @@ fn StdScore(x: f64, mean: f64, stdDev: f64): f64 {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
+fn Mode[S: ~[]T, T: integer | float](x: S, weights: S): (val: f64, count: f64) {
 	if len(weights) != 0 && len(x) != len(weights) {
 		panic("stat: Mode: len(x) != len(weights)")
 	}
@@ -765,7 +765,7 @@ fn Mode[T: integer | float](x: []T, weights: []T): (val: f64, count: f64) {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn BivariateMoment[T: integer | float](r: f64, s: f64, x: []T, y: []T, weights: []T): f64 {
+fn BivariateMoment[S: ~[]T, T: integer | float](r: f64, s: f64, x: S, y: S, weights: S): f64 {
 	meanX := Mean(x, weights)
 	meanY := Mean(y, weights)
 	if len(x) != len(y) {
@@ -808,7 +808,7 @@ fn BivariateMoment[T: integer | float](r: f64, s: f64, x: []T, y: []T, weights: 
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn Moment[T: integer | float](moment: f64, x: []T, weights: []T): f64 {
+fn Moment[S: ~[]T, T: integer | float](moment: f64, x: S, weights: S): f64 {
 	// This also checks that x and weights have the same length.
 	mean := Mean(x, weights)
 	if weights == nil {
@@ -839,7 +839,7 @@ fn Moment[T: integer | float](moment: f64, x: []T, weights: []T): f64 {
 //
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
-fn MomentAbout[T: integer | float](moment: f64, x: []T, mean: f64, weights: []T): f64 {
+fn MomentAbout[S: ~[]T, T: integer | float](moment: f64, x: S, mean: f64, weights: S): f64 {
 	if weights == nil {
 		let mut m: f64
 		for _, v in x {
@@ -878,7 +878,7 @@ fn Bayes[T: float](prior: T, likelihood: T, evidence: T): T {
 // Computations are performed using 64-bit floating-point precision and
 // result is in the same precision, casting to proper type is responsibility of the developer.
 #disable boundary
-fn Skew[T: integer | float](x: []T, weights: []T): f64 {
+fn Skew[S: ~[]T, T: integer | float](x: S, weights: S): f64 {
 	mean, std := MeanStdDev(x, weights)
 	if weights == nil {
 		let mut s: f64

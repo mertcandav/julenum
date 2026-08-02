@@ -28,7 +28,7 @@ use "std/slices"
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use 64-bit floating-point type.
-fn Simpsons[T: integer | float](x: []T, f: []T): T {
+fn Simpsons[S: ~[]T, T: integer | float](x: S, f: S): T {
 	n := len(x)
 	match {
 	| len(f) != n:

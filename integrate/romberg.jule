@@ -31,7 +31,7 @@ use "std/math/bits"
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use 64-bit floating-point type.
-fn Romberg[T: integer | float](f: []T, dx: T): T {
+fn Romberg[S: ~[]T, T: integer | float](f: S, dx: T): T {
 	if len(f) < 3 {
 		panic("integral: invalid slice length: must be at least 3")
 	}

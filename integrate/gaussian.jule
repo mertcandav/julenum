@@ -25,7 +25,7 @@ use "std/slices"
 // Computations are performed using 64-bit floating-point precision.
 // The result is returned as type T, which may cause rounding errors or loss of precision.
 // To preserve exact results, use 64-bit floating-point type.
-fn Gaussian[T: integer | float](x: []T, f: []T): T {
+fn Gaussian[S: ~[]T, T: integer | float](x: S, f: S): T {
 	n := len(x)
 	if n < 2 {
 		panic("integrate: input data too small")
