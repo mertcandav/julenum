@@ -681,6 +681,16 @@ fn LinearRegression[T: integer | float](x: []T, y: []T, weights: []T, origin: bo
 	return
 }
 
+// Returns the sample mean and unbiased standard deviation
+// When weights sum to 1 or less, a biased variance estimator should be used.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+fn MeanStdDev[T: integer | float](x: []T, weights: []T): (mean: f64, std: f64) {
+	mean, variance := MeanVariance(x, weights)
+	return mean, math::Sqrt(variance)
+}
+
 // Computes the weighted sample standard deviation.
 //
 // If len(weights) == 0, then all of the weights are 1.
