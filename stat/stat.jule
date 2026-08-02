@@ -818,6 +818,39 @@ fn Moment[T: integer | float](moment: f64, x: []T, weights: []T): f64 {
 	return m / sumWeights
 }
 
+// Computes the weighted n^th weighted moment of the samples about
+// the given mean \mu,
+//
+//	E[(x - μ)^N]
+//
+// No degrees of freedom correction is done.
+// If weights is nil then all of the weights are 1. If weights is not nil, then
+// len(x) must equal len(weights).
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+fn MomentAbout[T: integer | float](moment: f64, x: []T, mean: f64, weights: []T): f64 {
+	if weights == nil {
+		let mut m: f64
+		for _, v in x {
+			m += math::Pow(f64(v)-mean, moment)
+		}
+		m /= f64(len(x))
+		return m
+	}
+	if len(weights) != len(x) {
+		panic("stat: slice length mismatch")
+	}
+	let mut m: f64
+	let mut sumWeights: f64
+	for i, v in x {
+		w := f64(weights[i])
+		m += w * math::Pow(f64(v)-mean, moment)
+		sumWeights += w
+	}
+	return m / sumWeights
+}
+
 // Computes the posterior probability P(A|B) using Bayes' Theorem:
 //	P(A|B) = P(B|A) * P(A) / P(B)
 fn Bayes[T: float](prior: T, likelihood: T, evidence: T): T {

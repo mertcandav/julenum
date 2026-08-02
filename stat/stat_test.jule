@@ -698,6 +698,109 @@ fn testMode(t: &testing::T) {
 	}
 }
 
+struct momentTest {
+	x:       []f64
+	y:       []f64
+	weights: []f64
+	r:       f64
+	s:       f64
+	ans:     f64
+}
+
+let mut bivariateMomentTests: []momentTest = [
+	{
+		x:   [10, 2, 1, 8, 5],
+		y:   [8, 15, 1, 6, 3],
+		r:   1,
+		s:   1,
+		ans: 0.48,
+	},
+	{
+		x:       [10, 2, 1, 8, 5],
+		y:       [8, 15, 1, 6, 3],
+		weights: [1, 1, 1, 1, 1],
+		r:       1,
+		s:       1,
+		ans:     0.48,
+	},
+	{
+		x:       [10, 2, 1, 8, 5],
+		y:       [8, 15, 1, 6, 3],
+		weights: [2, 3, 0.2, 8, 4],
+		r:       1,
+		s:       1,
+		ans:     -4.786371011357490,
+	},
+	{
+		x:       [10, 2, 1, 8, 5],
+		y:       [8, 15, 1, 6, 3],
+		weights: [2, 3, 0.2, 8, 4],
+		r:       2,
+		s:       3,
+		ans:     1.598600579313326e+03,
+	},
+]
+
+#test
+fn testBivariateMoment(t: &testing::T) {
+	for i, test in bivariateMomentTests {
+		m := BivariateMoment(test.r, test.s, test.x, test.y, test.weights)
+		if math::Abs(test.ans-m) > 1e-14 {
+			t.Errorf("Moment mismatch case {}. Expected {}, found {}", i, test.ans, m)
+		}
+	}
+}
+
+let mut momentTests: []momentTest = [
+	{
+		x:   [6, 2, 4, 8, 10],
+		r:   5,
+		ans: 0,
+	},
+	{
+		x:       [6, 2, 4, 8, 10],
+		weights: [1, 2, 2, 2, 1],
+		r:       5,
+		ans:     121.875,
+	},
+]
+
+#test
+fn testMoment(t: &testing::T) {
+	for i, test in momentTests {
+		m := Moment(test.r, test.x, test.weights)
+		if math::Abs(test.ans-m) > 1e-14 {
+			t.Errorf("Moment mismatch case {}. Expected {}, found {}", i, test.ans, m)
+		}
+	}
+}
+
+let mut momentAboutTests: []momentTest = [
+	{
+		x:   [6, 2, 4, 8, 9],
+		s:   3,
+		r:   5,
+		ans: 2.2288e3,
+	},
+	{
+		x:       [6, 2, 4, 8, 9],
+		weights: [1, 2, 2, 2, 1],
+		s:       3,
+		r:       5,
+		ans:     1.783625e3,
+	},
+]
+
+#test
+fn testMomentAbout(t: &testing::T) {
+	for i, test in momentAboutTests {
+		m := MomentAbout(test.r, test.x, test.s, test.weights)
+		if math::Abs(test.ans-m) > 1e-14 {
+			t.Errorf("MomentAbout mismatch case {}. Expected {}, found {}", i, test.ans, m)
+		}
+	}
+}
+
 struct bayesTest {
 	prior:      f64
 	likelihood: f64
