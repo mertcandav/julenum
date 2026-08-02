@@ -869,3 +869,37 @@ fn Bayes[T: float](prior: T, likelihood: T, evidence: T): T {
 	}
 	return (likelihood * prior) / evidence
 }
+
+// Computes the skewness of the sample data.
+// If weights is nil then all of the weights are 1. If weights is not nil, then
+// len(x) must equal len(weights).
+// When weights sum to 1 or less, a biased variance estimator should be used.
+//
+// Computations are performed using 64-bit floating-point precision and
+// result is in the same precision, casting to proper type is responsibility of the developer.
+#disable boundary
+fn Skew[T: integer | float](x: []T, weights: []T): f64 {
+	mean, std := MeanStdDev(x, weights)
+	if weights == nil {
+		let mut s: f64
+		for _, v in x {
+			z := (f64(v) - mean) / std
+			s += z * z * z
+		}
+		return s * skewCorrection(f64(len(x)))
+	}
+	let mut s: f64
+	let mut sumWeights: f64
+	for i, v in x {
+		z := (f64(v) - mean) / std
+		w := f64(weights[i])
+		s += w * z * z * z
+		sumWeights += w
+	}
+	return s * skewCorrection(sumWeights)
+}
+
+// From: http://www.amstat.org/publications/jse/v19n2/doane.pdf page 7
+fn skewCorrection(n: f64): f64 {
+	return (n / (n - 1)) * (1 / (n - 2))
+}

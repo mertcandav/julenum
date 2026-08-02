@@ -856,3 +856,37 @@ fn testBayes(t: &testing::T) {
 		}
 	}
 }
+
+struct skewTest {
+	x:       []f64
+	weights: []f64
+	ans:     f64
+}
+
+let mut testsSkew: []skewTest = [
+	{
+		x:       [8, 3, 7, 8, 4],
+		weights: nil,
+		ans:     -0.581456499151665,
+	},
+	{
+		x:       [8, 3, 7, 8, 4],
+		weights: [1, 1, 1, 1, 1],
+		ans:     -0.581456499151665,
+	},
+	{
+		x:       [8, 3, 7, 8, 4],
+		weights: [2, 1, 2, 1, 1],
+		ans:     -1.12066646837198,
+	},
+]
+
+#test
+fn testSkew(t: &testing::T) {
+	for i, test in testsSkew {
+		skew := Skew(test.x, test.weights)
+		if math::Abs(skew-test.ans) > 1e-14 {
+			t.Errorf("Skew mismatch case {}. Expected {}, Found {}", i, test.ans, skew)
+		}
+	}
+}
