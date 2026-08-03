@@ -2,264 +2,155 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+// Implementation derived from the gonum.
+//
+// Copyright ©2016 The Gonum Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 use jn "julenum"
 use "std/math"
 use "std/math/rand"
 
-// Represents a Beta distribution.
-// It is a continuous probability distribution defined on the interval [0, 1].
-// It is parameterized by two positive shape parameters, alpha (α) and beta (β).
-// The Beta distribution is often used to model the behavior of random variables
-// restricted to intervals of finite length, such as probabilities or proportions.
+// Implements the Beta distribution, a two-parameter continuous distribution
+// with support between 0 and 1.
 //
-// Uses the RNG for randomness. It may be nil.
-// Implementation will use global random functions if RNG is nil.
+// The beta distribution has density function
 //
-// Parameters:
-//	- Alpha (α): First shape parameter (α > 0).
-//	- Beta (β): Second shape parameter (β > 0).
+//	x^(α-1) * (1-x)^(β-1) * Γ(α+β) / (Γ(α)*Γ(β))
+//
+// For more information, see https://en.wikipedia.org/wiki/Beta_distribution
 struct Beta {
-	Alpha: f64 // Shape parameter alpha
-	Beta:  f64 // Shape parameter beta
-	RNG:   &rand::Rand
+	// The left shape parameter of the distribution. Alpha must be greater than 0.
+	Alpha: f64
+
+	// The right shape parameter of the distribution. Beta must be greater than 0.
+	Beta: f64
+
+	Rng: &rand::Rand
 }
 
 impl Beta {
-	// Returns the number of parameters required to define the distribution.
-	fn NumParams(*self): int {
-		return 2
-	}
-
-	// Computes the Cumulative Distribution Function (CDF) at x.
-	// The CDF is the probability that a random variable X is less than or equal to a given value x.
-	// For the Beta distribution, the CDF is given by the regularized incomplete beta function I_x(α, β).
-	// x must be in the interval [0, 1].
-	//
-	// Formula:
-	//	CDF(x) = I_x(α, β)
-	//	where I_x(α, β) is the regularized incomplete beta function.
+	// Computes the value of the cumulative distribution function at x.
 	fn CDF(*self, x: f64): f64 {
-		if x < 0 {
+		if x <= 0 {
 			return 0
 		}
-		if x > 1 {
+		if x >= 1 {
 			return 1
 		}
 		return jn::RegIncBeta(self.Alpha, self.Beta, x)
 	}
 
-	// Computes the Probability Density Function (PDF) at x.
-	// The PDF gives the relative likelihood for this continuous random variable to take on a given value.
-	// x must be in the interval [0, 1].
-	//
-	// Formula:
-	//	PDF(x) = (x^(α-1) * (1-x)^(β-1)) / Beta(α, β)
-	//	where Beta(α, β) is the Beta function.
-	fn PDF(*self, x: f64): f64 {
-		if x < 0 || x > 1 {
-			return 0
+	// Returns the differential entropy of the distribution.
+	fn Entropy(*self): f64 {
+		if self.Alpha <= 0 || self.Beta <= 0 {
+			panic("beta: negative parameters")
 		}
-		if x == 0 {
-			if self.Alpha == 1 && self.Beta == 1 {
-				return 1 // Uniform distribution
-			}
-			if self.Alpha < 1 {
-				return math::Inf(1) // PDF goes to infinity at x=0 if alpha < 1
-			}
-			return 0 // PDF is 0 at x=0 if alpha > 1
-		}
-		if x == 1 {
-			if self.Alpha == 1 && self.Beta == 1 {
-				return 1 // Uniform distribution
-			}
-			if self.Beta < 1 {
-				return math::Inf(1) // PDF goes to infinity at x=1 if beta < 1
-			}
-			return 0 // PDF is 0 at x=1 if beta > 1
-		}
-
-		// Compute Beta function using Gamma function: Beta(α, β) = Γ(α)Γ(β) / Γ(α + β)
-		betaFunc := math::Gamma(self.Alpha) * math::Gamma(self.Beta) / math::Gamma(self.Alpha+self.Beta)
-
-		numerator := math::Pow(x, self.Alpha-1) * math::Pow(1.0-x, self.Beta-1)
-		return numerator / betaFunc
+		a, b := self.Alpha, self.Beta
+		return jn::Lbeta(a, b) - (a-1)*jn::Digamma(a) -
+			(b-1)*jn::Digamma(b) + (a+b-2)*jn::Digamma(a+b)
 	}
 
-	// LogProb calculates the natural logarithm of the Probability Density Function (PDF) for the distribution.
-	// This is often used in maximum likelihood estimation to avoid underflow with very small probabilities.
-	//
-	// Formula:
-	//   log(PDF(x)) = (α - 1)log(x) + (β - 1)log(1 - x) - log(Beta(α, β))
-	//   where Beta(α, β) is the Beta function.
-	//
-	// Parameters:
-	//   - x: The value for which to calculate the log probability. Must be in the interval [0, 1].
-	//
-	// Returns:
-	//   The natural logarithm of the PDF at x. Returns -Inf if x is outside [0, 1].
-	fn LogPDF(*self, x: f64): f64 {
+	// Returns the excess kurtosis of the distribution.
+	fn ExKurtosis(*self): f64 {
+		a, b := self.Alpha, self.Beta
+		num := 6 * ((a-b)*(a-b)*(a+b+1) - a*b*(a+b+2))
+		den := a * b * (a + b + 2) * (a + b + 3)
+		return num / den
+	}
+
+	// Computes the natural logarithm of the value of the probability
+	// density function at x.
+	fn LogProb(*self, x: f64): f64 {
 		if x < 0 || x > 1 {
 			return math::Inf(-1)
 		}
-		if x == 0 {
-			if self.Alpha == 1 {
-				if self.Beta == 1 {
-					return 0 // Uniform distribution (log(1))
-				}
-				// If Alpha = 1, then log(x) term disappears. If x=0, log(0) is -Inf unless Alpha=1.
-				// log(PDF(0)) -> (beta-1)log(1) - log(Beta(alpha,beta))
-				// If x = 0 and alpha > 1, then log(0) = -Inf.
-				// If x = 0 and alpha = 1, term (alpha-1)log(x) is 0 * log(0), which is problematic.
-				// This case needs careful handling. The PDF is 0 at x=0 for alpha > 1.
-				// So log(0) = -Inf.
-				// For alpha = 1, x=0, and beta > 1, the PDF is non-zero (beta-1).
-				// If alpha < 1, PDF goes to infinity at x=0. Log(PDF) goes to Inf.
-				if self.Alpha < 1 {
-					return math::Inf(1)
-				}
-				return math::Inf(-1)
-			}
-			return math::Inf(-1) // PDF is 0 at x=0 for alpha > 1
-		}
-		if x == 1 {
-			if self.Beta < 1 {
-				return math::Inf(1)
-			}
-			if self.Beta == 1 {
-				// Similar logic as x=0, alpha=1
-				if self.Alpha == 1 {
-					return 0 // Uniform distribution (log(1))
-				}
-				return math::Inf(-1) // PDF is 0 at x=1 for beta > 1
-			}
-			return math::Inf(-1) // PDF is 0 at x=1 for beta > 1
+
+		if self.Alpha <= 0 || self.Beta <= 0 {
+			panic("beta: negative parameters")
 		}
 
-		// Compute log Beta function using Lgamma function
-		lgamAlpha, _ := math::Lgamma(self.Alpha)
-		lgamBeta, _ := math::Lgamma(self.Beta)
-		lgamAlphaBeta, _ := math::Lgamma(self.Alpha + self.Beta)
-		logBetaFunc := lgamAlpha + lgamBeta - lgamAlphaBeta
-
-		return (self.Alpha-1)*math::Log(x) + (self.Beta-1)*math::Log(1.0-x) - logBetaFunc
+		lab, _ := math::Lgamma(self.Alpha + self.Beta)
+		la, _ := math::Lgamma(self.Alpha)
+		lb, _ := math::Lgamma(self.Beta)
+		let mut lx: f64
+		if self.Alpha != 1 {
+			lx = (self.Alpha - 1) * math::Log(x)
+		}
+		let mut l1mx: f64
+		if self.Beta != 1 {
+			l1mx = (self.Beta - 1) * math::Log(1-x)
+		}
+		return lab - la - lb + lx + l1mx
 	}
 
-	// Computes the Survival Function (SF), also known as the Complementary Cumulative Distribution Function (CCDF).
-	// The Survival Function is the probability that a random variable X is greater than a given value x.
-	// SF(x) = P(X > x) = 1 - CDF(x)
-	fn Survival(*self, x: f64): f64 {
-		return 1 - self.CDF(x)
-	}
-
-	// Computes the Quantile Function (inverse CDF) for the distribution.
-	// The quantile function returns the value x such that the probability of a random variable
-	// being less than or equal to x is p. This requires numerically solving I_x(α, β) = p.
-	// Returns NaN if p is outside [0, 1].
-	fn Quantile(*self, p: f64): f64 {
-		if p < 0 || p > 1 {
-			return math::NaN()
-		}
-		if p == 0 {
-			return 0
-		}
-		if p == 1 {
-			return 1
-		}
-		return jn::InvRegIncBeta(self.Alpha, self.Beta, p)
-	}
-
-	// Computes the entropy of the distribution.
-	// Entropy measures the uncertainty or randomness of the distribution.
-	//
-	// Formula:
-	//	H(X) = log(Beta(α, β)) - (α - 1)ψ(α) - (β - 1)ψ(β) + (α + β - 2)ψ(α + β)
-	//	where Beta(α, β) is the Beta function, and ψ is the digamma function.
-	fn Entropy(*self): f64 {
-		return math::Log(math::Gamma(self.Alpha)*math::Gamma(self.Beta)/math::Gamma(self.Alpha+self.Beta)) -
-			(self.Alpha-1)*jn::Digamma(self.Alpha) -
-			(self.Beta-1)*jn::Digamma(self.Beta) +
-			(self.Alpha+self.Beta-2)*jn::Digamma(self.Alpha+self.Beta)
-	}
-
-	// Computes the excess kurtosis of the distribution.
-	// Excess kurtosis measures the "tailedness" of the distribution relative to a normal distribution.
-	// A positive excess kurtosis indicates "fat tails" (more outliers), while a negative value indicates "thin tails".
-	//
-	// Formula:
-	//	Excess Kurtosis = 6 * ((α + β + 1) * (α * β - α - β - 1) + 2) / ((α + β + 2) * (α + β + 3))
-	//	More precisely, for a Beta(α, β) distribution:
-	//	Kurtosis = (6 * ( (α + β + 1) * (α * β - α - β - 1) + 2 ) ) / ( (α + β + 2) * (α + β + 3) * α * β )
-	//	Excess Kurtosis = Kurtosis - 3
-	fn ExcessKurtosis(*self): f64 {
-		term1 := 6 * ((self.Alpha+self.Beta+1)*(self.Alpha*self.Beta-self.Alpha-self.Beta-1) + 2)
-		term2 := (self.Alpha + self.Beta + 2) * (self.Alpha + self.Beta + 3) * self.Alpha * self.Beta
-		if term2 == 0 {
-			return math::Inf(1)
-		}
-		return term1 / term2
-	}
-
-	// Computes the mean (expected value) of the distribution.
-	//
-	// Formula:
-	//	E[X] = α / (α + β)
+	// Returns the mean of the probability distribution.
 	fn Mean(*self): f64 {
 		return self.Alpha / (self.Alpha + self.Beta)
 	}
 
-	// Computes the mode of the distribution.
-	// The mode is the value at which the probability density function (PDF) is maximized.
+	// Returns the mode of the distribution.
 	//
-	// Formula:
-	//	- If α > 1 and β > 1: Mode = (α - 1) / (α + β - 2)
-	//	- If α <= 1 and β <= 1: The mode is not unique or is at the boundary.
-	//	  - If α = 1 and β = 1: Any value in [0, 1] (Uniform distribution). Returns 0.5.
-	//	  - If α < 1 and β = 1: Mode = 0.
-	//	  - If α = 1 and β < 1: Mode = 1.
-	//	  - If α < 1 and β < 1: Bimodal, modes at 0 and 1. Conventionally, returns NaN or one of the modes.
-	//	    Here, we'll return NaN for non-unique modes, or the boundary mode.
+	// Mode returns NaN if both parameters are less than or equal to 1 as a special case,
+	// 0 if only Alpha <= 1 and 1 if only Beta <= 1.
 	fn Mode(*self): f64 {
-		if self.Alpha > 1 && self.Beta > 1 {
-			return (self.Alpha - 1) / (self.Alpha + self.Beta - 2)
-		} else if self.Alpha == 1 && self.Beta == 1 {
-			return 0.5 // Uniform distribution, any value in [0, 1] is a mode
-		} else if self.Alpha < 1 && self.Beta >= 1 {
-			return 0 // Mode at 0
-		} else if self.Alpha >= 1 && self.Beta < 1 {
-			return 1 // Mode at 1
-		} else if self.Alpha < 1 && self.Beta < 1 {
-			// Bimodal distribution with modes at 0 and 1.
-			// Returning NaN to indicate non-unique/well-defined mode.
-			return math::NaN()
+		if self.Alpha <= 1 {
+			if self.Beta <= 1 {
+				return math::NaN()
+			}
+			return 0
 		}
-		return math::NaN() // Should not reach here, but for completeness.
+		if self.Beta <= 1 {
+			return 1
+		}
+		return (self.Alpha - 1) / (self.Alpha + self.Beta - 2)
 	}
 
-	// Returns a random number from the distribution.
-	// This typically uses a transformation from Gamma-distributed random variables.
-	// If X ~ Gamma(α, 1) and Y ~ Gamma(β, 1), then X / (X + Y) ~ Beta(α, β).
+	// Returns the number of parameters in the distribution.
+	fn NumParameters(*self): int {
+		return 2
+	}
+
+	// Computes the value of the probability density function at x.
+	fn Prob(*self, x: f64): f64 {
+		return math::Exp(self.LogProb(x))
+	}
+
+	// Returns the inverse of the cumulative distribution function.
+	fn Quantile(*self, p: f64): f64 {
+		if p < 0 || p > 1 {
+			panic(badPercentile)
+		}
+		return jn::InvRegIncBeta(self.Alpha, self.Beta, p)
+	}
+
+	// Returns a random sample drawn from the distribution.
 	fn Rand(*self): f64 {
-		ga := Gamma{K: self.Alpha, Theta: 1, RNG: self.RNG}.Rand()
-		gb := Gamma{K: self.Beta, Theta: 1, RNG: self.RNG}.Rand()
+		ga := Gamma{Alpha: self.Alpha, Beta: 1, Rng: self.Rng}.Rand()
+		gb := Gamma{Alpha: self.Beta, Beta: 1, Rng: self.Rng}.Rand()
 		return ga / (ga + gb)
 	}
 
-	// Computes the variance of distribution.
-	// Variance measures how far the numbers are spread out from the average value.
-	//
-	// Formula:
-	//	Var(X) = (αβ) / ((α + β)^2 * (α + β + 1))
-	fn Variance(*self): f64 {
-		sum := self.Alpha + self.Beta
-		return (self.Alpha * self.Beta) / (sum * sum * (sum + 1))
-	}
-
-	// Computes the standard deviation of distribution.
-	// The standard deviation is the square root of the variance, measuring the spread of the distribution.
-	//
-	// Formula:
-	//	StdDev = sqrt( (αβ) / ((α + β)^2 * (α + β + 1)) )
+	// Returns the standard deviation of the probability distribution.
 	fn StdDev(*self): f64 {
 		return math::Sqrt(self.Variance())
+	}
+
+	// Returns the survival function (complementary CDF) at x.
+	fn Survival(*self, x: f64): f64 {
+		match {
+		| x <= 0:
+			return 1
+		| x >= 1:
+			return 0
+		}
+		return jn::RegIncBeta(self.Beta, self.Alpha, 1-x)
+	}
+
+	// Variance returns the variance of the probability distribution.
+	fn Variance(*self): f64 {
+		a, b := self.Alpha, self.Beta
+		return a * b / ((a + b) * (a + b) * (a + b + 1))
 	}
 }

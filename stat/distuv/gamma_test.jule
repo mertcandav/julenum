@@ -8,7 +8,7 @@ use "std/testing"
 
 #test
 fn testGammaBasicStats(t: &testing::T) {
-	g := Gamma{K: 3, Theta: 2}
+	g := Gamma{Alpha: 3, Beta: 2}
 
 	mean := g.Mean()
 	if !jn::Tolerance(mean, 1.5, 1e-9) {
@@ -22,51 +22,27 @@ fn testGammaBasicStats(t: &testing::T) {
 	if !jn::Tolerance(std, math::Sqrt(0.75), 1e-9) {
 		t.Errorf("StdDev: got {}, want {}", std, math::Sqrt(12))
 	}
-	skewness := g.Skewness()
-	if !jn::Tolerance(skewness, 2.0/math::Sqrt(3), 1e-9) {
-		t.Errorf("Skewness incorrect")
-	}
-	exkurtosis := g.ExcessKurtosis()
+	exkurtosis := g.ExKurtosis()
 	if !jn::Tolerance(exkurtosis, 6.0/3.0, 1e-9) {
-		t.Errorf("ExcessKurtosis incorrect")
+		t.Errorf("ExKurtosis incorrect")
 	}
 }
 
 #test
-fn testGammaEntropy(t: &testing::T) {
-	g := Gamma{K: 2, Theta: 1}
-	got := g.Entropy()
-	if math::IsNaN(got) || math::IsInf(got, 0) {
-		t.Errorf("Entropy is invalid: {}", got)
-	}
-}
-
-#test
-fn testGammaMGF(t: &testing::T) {
-	g := Gamma{K: 2, Theta: 1}
-	tval := 0.5
-	got := g.MGF(tval)
-	expected := math::Pow(1.0-1.0*tval, -2)
-	if !jn::Tolerance(got, expected, 1e-9) {
-		t.Errorf("MGF incorrect: got {}, want {}", got, expected)
-	}
-}
-
-#test
-fn testGammaPDFandLogPDF(t: &testing::T) {
-	g := Gamma{K: 2, Theta: 2}
+fn testGammaPDFandLogProb(t: &testing::T) {
+	g := Gamma{Alpha: 2, Beta: 2}
 	x := 3.0
 
-	pdf := g.PDF(x)
-	logpdf := g.LogPDF(x)
+	pdf := g.Prob(x)
+	logpdf := g.LogProb(x)
 	if !jn::Tolerance(math::Log(pdf), logpdf, 1e-9) {
-		t.Errorf("LogPDF not equal to log(PDF): got {} vs {}", logpdf, math::Log(pdf))
+		t.Errorf("LogProb not equal to log(PDF): got {} vs {}", logpdf, math::Log(pdf))
 	}
 }
 
 #test
 fn testGammaCDFSurvival(t: &testing::T) {
-	g := Gamma{K: 2, Theta: 2}
+	g := Gamma{Alpha: 2, Beta: 2}
 	x := 4.0
 	cdf := g.CDF(x)
 	sf := g.Survival(x)
@@ -78,7 +54,7 @@ fn testGammaCDFSurvival(t: &testing::T) {
 
 #test
 fn testGammaRandSample(t: &testing::T) {
-	g := Gamma{K: 2, Theta: 3}
+	g := Gamma{Alpha: 2, Beta: 3}
 	x := g.Rand()
 	if x < 0 {
 		t.Errorf("Rand sample is negative: {}", x)
@@ -87,11 +63,8 @@ fn testGammaRandSample(t: &testing::T) {
 
 #test
 fn testGammaQuantileBounds(t: &testing::T) {
-	g := Gamma{K: 2, Theta: 2}
+	g := Gamma{Alpha: 2, Beta: 2}
 
-	if !math::IsNaN(g.Quantile(-0.1)) {
-		t.Errorf("Quantile(-0.1) should be NaN")
-	}
 	if g.Quantile(0) != 0 {
 		t.Errorf("Quantile(0) should be 0")
 	}

@@ -37,20 +37,20 @@ fn testBetaMode(t: &testing::T) {
 }
 
 #test
-fn testBetaPDF(t: &testing::T) {
+fn testBetaProb(t: &testing::T) {
 	b := Beta{Alpha: 2, Beta: 2}
-	prob := b.PDF(0.5)
+	prob := b.Prob(0.5)
 	if prob <= 0 {
-		t.Errorf("PDF(0.5) should be positive, got {}", prob)
+		t.Errorf("Prob(0.5) should be positive, got {}", prob)
 	}
 }
 
 #test
-fn testBetaLogPDF(t: &testing::T) {
+fn testBetaLogProb(t: &testing::T) {
 	b := Beta{Alpha: 2, Beta: 2}
-	got := b.LogPDF(0.5)
+	got := b.LogProb(0.5)
 	if math::IsNaN(got) || math::IsInf(got, 0) {
-		t.Errorf("LogPDF(0.5) should be finite, got {}", got)
+		t.Errorf("LogProb(0.5) should be finite, got {}", got)
 	}
 }
 
@@ -77,11 +77,11 @@ fn testBetaEntropy(t: &testing::T) {
 }
 
 #test
-fn testBetaExcessKurtosis(t: &testing::T) {
+fn testBetaExKurtosis(t: &testing::T) {
 	b := Beta{Alpha: 2, Beta: 3}
-	got := b.ExcessKurtosis()
+	got := b.ExKurtosis()
 	if math::IsNaN(got) || math::IsInf(got, 0) {
-		t.Errorf("ExcessKurtosis should be finite, got {}", got)
+		t.Errorf("ExKurtosis should be finite, got {}", got)
 	}
 }
 

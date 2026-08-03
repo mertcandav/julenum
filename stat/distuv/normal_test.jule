@@ -45,7 +45,7 @@ fn testNormalEntropy(t: &testing::T) {
 	}
 }
 
-let testsNormalLogPMF: []commonDistCase = [
+let testsNormalLogProb: []commonDistCase = [
 	{-1, -4.0984593774415075},
 	{0, -4.097070488552618},
 	{0.5, -4.09702708577484},
@@ -57,23 +57,23 @@ let testsNormalLogPMF: []commonDistCase = [
 ]
 
 #test
-fn testNormalLogPDF(t: &testing::T) {
+fn testNormalLogProb(t: &testing::T) {
 	n := Normal{Mu: 0.3, Sigma: 24}
-	for _, test in testsNormalLogPMF {
-		got := n.LogPDF(test.x)
+	for _, test in testsNormalLogProb {
+		got := n.LogProb(test.x)
 		if !jn::Tolerance(got, test.want, 1e-10) &&
 			!(math::IsInf(got, -1) && math::IsInf(test.want, -1)) {
-			t.Errorf("LogPDF({}): got {}, want {}", test.x, got, test.want)
+			t.Errorf("LogProb({}): got {}, want {}", test.x, got, test.want)
 		}
 	}
 }
 
 #test
-fn testNormalNumParams(t: &testing::T) {
+fn testNormalNumParameters(t: &testing::T) {
 	n := Normal{Mu: 0.2, Sigma: 34}
-	got := n.NumParams()
+	got := n.NumParameters()
 	if got != 2 {
-		t.Errorf("NumParams: got {}, want 2", got)
+		t.Errorf("NumParameters: got {}, want 2", got)
 	}
 }
 

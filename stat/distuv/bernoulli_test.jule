@@ -33,7 +33,7 @@ fn testBernoulliCDF(t: &testing::T) {
 let testsBernoulliEntropy: []commonDistCase = [
 	{0.0, 0.0},
 	{1.0, 0.0},
-	{0.5, 1.0},
+	{0.5, 0.6931471805599453},
 ]
 
 #test
@@ -48,34 +48,34 @@ fn testBernoulliEntropy(t: &testing::T) {
 }
 
 #test
-fn testBernoulliExcessKurtosis(t: &testing::T) {
+fn testBernoulliExKurtosis(t: &testing::T) {
 	b := Bernoulli{P: 0.5}
-	got := b.ExcessKurtosis()
+	got := b.ExKurtosis()
 	want := -2.0
 	if !jn::Tolerance(got, want, 1e-10) {
-		t.Errorf("ExcessKurtosis: got {}, want {}", got, want)
+		t.Errorf("ExKurtosis: got {}, want {}", got, want)
 	}
 
 	b0 := Bernoulli{}
-	if !math::IsInf(b0.ExcessKurtosis(), 1) {
-		t.Errorf("ExcessKurtosis(p=0) should be +Inf")
+	if !math::IsInf(b0.ExKurtosis(), 1) {
+		t.Errorf("ExKurtosis(p=0) should be +Inf")
 	}
 }
 
-let testsBernoulliLogPMF: []commonDistCase = [
+let testsBernoulliLogProb: []commonDistCase = [
 	{1.0, math::Log(0.8)},
 	{0.0, math::Log(0.2)},
 	{2.0, math::Inf(-1)},
 ]
 
 #test
-fn testBernoulliLogPMF(t: &testing::T) {
+fn testBernoulliLogProb(t: &testing::T) {
 	b := Bernoulli{P: 0.8}
-	for _, test in testsBernoulliLogPMF {
-		got := b.LogPMF(test.x)
+	for _, test in testsBernoulliLogProb {
+		got := b.LogProb(test.x)
 		if !jn::Tolerance(got, test.want, 1e-10) &&
 			!(math::IsInf(got, -1) && math::IsInf(test.want, -1)) {
-			t.Errorf("LogPMF({}): got {}, want {}", test.x, got, test.want)
+			t.Errorf("LogProb({}): got {}, want {}", test.x, got, test.want)
 		}
 	}
 }
@@ -107,28 +107,28 @@ fn testBernoulliMedian(t: &testing::T) {
 }
 
 #test
-fn testBernoulliNumParams(t: &testing::T) {
+fn testBernoulliNumParameters(t: &testing::T) {
 	b := Bernoulli{P: 0.2}
-	got := b.NumParams()
+	got := b.NumParameters()
 	if got != 1 {
-		t.Errorf("NumParams: got {}, want 1", got)
+		t.Errorf("NumParameters: got {}, want 1", got)
 	}
 }
 
 #test
-fn testBernoulliPMF(t: &testing::T) {
+fn testBernoulliProb(t: &testing::T) {
 	b := Bernoulli{P: 0.6}
-	mut got := b.PMF(1)
+	mut got := b.Prob(1)
 	if got != 0.6 {
-		t.Errorf("PMF(1): got {}, want 0.6", got)
+		t.Errorf("Prob(1): got {}, want 0.6", got)
 	}
-	got = b.PMF(0)
+	got = b.Prob(0)
 	if got != 0.4 {
-		t.Errorf("PMF(0): got {}, want 0.4", got)
+		t.Errorf("Prob(0): got {}, want 0.4", got)
 	}
-	got = b.PMF(2)
+	got = b.Prob(2)
 	if got != 0 {
-		t.Errorf("PMF(2): got {}, want 0.0", got)
+		t.Errorf("Prob(2): got {}, want 0.0", got)
 	}
 }
 
@@ -137,8 +137,6 @@ let testsBernoulliQuantile: []commonDistCase = [
 	{0.7, 0.0},
 	{0.71, 1.0},
 	{1.0, 1.0},
-	{-0.1, math::NaN()},
-	{1.1, math::NaN()},
 ]
 
 #test
@@ -179,8 +177,8 @@ fn testBernoulliSkewness(t: &testing::T) {
 	}
 
 	b0 := Bernoulli{}
-	if !math::IsNaN(b0.Skewness()) {
-		t.Errorf("Skewness(p=0): expected NaN")
+	if !math::IsInf(b0.Skewness(), 1) {
+		t.Errorf("Skewness(p=0): expected +Inf")
 	}
 }
 
@@ -219,18 +217,5 @@ fn testBernoulliVariance(t: &testing::T) {
 	got := b.Variance()
 	if !jn::Tolerance(got, want, 1e-10) {
 		t.Errorf("Variance: got {}, want {}", got, want)
-	}
-}
-
-#test
-fn testBernoulliFit(t: &testing::T) {
-	mut b := Bernoulli{} // initial p doesn't matter; will be overwritten
-
-	// Valid samples
-	samples := [0.0, 1, 0, 1, 1, 0, 1]
-	b.Fit(samples)
-	expectedP := 4.0 / 7.0
-	if !jn::Tolerance(b.P, expectedP, 1e-10) {
-		t.Errorf("Fit: got p={}, want {}", b.P, expectedP)
 	}
 }
