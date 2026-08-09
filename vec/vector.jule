@@ -94,10 +94,7 @@ impl Vector {
 
 		norm := x.Norm()
 		if norm == 0 {
-			mut i := 0
-			for i < len(*self); i++ {
-				(*self)[i] = 0
-			}
+			clear(*self)
 		} else {
 			chunk::DivScalar([]T(*self), []T(*x), T(norm))
 		}
@@ -142,10 +139,7 @@ impl Vector {
 
 		yn := y.Norm()
 		if yn == 0 {
-			mut i := 0
-			for i < len(*self); i++ {
-				(*self)[i] = 0
-			}
+			clear(*self)
 		} else {
 			xy := dot(x, y)
 			scale := xy / T(yn*yn)

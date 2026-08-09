@@ -2270,10 +2270,7 @@ fn zseri(z: cmplx128, fnu: f64, kode: int, mut n: int, mut y: []cmplx128, tol: f
 	arm := 1000 * dmach[1]
 	az := cmplx::Abs(z)
 	if az < arm {
-		mut i := 0
-		for i < n; i++ {
-			y[i] = 0
-		}
+		clear(y[:n])
 		if fnu == 0 {
 			y[0] = 1
 			n--

@@ -1554,10 +1554,7 @@ fn basicMulView[T](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView
 	mut j := 0
 	for j < y.n; j++ {
 		zm := j * z.stride
-		mut i := 0
-		for i < x.m; i++ {
-			z.data[i+zm] = 0
-		}
+		clear(z.data[zm : zm+x.m])
 	}
 
 	if flags&PARALLEL != 0 {
@@ -1712,9 +1709,7 @@ fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int,
 fn padAndCopyView[T: numeric](mut z: matrixView[T], &k: *Matrix[T]) {
 	// Clear the z matrix if k is smaller than.
 	if k.m < z.m || k.n < z.n {
-		for i in z.data {
-			z.data[i] = 0
-		}
+		clear(z.data)
 	}
 
 	mut j := 0

@@ -700,11 +700,7 @@ fn denseMulNaive(mut &z: *Dense, &x: *Dense, &y: *Dense) {
 	*z = z.make(size)
 
 	// Clear the result because the backing storage may be reused.
-	mut i := 0
-	for i < size {
-		(*z)[i] = 0
-		i++
-	}
+	clear(*z)
 
 	for k, a in *x {
 		if a == 0 {
