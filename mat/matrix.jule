@@ -1376,7 +1376,7 @@ fn basicMulView_Parallel[T](mut z: matrixView[T], mut x: matrixView[T], mut y: m
 		return
 	}
 
-	mut wg := sync::BlockingWaitGroup.New()
+	mut wg := sync::WaitGroup.New()
 	wg.Add(parBlocks)
 	defer { wg.Wait() }
 
