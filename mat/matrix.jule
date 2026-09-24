@@ -1376,6 +1376,10 @@ fn basicMulView_Parallel[T](mut z: matrixView[T], mut x: matrixView[T], mut y: m
 		return
 	}
 
+	// Acts a number of maximum concurrent workers,
+	// with the limit set to the number of CPUs available.
+	workerLimit := make(chan u8, runtime::NumCPU())
+
 	mut wg := sync::WaitGroup.New()
 	wg.Add(parBlocks)
 	defer { wg.Wait() }
@@ -1384,8 +1388,12 @@ fn basicMulView_Parallel[T](mut z: matrixView[T], mut x: matrixView[T], mut y: m
 	for i < m; i += blockSize {
 		mut j := 0
 		for j < n; j += blockSize {
+			workerLimit <- 0
 			runtime::Task(fn() {
-				defer { wg.Done() }
+				defer {
+					wg.Done()
+					<-workerLimit
+				}
 
 				mut leni := blockSize
 				if i+leni > m {
