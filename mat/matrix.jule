@@ -453,7 +453,7 @@ impl Matrix {
 
 	// Internal implementation of [Mul] and [MulEx].
 	// Operands self, x and y must be checked and non-nil.
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn mulEx(mut *self, &x: *Matrix[T], &y: *Matrix[T], flags: int) {
 		n, mut useStrassen := checkStrassen(x.m, x.n, y.n, flags)
 		// If we will use Strassen algorithm and numerical stability
@@ -799,7 +799,7 @@ fn NewFrom[T: numeric](values: [][]T): Matrix[T] {
 	return mat
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Prec {
 	m, n := a.m, a.n
 
@@ -907,7 +907,7 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 	return det
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 	m, n := a.m, a.n
 
@@ -1022,7 +1022,7 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 	return
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 	m, n := a.m, a.n
 
@@ -1141,7 +1141,7 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 	return
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs: fn(Prec): f64) {
 	n := a.n
 
@@ -1604,7 +1604,7 @@ fn checkStrassen(xm: int, xn: int, yn: int, flags: int): (max: int, useStrassen:
 // Performs recursive Strassen matrix multiplication using single shared allocation.
 // Assumes square matrices of size n × n where n is a power of 2.
 // Writes final result to z, it must be have enough space for the product x*y.
-#disable nilptr boundary
+#disable boundary nilptr
 fn strassen[T: numeric](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView[T], mut space: []T, flags: int) {
 	n, useStrassen := checkStrassen(x.m, x.n, y.n, flags)
 	if !useStrassen {
@@ -1699,7 +1699,7 @@ fn strassen[T: numeric](mut z: matrixView[T], mut x: matrixView[T], mut y: matri
 
 // Copies submatrix (of m × n) from source k at (a, b) to z.
 // z must be have enough space to copy k.
-#disable nilptr boundary
+#disable boundary nilptr
 fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int, m: int, n: int) {
 	if m <= 0 || n <= 0 {
 		return
@@ -1713,7 +1713,7 @@ fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int,
 }
 
 // Same as padAndCopy but for matrix-view.
-#disable nilptr boundary
+#disable boundary nilptr
 fn padAndCopyView[T: numeric](mut z: matrixView[T], &k: *Matrix[T]) {
 	// Clear the z matrix if k is smaller than.
 	if k.m < z.m || k.n < z.n {
@@ -1731,7 +1731,7 @@ fn padAndCopyView[T: numeric](mut z: matrixView[T], &k: *Matrix[T]) {
 // Pads and copies k matrix into larger workspace matrix z.
 // Fills remaining elements with zeros.
 // z must be have enough space to copy k.
-#disable nilptr boundary
+#disable boundary nilptr
 fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
 	padAndCopyView(z.asView(), k)
 }
@@ -1739,7 +1739,7 @@ fn padAndCopy[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T]) {
 // Returns new (M×N) matrix-view for type T from space.
 // The result matrix-view will use shared data from space.
 // Space will be trimmed according to size.
-#disable nilptr boundary
+#disable boundary nilptr
 fn getView[T: numeric](m: int, n: int, mut &space: *[]T): matrixView[T] {
 	k := m * n
 	if k > len(*space) {

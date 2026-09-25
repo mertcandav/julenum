@@ -160,7 +160,7 @@ impl Dense {
 	//
 	// If self has enough capacity, Add will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn Add(mut *self, &x: *Dense, &y: *Dense, tol: f64) {
 		// Due to disabling nilptr checks, we have to check manually.
 		if self == nil {
@@ -194,7 +194,7 @@ impl Dense {
 	//
 	// If self has enough capacity, Sub will use it to avoid making allocation.
 	// If length is zero, self will be zero-length. But keeps internal allocation.
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn Sub(mut *self, &x: *Dense, &y: *Dense, tol: f64) {
 		// Due to disabling nilptr checks, we have to check manually.
 		if self == nil {
@@ -659,7 +659,7 @@ impl Dense {
 }
 
 // z = x*y using the native O(n²) convolution algorithm.
-#disable nilptr boundary
+#disable boundary nilptr
 fn denseMulNaive(mut &z: *Dense, &x: *Dense, &y: *Dense) {
 	if len(*x) == 0 || len(*y) == 0 {
 		*z = (*z)[:0]
@@ -725,7 +725,7 @@ fn denseMulNaive(mut &z: *Dense, &x: *Dense, &y: *Dense) {
 	*z = (*z)[:n]
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn densePairToCoeffs(mut z: []cmplx128, &x: *Dense, &y: *Dense) {
 	for i, coef in *x {
 		z[i] += cmplx(coef, 0)
@@ -736,7 +736,7 @@ fn densePairToCoeffs(mut z: []cmplx128, &x: *Dense, &y: *Dense) {
 }
 
 // z = x*y using FFT convolution.
-#disable nilptr boundary
+#disable boundary nilptr
 fn denseMulFFT(mut &z: *Dense, &x: *Dense, &y: *Dense, size: int, tol: f64) {
 	fftSize := ibits::NextPowerOfTwo(size)
 	mut spectrum := make([]cmplx128, fftSize)

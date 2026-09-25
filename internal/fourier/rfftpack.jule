@@ -34,22 +34,22 @@ impl threeArray {
 		}
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn at(*self, i: int, j: int, k: int): f64 {
 		return self.data[i+self.jStride*j+self.kStride*k]
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn atCmplx(*self, i: int, j: int, k: int): cmplx128 {
 		return cmplx(self.data[i+self.jStride*j+self.kStride*k], self.data[i+self.jStride*j+self.kStride*k+1])
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn set(mut *self, i: int, j: int, k: int, v: f64) {
 		self.data[i+self.jStride*j+self.kStride*k] = v
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn setCmplx(mut *self, i: int, j: int, k: int, v: cmplx128) {
 		self.data[i+self.jStride*j+self.kStride*k] = real(v)
 		self.data[i+self.jStride*j+self.kStride*k+1] = imag(v)
@@ -73,28 +73,28 @@ impl twoArray {
 		}
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn at(*self, i: int, j: int): f64 {
 		return self.data[i+self.jStride*j]
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn atCmplx(*self, i: int, j: int): cmplx128 {
 		return cmplx(self.data[i+self.jStride*j], self.data[i+self.jStride*j+1])
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn set(mut *self, i: int, j: int, v: f64) {
 		self.data[i+self.jStride*j] = v
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn setCmplx(mut *self, i: int, j: int, v: cmplx128) {
 		self.data[i+self.jStride*j] = real(v)
 		self.data[i+self.jStride*j+1] = imag(v)
 	}
 
-	#disable nilptr boundary
+	#disable boundary nilptr
 	fn add(mut *self, i: int, j: int, v: f64) {
 		self.data[i+self.jStride*j] += v
 	}
@@ -128,7 +128,7 @@ fn RFFTI(n: int, mut work: []f64, mut &ifac: *[15]int) {
 	rffti1(n, work[n:2*n], ifac)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn rffti1(n: int, mut wa: []f64, mut &ifac: *[15]int) {
 	ntryh := [4]int([4, 2, 3, 5])
 
@@ -263,7 +263,7 @@ fn RFFTF(n: int, mut r: []f64, mut work: []f64, mut &ifac: *[15]int) {
 	rfftf1(n, r[:n], work[:n], work[n:2*n], ifac)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn rfftf1(n: int, mut c: []f64, mut ch: []f64, mut wa: []f64, mut &ifac: *[15]int) {
 	nf := (*ifac)[1]
 	mut na := true
@@ -790,7 +790,7 @@ fn RFFTB(n: int, mut r: []f64, mut work: []f64, mut &ifac: *[15]int) {
 	rfftb1(n, r[:n], work[:n], work[n:2*n], ifac)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn rfftb1(n: int, mut c: []f64, mut ch: []f64, wa: []f64, mut &ifac: *[15]int) {
 	nf := (*ifac)[1]
 	mut na := false

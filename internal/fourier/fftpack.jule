@@ -43,7 +43,7 @@ fn FFTI(n: int, mut work: []f64, mut &ifac: *[15]int) {
 	cffti1(n, work[2*n:4*n], ifac)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn cffti1(n: int, mut wa: []f64, mut &ifac: *[15]int) {
 	ntryh := [4]int([3, 4, 2, 5])
 
@@ -237,7 +237,7 @@ fn FFTB(n: int, mut c: []f64, mut work: []f64, mut &ifac: *[15]int) {
 }
 
 // Implements cfftf1 and cfftb1 depending on sign.
-#disable nilptr boundary
+#disable boundary nilptr
 fn cfft1(n: int, mut c: []f64, mut ch: []f64, wa: []f64, mut &ifac: *[15]int, sign: f64) {
 	nf := (*ifac)[1]
 	mut na := false

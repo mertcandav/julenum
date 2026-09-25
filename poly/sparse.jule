@@ -1197,7 +1197,7 @@ fn fftDivMod(mut &q: *Sparse, &a: *Sparse, &b: *Sparse, mut &r: *Sparse) {
 	truncate(r, degB)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn coeffsToSparse(mut &z: *Sparse, coeffs: []cmplx128, tol: f64) {
 	*z = z.make(len(coeffs))
 	mut k := 0
@@ -1218,7 +1218,7 @@ fn coeffsToSparse(mut &z: *Sparse, coeffs: []cmplx128, tol: f64) {
 	// No need for: sortByExp(z)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn fftSize(&x: *Sparse, &y: *Sparse): int {
 	mut maxExpX, mut maxExpY := 0, 0
 	if len(*x) > 0 {
@@ -1232,7 +1232,7 @@ fn fftSize(&x: *Sparse, &y: *Sparse): int {
 	return ibits::NextPowerOfTwo(maxExpX + maxExpY + 1)
 }
 
-#disable nilptr boundary
+#disable boundary nilptr
 fn sparsePairToCoeffs(mut z: []cmplx128, &x: *Sparse, &y: *Sparse) {
 	for _, term in *x {
 		z[term.Exp] += cmplx(term.Coef, 0)
