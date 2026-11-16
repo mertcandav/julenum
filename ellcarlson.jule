@@ -29,7 +29,7 @@ fn EllipticRF(x: f64, y: f64, z: f64): f64 {
 	// This code is also available as a part of SLATEC Common Mathematical Library (http://netlib.org/slatec/index.html). Later, Carlson described
 	// an improved version in http://dx.doi.org/10.1007/BF02198293 (also available at https://arxiv.org/abs/math/9409227).
 	const (
-		lower = 1e-1022 // 5*2^-1022
+		lower = 5.0 / (1 << 256) / (1 << 256) / (1 << 256) / (1 << 254) // 5*2^-1022
 		upper = 1 / lower
 		tol   = 1.2674918778210762260320167734407048051023273568443e-02 // (3ε)^(1/8)
 	)
