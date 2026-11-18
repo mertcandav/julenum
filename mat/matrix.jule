@@ -18,6 +18,9 @@ const (
 	STABLE
 )
 
+// Tile edge length of the cache-blocked transposition.
+const transBlock = 32
+
 // A sub-matrix type.
 struct matrixView[T: numeric] {
 	m:      int
@@ -102,7 +105,7 @@ impl Matrix {
 	#disable boundary
 	fn Scalar(*self, c: T): bool {
 		if self.m != self.n || self.n <= 0 {
-			panic("mat: Matrix.Scalar: determinant on non-square matrix")
+			panic("mat: Matrix.Scalar: scalar on non-square matrix")
 		}
 		mut i := 0
 		mut j := 0 // 0 + i*self.m
@@ -133,7 +136,7 @@ impl Matrix {
 	// This function only supports square matrices (M == N && N > 0).
 	fn Diagonal(*self): bool {
 		if self.m != self.n || self.n <= 0 {
-			panic("mat: Matrix.Diagonal: determinant on non-square matrix")
+			panic("mat: Matrix.Diagonal: diagonal on non-square matrix")
 		}
 		mut i := 0
 		mut j := 0 // 0 + i*self.m
@@ -239,12 +242,9 @@ impl Matrix {
 			return
 		}
 
-		// Same size, copy directly.
-		if self.m == m && self.n == n {
-			// If z and self is the same pointer, avoid copying cost.
-			if self != z {
-				copy(self.data, z.data)
-			}
+		// z already has the requested size, copy directly.
+		if z.m == m && z.n == n {
+			self.Copy(z)
 			return
 		}
 		// Size is different, resize the matrix.
@@ -264,12 +264,26 @@ impl Matrix {
 			data: copySpace,
 		}
 
-		// New size is larger than old.
-		if m >= self.m && n >= self.n {
+		// The new size is compared with the size of the source (z), not with self.
+		if m >= z.m && n >= z.n {
+			// New size is larger than (or equal to) the source in both dimensions.
 			padAndCopy(&r, z)
-		} else {
-			// New size is smaller than old.
+		} else if m <= z.m && n <= z.n {
+			// New size is smaller than (or equal to) the source in both dimensions.
 			copySubMatrix(&r, z, 0, 0, m, n)
+		} else {
+			// One dimension grows while the other one shrinks.
+			// Zero everything, then copy the overlapping part.
+			clear(r.data)
+			mut rows := m
+			if z.m < rows {
+				rows = z.m
+			}
+			mut cols := n
+			if z.n < cols {
+				cols = z.n
+			}
+			copySubMatrix(&r, z, 0, 0, rows, cols)
 		}
 
 		*self = r
@@ -303,12 +317,48 @@ impl Matrix {
 	// Sets self to the transpose of the matrix z.
 	// If self have enough capacity, Transpose will use it to avoid making allocation.
 	// If z is a (0×0) matrix, self will be (0×0). But keeps internal allocation.
+	//
+	// If self and z is the same square matrix, it is transposed in-place without allocation.
 	#disable boundary
 	fn Transpose(mut *self, &z: *Matrix[T]) {
 		// Special case: (0×0) matrix.
 		// Set self to (0×0), do not deallocate slice.
 		if z.m == 0 && z.n == 0 {
 			self.m, self.n = 0, 0
+			return
+		}
+
+		// Special case: in-place transposition of a square matrix.
+		// Symmetric elements are swapped tile by tile, no allocation is needed.
+		if self == z && z.m == z.n {
+			n := z.n
+			mut jb := 0
+			for jb < n; jb += transBlock {
+				mut jEnd := jb + transBlock
+				if jEnd > n {
+					jEnd = n
+				}
+				mut ib := 0
+				for ib <= jb; ib += transBlock {
+					mut iEnd := ib + transBlock
+					if iEnd > n {
+						iEnd = n
+					}
+					mut j := jb
+					for j < jEnd; j++ {
+						// Only the elements above the diagonal (i < j) are swapped.
+						mut lim := iEnd
+						if lim > j {
+							lim = j
+						}
+						mut i := ib
+						for i < lim; i++ {
+							a, b := i+j*n, j+i*n
+							self.data[a], self.data[b] = self.data[b], self.data[a]
+						}
+					}
+				}
+			}
 			return
 		}
 
@@ -328,13 +378,31 @@ impl Matrix {
 		}
 		// Compute transpose of z.
 
-		mut i := 0
-		mut zm := 0 + 0*z.m // j + i*z.m
-		for i < z.n; i, zm = i+1, zm+z.m {
-			mut sm := i + 0*self.m // i + j*self.m
-			mut j := 0
-			for j < z.m; j, sm = j+1, sm+self.m {
-				self.data[sm] = z.data[j+zm]
+		// Both matrices are column-major: reading the columns of z is contiguous,
+		// but writing to self is strided. The computation is tiled, so that both
+		// the read and the written tile stay in the cache.
+		zm, zn := z.m, z.n
+		mut jb := 0
+		for jb < zn; jb += transBlock {
+			mut jEnd := jb + transBlock
+			if jEnd > zn {
+				jEnd = zn
+			}
+			mut ib := 0
+			for ib < zm; ib += transBlock {
+				mut iEnd := ib + transBlock
+				if iEnd > zm {
+					iEnd = zm
+				}
+				mut j := jb
+				mut src := jb * zm // i + j*z.m, for i = 0
+				for j < jEnd; j, src = j+1, src+zm {
+					mut i := ib
+					mut dst := j + ib*zn // j + i*self.m, self.m == z.n
+					for i < iEnd; i, dst = i+1, dst+zn {
+						self.data[dst] = z.data[i+src]
+					}
+				}
 			}
 		}
 	}
@@ -489,9 +557,12 @@ impl Matrix {
 		// Use Strassen algorithm to compute efficiently.
 		// https://en.wikipedia.org/wiki/Strassen_algorithm
 
-		// Determine smallest power-of-two dimension to pad matrices to.
-		// Ensures Strassen recursion works correctly.
-		k := ibits::NextPowerOfTwo(n)
+		// Determine the dimension to pad matrices to.
+		// It is the smallest multiple of 2^depth that is not smaller than n,
+		// where depth is the number of recursion levels Strassen will actually use.
+		// So every level can be split in half, but we do not pay for padding up to the
+		// next power of two (which may nearly double the dimension, and 8x the work).
+		k := strassenPad(n, flags)
 
 		// Total common buffer allocation size estimation for Strassen implementation:
 		// Let n = size
@@ -506,8 +577,9 @@ impl Matrix {
 		mut strassenSize := 6 * k * k
 
 		// Determine whether the input matrices needs padding.
-		xPadNeed := !ibits::IsPowerOfTwo(x.m) || !ibits::IsPowerOfTwo(x.n)
-		yPadNeed := !ibits::IsPowerOfTwo(y.m) || !ibits::IsPowerOfTwo(y.n)
+		// Strassen works on (k×k) square matrices, so any other size needs padding.
+		xPadNeed := x.m != k || x.n != k
+		yPadNeed := y.m != k || y.n != k
 
 		// Remove size of the matrices, if it does not need padding.
 		// It helps to reduce size of the common buffer allocation.
@@ -705,8 +777,8 @@ impl Matrix {
 	// The result is handled as type T, which may cause rounding errors or loss of precision.
 	// To preserve exact results, use an f64 or cmplx128 matrix.
 	fn Inv(mut *self, &a: *Matrix[T]) {
-		m, n := self.m, self.n
-		if m != n || n <= 0 {
+		// The operand is a, not self. self may be an empty matrix.
+		if a.m != a.n || a.n <= 0 {
 			panic("mat: Matrix.Inv: inverse on non-square matrix")
 		}
 
@@ -885,14 +957,20 @@ fn det[T: numeric, Prec: f64 | cmplx128](&a: *Matrix[T], abs: fn(Prec): f64): Pr
 		pivot := LU[k+km]
 
 		// Elimination: store multipliers in lower triangle, update submatrix.
+		// The matrix is column-major, so the update is done column by column.
+		// Both LU[i+jm] and LU[i+km] are contiguous in i, which is cache friendly
+		// (the row-by-row update would jump by m elements on every step).
 		i = k + 1
 		for i < n; i++ {
 			LU[i+km] /= pivot
-			factor := LU[i+km]
-			mut j := k + 1
-			mut jm := j * m
-			for j < n; j, jm = j+1, jm+m {
-				LU[i+jm] -= factor * LU[k+jm]
+		}
+		mut j := k + 1
+		mut jm := j * m
+		for j < n; j, jm = j+1, jm+m {
+			ukj := LU[k+jm]
+			i = k + 1
+			for i < n; i++ {
+				LU[i+jm] -= LU[i+km] * ukj
 			}
 		}
 	}
@@ -1007,14 +1085,18 @@ fn slogdet[T: integer | float](&a: *Matrix[T]): (sign: f64, logdet: f64) {
 		sign *= math::Copysign(1, pivot)
 
 		// Elimination: store multipliers in lower triangle, update submatrix.
+		// The update is done column by column (contiguous in column-major layout).
 		i = k + 1
 		for i < n; i++ {
 			LU[i+km] /= pivot
-			factor := LU[i+km]
-			mut j := k + 1
-			mut jm := j * m
-			for j < n; j, jm = j+1, jm+m {
-				LU[i+jm] -= factor * LU[k+jm]
+		}
+		mut j := k + 1
+		mut jm := j * m
+		for j < n; j, jm = j+1, jm+m {
+			ukj := LU[k+jm]
+			i = k + 1
+			for i < n; i++ {
+				LU[i+jm] -= LU[i+km] * ukj
 			}
 		}
 	}
@@ -1126,14 +1208,18 @@ fn slogdetCmplx[T: cmplx](&a: *Matrix[T]): (sign: cmplx128, logdet: f64) {
 		sign *= cmplx::Rect(1, cmplx::Phase(pivot))
 
 		// Elimination: store multipliers in lower triangle, update submatrix.
+		// The update is done column by column (contiguous in column-major layout).
 		i = k + 1
 		for i < n; i++ {
 			LU[i+km] /= pivot
-			factor := LU[i+km]
-			mut j := k + 1
-			mut jm := j * m
-			for j < n; j, jm = j+1, jm+m {
-				LU[i+jm] -= factor * LU[k+jm]
+		}
+		mut j := k + 1
+		mut jm := j * m
+		for j < n; j, jm = j+1, jm+m {
+			ukj := LU[k+jm]
+			i = k + 1
+			for i < n; i++ {
+				LU[i+jm] -= LU[i+km] * ukj
 			}
 		}
 	}
@@ -1255,34 +1341,41 @@ fn inv[T: numeric, Prec: f64 | cmplx128](mut &z: *Matrix[T], &a: *Matrix[T], abs
 	z.m, z.n = n, n
 	z.data = z.make(z.Size())
 
-	// Workspace: b (RHS), y (solution of Ly=b), x (solution of Ux=y)
+	// ipos[c] is the row where the single one of the column c of P·I lives.
+	// It is the inverse of the permutation vector piv.
+	mut ipos := make([]int, n)
+	i = 0
+	for i < n; i++ {
+		ipos[piv[i]] = i
+	}
+
+	// Workspace: y (solution of Ly=b), x (solution of Ux=y)
 	// All allocated in a single slice to avoid repeated allocations.
-	mut tmp := make([]Prec, 3*n)
-	mut b := tmp[:n]
-	mut y := tmp[n : 2*n]
-	mut x := tmp[2*n : 3*n]
+	mut tmp := make([]Prec, 2*n)
+	mut y := tmp[:n]
+	mut x := tmp[n : 2*n]
 
 	// Solve A·X = I one column at a time.
 	k = 0
 	kn = 0 * n // k * n
 	for k < n; k, kn = k+1, kn+n {
-		// Set b = column col of the permuted identity matrix: P·eᵢ
+		// b = column k of the permuted identity matrix: P·eₖ
+		// It has a single non-zero element (one) at the row pos.
+		// So y[i] = 0 for i < pos, and the forward substitution can start from pos.
+		pos := ipos[k]
 		i = 0
-		for i < n; i++ {
-			if piv[i] == k {
-				b[i] = 1
-			} else {
-				b[i] = 0
-			}
+		for i < pos; i++ {
+			y[i] = 0
 		}
+		y[pos] = 1
 
 		// Forward substitution: solve L·y = b
 		// L is unit lower triangular (diagonal entries are 1)
-		i = 0
-		mut ni := 0 * n // i * n
+		i = pos + 1
+		mut ni := i * n
 		for i < n; i, ni = i+1, ni+n {
-			mut sum := b[i]
-			mut j := 0
+			mut sum := Prec(0)
+			mut j := pos
 			for j < i; j++ {
 				sum -= LU[ni+j] * y[j]
 			}
@@ -1337,6 +1430,26 @@ fn subView[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
 	}
 }
 
+// Computes z = a + b - c + d using matrix views, in a single pass.
+// It replaces three separate passes (add, sub, add) of the Strassen result
+// combination, so every element of the operands is read and written only once.
+#disable boundary
+fn addSubAddView[T: numeric](mut z: matrixView[T], a: matrixView[T], b: matrixView[T], c: matrixView[T], d: matrixView[T]) {
+	mut j := 0
+	for j < z.n; j++ {
+		zj := j * z.stride
+		aj := j * a.stride
+		bj := j * b.stride
+		cj := j * c.stride
+		dj := j * d.stride
+
+		mut i := 0
+		for i < z.m; i++ {
+			z.data[zj+i] = a.data[aj+i] + b.data[bj+i] - c.data[cj+i] + d.data[dj+i]
+		}
+	}
+}
+
 // Basic matrix multiplication implementation.
 // Multiplies x and y and leaves the result in z.
 // z must be have enough space for the product x*k.
@@ -1347,13 +1460,31 @@ fn basicMul[T: numeric](mut &z: *Matrix[T], &x: *Matrix[T], &y: *Matrix[T], flag
 }
 
 const (
-	// Defines the L1/L2 cache tiling block size for matrix multiplication.
-	// A block size of 64 balances register pressure and keeps working sub-matrices
-	// within CPU cache lines, minimizing cache misses for column-major layouts.
+	// Defines the tile size of the parallel multiplication.
+	// Every tile (blockSize×blockSize part of the result) is an independent unit of work.
 	blockSize = 64
 
 	// Minnimum block-size for parallel computation.
 	minParBlock = 4
+
+	// Register tile of the multiplication micro-kernel: (mulMR×mulNR) elements of
+	// the result are accumulated in local variables, and written to memory once.
+	// The micro-kernel is written out by hand for exactly 4×4, so these two
+	// constants are NOT tunable without rewriting the kernel.
+	mulMR = 4
+	mulNR = 4
+
+	// Depth of the inner-dimension (k) blocking.
+	// A packed panel (mulMR×mulKC) must stay in the L1 cache.
+	mulKC = 256
+
+	// Number of result columns processed together for one packed panel.
+	// The (mulKC×mulNC) part of y is reused by all of the panels, so it should stay in L2 cache.
+	mulNC = 64
+
+	// Matrices with all dimensions smaller than or equal to this value are
+	// multiplied directly, without packing and tiling.
+	smallMulDim = 8
 )
 
 // Returns the number of divisions of the dimension length
@@ -1363,14 +1494,21 @@ fn blocks(dim: int, bsize: int): int {
 }
 
 // Parallel implementation of `basicMulView`, works with multiple threads.
+//
+// The result is divided into (blockSize×blockSize) tiles. One worker per CPU is
+// started and tiles are distributed among the workers statically (round-robin).
+// Compared to one task per tile, it removes the task creation, channel and
+// scheduling cost of every tile.
+//
+// Every tile is computed over the whole inner dimension by a single worker,
+// so the result is bit-for-bit identical to the serial computation.
 #disable boundary
-fn basicMulView_Parallel[T](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView[T]) {
+fn basicMulView_Parallel[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
 	m := x.m
-	k := x.n
 	n := y.n
 
-	maxKLen := k
-	parBlocks := blocks(m, blockSize) * blocks(n, blockSize)
+	bm := blocks(m, blockSize)
+	parBlocks := bm * blocks(n, blockSize)
 	if parBlocks < minParBlock {
 		basicMulView_Serial(z, x, y)
 		return
@@ -1378,62 +1516,79 @@ fn basicMulView_Parallel[T](mut z: matrixView[T], mut x: matrixView[T], mut y: m
 
 	// Acts a number of maximum concurrent workers,
 	// with the limit set to the number of CPUs available.
-	workerLimit := make(chan u8, runtime::NumCPU())
+	mut workers := runtime::NumCPU()
+	if workers > parBlocks {
+		workers = parBlocks
+	}
+	if workers <= 1 {
+		basicMulView_Serial(z, x, y)
+		return
+	}
+	nw := workers
 
 	mut wg := sync::WaitGroup.New()
-	wg.Add(parBlocks)
-	defer { wg.Wait() }
+	wg.Add(nw)
 
-	mut i := 0
-	for i < m; i += blockSize {
-		mut j := 0
-		for j < n; j += blockSize {
-			workerLimit <- 0
-			runtime::Task(fn() {
-				defer {
-					wg.Done()
-					<-workerLimit
+	mut w := 0
+	for w < nw; w++ {
+		id := w // Every task owns its worker index.
+		runtime::Task(fn() {
+			defer { wg.Done() }
+
+			mut b := id
+			for b < parBlocks; b += nw {
+				i := (b % bm) * blockSize
+				j := (b / bm) * blockSize
+
+				mut iEnd := i + blockSize
+				if iEnd > m {
+					iEnd = m
+				}
+				mut jEnd := j + blockSize
+				if jEnd > n {
+					jEnd = n
 				}
 
-				mut leni := blockSize
-				if i+leni > m {
-					leni = m - i
-				}
-				mut lenj := blockSize
-				if j+lenj > n {
-					lenj = n - j
-				}
-
-				mut zView := z.getQuadrant(i, j, leni, lenj)
-
-				mut k := 0
-				for k < maxKLen; k += blockSize {
-					mut lenk := blockSize
-					if k+lenk > maxKLen {
-						lenk = maxKLen - k
-					}
-
-					xView := x.getQuadrant(i, k, leni, lenk)
-					yView := y.getQuadrant(k, j, lenk, lenj)
-
-					basicMulView_Serial(zView, xView, yView)
-				}
-			})
-		}
+				basicMulTile(z, x, y, i, iEnd, j, jEnd)
+			}
+		})
 	}
+
+	wg.Wait()
 }
 
 // Serial implementation of `basicMulView`, works with single thread.
 #disable boundary
-fn basicMulView_Serial[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
-	xm := x.m
-	xn := x.n
-	yn := y.n
+fn basicMulView_Serial[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+	basicMulTile(z, x, y, 0, x.m, 0, y.n)
+}
 
-	// Quick return for empty inner dimensions.
-	if xn == 0 {
-		return
-	}
+// Computes the tile z[i0:i1, j0:j1] = x[i0:i1, :] * y[:, j0:j1].
+// The whole inner dimension (x.n == y.m) is used.
+// The previous content of the tile is ignored and overwritten.
+//
+// The algorithm is a classic cache-blocked and register-blocked multiplication:
+//
+//	- The inner dimension is split into chunks of mulKC.
+//	- (mulMR×kc) panel of x is packed into a small contiguous buffer. It removes
+//	  the strided access of x (the problem of large leading dimensions, like
+//	  the quadrants of Strassen) and makes the micro-kernel read sequentially.
+//	  The last panel is padded with zeros if the rows are not multiple of mulMR.
+//	- The micro-kernel computes a (4×4) tile of the result, keeping 16 sums in local
+//	  variables over the whole chunk. Each loaded value of x and y is used 4 times,
+//	  and the result is not read or written inside of the hot loop at all.
+//	- The first chunk stores the tile, the next chunks add to it. So the
+//	  result does not need to be cleared before the multiplication.
+//
+// Note: the floating-point summation is sequential within a chunk and the chunk
+// sums are added in order. For inner dimensions up to mulKC this is exactly the
+// order of the naive algorithm.
+#disable boundary
+fn basicMulTile[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T], i0: int, i1: int, j0: int, j1: int) {
+	xn := x.n
+	xs := x.stride
+	ys := y.stride
+	zs := z.stride
 
 	unsafe {
 		// Raw pointers to bypass slice indexing overhead and enable fast arithmetic.
@@ -1441,111 +1596,178 @@ fn basicMulView_Serial[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[
 		mut xPtr := &x.data[0]
 		mut yPtr := &y.data[0]
 
-		// Block dimensions tuned specifically for cache sizes.
-		const MC = 128 // Block size for 'i' dimension.
-		const KC = 64  // Block size for 'k' dimension.
-		const NC = 128 // Block size for 'j' dimension.
+		// Packing buffer for one panel of x, and the sums of one (4×4) tile.
+		// The buffer is small (mulMR*mulKC values), so it is cheap to keep on the stack.
+		let mut pack: [mulMR * mulKC]T
+		let mut acc: [mulMR * mulNR]T
+		mut pPtr := &pack[0]
+		mut aPtr := &acc[0]
 
-		// Stack-allocated packing buffer to retain sub-matrix blocks of X
-		// contiguous in cache memory, eliminating heap allocation overhead.
-		let mut packedX: [MC * KC]T
-		mut pXPtr := &packedX[0]
-
-		// Outer loop: Iterate over column blocks of Y and Z (j dimension).
-		mut jj := 0
-		for jj < yn; jj += NC {
-			mut jMax := jj + NC
-			if jMax > yn {
-				jMax = yn
+		mut kk := 0
+		for kk < xn; kk += mulKC {
+			mut kn := xn - kk
+			if kn > mulKC {
+				kn = mulKC
 			}
+			first := kk == 0
 
-			// Middle loop: Iterate over inner dimension blocks (k dimension).
-			mut kk := 0
-			for kk < xn; kk += KC {
-				mut kMax := kk + KC
-				if kMax > xn {
-					kMax = xn
+			mut jj := j0
+			for jj < j1; jj += mulNC {
+				mut jMax := jj + mulNC
+				if jMax > j1 {
+					jMax = j1
 				}
 
-				// Inner loop: Iterate over row blocks of X and Z (i dimension).
-				mut ii := 0
-				for ii < xm; ii += MC {
-					mut iMax := ii + MC
-					if iMax > xm {
-						iMax = xm
+				mut ii := i0
+				for ii < i1; ii += mulMR {
+					mut mr := i1 - ii
+					if mr > mulMR {
+						mr = mulMR
 					}
 
-					mut iLen := iMax - ii
-
-					// Copy non-contiguous block of X into the contiguous stack buffer.
-					// This resolves strided memory access issues and triggers hardware prefetching.
-					mut kIdx := 0
-					mut k := kk
-					for k < kMax; k++ {
-						xSlice := xPtr + (k * x.stride) + ii
-						mut destPtr := pXPtr + (kIdx * iLen)
-
-						// Scalar copy loop into pack buffer.
-						mut i := 0
-						for i < iLen; i++ {
-							destPtr[i] = xSlice[i]
+					// Pack the panel: x[ii:ii+mr, kk:kk+kn], stored k-major.
+					// Element (r, q) of the panel is pack[q*mulMR + r].
+					mut src := xPtr + (kk * xs) + ii
+					mut dst := pPtr
+					mut k := 0
+					if mr == mulMR {
+						for k < kn; k++ {
+							dst[0] = src[0]
+							dst[1] = src[1]
+							dst[2] = src[2]
+							dst[3] = src[3]
+							dst += mulMR
+							src += xs
 						}
-						kIdx++
+					} else {
+						// Last panel, zero-padded. Rows after mr are never read from x.
+						for k < kn; k++ {
+							mut r := 0
+							for r < mulMR; r++ {
+								if r < mr {
+									dst[r] = src[r]
+								} else {
+									dst[r] = 0
+								}
+							}
+							dst += mulMR
+							src += xs
+						}
 					}
 
-					// Outer-product style execution over the packed buffer.
-					// Uses 8-Way Scalar Unrolling to maximize
-					// Instruction-Level Parallelism (ILP).
 					mut j := jj
-					for j < jMax; j++ {
-						zm := j * z.stride
-						ym := j * y.stride
+					for j < jMax; j += mulNR {
+						mut nr := jMax - j
+						if nr > mulNR {
+							nr = mulNR
+						}
 
-						mut zOrigin := zPtr + zm + ii
-						ySlice := yPtr + ym
+						// Columns of y for the tile. If the tile is narrower than mulNR, the
+						// missing columns are replaced by the first column of the tile.
+						// They are computed (to keep the kernel branch-free) but never stored.
+						mut j1c := j + 1
+						if j1c >= jMax {
+							j1c = j
+						}
+						mut j2c := j + 2
+						if j2c >= jMax {
+							j2c = j
+						}
+						mut j3c := j + 3
+						if j3c >= jMax {
+							j3c = j
+						}
+						y0 := yPtr + (j * ys) + kk
+						y1 := yPtr + (j1c * ys) + kk
+						y2 := yPtr + (j2c * ys) + kk
+						y3 := yPtr + (j3c * ys) + kk
 
-						kIdx = 0
-						k = kk
-						for k < kMax; k++ {
-							// Read contiguous X data directly from packed buffer
-							// instead of strided memory.
-							mut xPtrCurr := pXPtr + (kIdx * iLen)
-							mut zPtrCurr := zOrigin
+						// Micro-kernel: cRC is the sum for row R and column C of the tile.
+						let mut c00: T
+						let mut c10: T
+						let mut c20: T
+						let mut c30: T
+						let mut c01: T
+						let mut c11: T
+						let mut c21: T
+						let mut c31: T
+						let mut c02: T
+						let mut c12: T
+						let mut c22: T
+						let mut c32: T
+						let mut c03: T
+						let mut c13: T
+						let mut c23: T
+						let mut c33: T
 
-							// Broadcast scalar Y value across the inner compute loop.
-							yVal := ySlice[k]
-							mut i := 0
+						mut xp := pPtr
+						mut q := 0
+						for q < kn; q++ {
+							a0 := xp[0]
+							a1 := xp[1]
+							a2 := xp[2]
+							a3 := xp[3]
 
-							// 8-Way Unrolled Main Loop.
-							for i <= iLen-8; i += 8 {
-								zPtrCurr[0] += xPtrCurr[0] * yVal
-								zPtrCurr[1] += xPtrCurr[1] * yVal
-								zPtrCurr[2] += xPtrCurr[2] * yVal
-								zPtrCurr[3] += xPtrCurr[3] * yVal
-								zPtrCurr[4] += xPtrCurr[4] * yVal
-								zPtrCurr[5] += xPtrCurr[5] * yVal
-								zPtrCurr[6] += xPtrCurr[6] * yVal
-								zPtrCurr[7] += xPtrCurr[7] * yVal
+							b0 := y0[q]
+							c00 += a0 * b0
+							c10 += a1 * b0
+							c20 += a2 * b0
+							c30 += a3 * b0
 
-								zPtrCurr += 8
-								xPtrCurr += 8
+							b1 := y1[q]
+							c01 += a0 * b1
+							c11 += a1 * b1
+							c21 += a2 * b1
+							c31 += a3 * b1
+
+							b2 := y2[q]
+							c02 += a0 * b2
+							c12 += a1 * b2
+							c22 += a2 * b2
+							c32 += a3 * b2
+
+							b3 := y3[q]
+							c03 += a0 * b3
+							c13 += a1 * b3
+							c23 += a2 * b3
+							c33 += a3 * b3
+
+							xp += mulMR
+						}
+
+						// Keep the sums, column-major: acc[r + c*mulMR].
+						aPtr[0] = c00
+						aPtr[1] = c10
+						aPtr[2] = c20
+						aPtr[3] = c30
+						aPtr[4] = c01
+						aPtr[5] = c11
+						aPtr[6] = c21
+						aPtr[7] = c31
+						aPtr[8] = c02
+						aPtr[9] = c12
+						aPtr[10] = c22
+						aPtr[11] = c32
+						aPtr[12] = c03
+						aPtr[13] = c13
+						aPtr[14] = c23
+						aPtr[15] = c33
+
+						// Write the valid (mr×nr) part of the tile to the result.
+						mut zcol := zPtr + (j * zs) + ii
+						mut c := 0
+						for c < nr; c++ {
+							mut r := 0
+							if first {
+								for r < mr; r++ {
+									zcol[r] = aPtr[c*mulMR+r]
+								}
+							} else {
+								for r < mr; r++ {
+									zcol[r] += aPtr[c*mulMR+r]
+								}
 							}
-
-							// 2-Way Tail Loop for remaining elements.
-							for i <= iLen-2; i += 2 {
-								zPtrCurr[0] += xPtrCurr[0] * yVal
-								zPtrCurr[1] += xPtrCurr[1] * yVal
-
-								zPtrCurr += 2
-								xPtrCurr += 2
-							}
-
-							// 1-Way Cleanup for odd remaining element.
-							if i < iLen {
-								zPtrCurr[0] += xPtrCurr[0] * yVal
-							}
-
-							kIdx++
+							zcol += zs
 						}
 					}
 				}
@@ -1554,15 +1776,43 @@ fn basicMulView_Serial[T](mut z: matrixView[T], x: matrixView[T], y: matrixView[
 	}
 }
 
-// Just like `basicMul` but for matrix-view instead of Matrix.
+// Direct multiplication for tiny matrices (see smallMulDim).
+// Packing and tiling cost more than they save at this size.
+// Overwrites z, it does not need to be cleared.
 #disable boundary
-fn basicMulView[T](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView[T], flags: int) {
-	// Initialize the destination matrix slice to zero.
-	// Necessary because matrix views might refer to dirty memory segments.
+fn basicMulSmall[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T]) {
+	xm := x.m
+	xn := x.n
+	yn := y.n
+
 	mut j := 0
-	for j < y.n; j++ {
-		zm := j * z.stride
-		clear(z.data[zm : zm+x.m])
+	mut zj := 0 // j * z.stride
+	mut yj := 0 // j * y.stride
+	for j < yn; j, zj, yj = j+1, zj+z.stride, yj+y.stride {
+		mut i := 0
+		for i < xm; i++ {
+			z.data[zj+i] = 0
+		}
+
+		mut k := 0
+		mut xk := 0 // k * x.stride
+		for k < xn; k, xk = k+1, xk+x.stride {
+			yv := y.data[yj+k]
+			i = 0
+			for i < xm; i++ {
+				z.data[zj+i] += x.data[xk+i] * yv
+			}
+		}
+	}
+}
+
+// Just like `basicMul` but for matrix-view instead of Matrix.
+// Overwrites z, so z may refer to dirty memory segments.
+#disable boundary
+fn basicMulView[T: numeric](mut z: matrixView[T], x: matrixView[T], y: matrixView[T], flags: int) {
+	if x.m <= smallMulDim && x.n <= smallMulDim && y.n <= smallMulDim {
+		basicMulSmall(z, x, y)
+		return
 	}
 
 	if flags&PARALLEL != 0 {
@@ -1575,8 +1825,12 @@ fn basicMulView[T](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView
 // Threshold for switching to basic multiplication.
 // This value is crucial for performance.
 // Strassen algorithm is inefficient for tiny matrices.
+//
+// The serial threshold is 256, because the basic multiplication is a register-blocked
+// kernel now. Strassen has to save more multiplication time than it spends on
+// the (memory-bound) additions. Tune it with your own benchmarks.
 const (
-	strassenThreshold_Serial   = 64   // Threshold for serial computations.
+	strassenThreshold_Serial   = 256  // Threshold for serial computations.
 	strassenThreshold_Parallel = 2048 // Threshold for parallel computations.
 )
 
@@ -1601,8 +1855,33 @@ fn checkStrassen(xm: int, xn: int, yn: int, flags: int): (max: int, useStrassen:
 	return
 }
 
+// Returns the dimension that the matrices of size n must be padded to for Strassen.
+//
+// Every recursion level halves the dimension, so the padded dimension must be
+// divisible by 2^depth, where depth is the number of levels that Strassen will
+// really use (the recursion stops when the dimension is below the threshold,
+// the same rule as checkStrassen). The result is the smallest such number
+// that is not smaller than n.
+//
+// For example, with threshold 256: n = 1025 is padded to 1032 (not to 2048).
+fn strassenPad(n: int, flags: int): int {
+	mut threshold := strassenThreshold_Serial
+	if flags&PARALLEL != 0 {
+		threshold = strassenThreshold_Parallel
+	}
+
+	// unit = 2^depth
+	mut size := n
+	mut unit := 1
+	for size >= threshold {
+		size = (size + 1) / 2
+		unit *= 2
+	}
+	return (n + unit - 1) / unit * unit
+}
+
 // Performs recursive Strassen matrix multiplication using single shared allocation.
-// Assumes square matrices of size n × n where n is a power of 2.
+// Assumes square matrices of size n × n where n is divisible by 2^depth (see strassenPad).
 // Writes final result to z, it must be have enough space for the product x*y.
 #disable boundary nilptr
 fn strassen[T: numeric](mut z: matrixView[T], mut x: matrixView[T], mut y: matrixView[T], mut space: []T, flags: int) {
@@ -1676,11 +1955,12 @@ fn strassen[T: numeric](mut z: matrixView[T], mut x: matrixView[T], mut y: matri
 	addView(s2, b21, b22)
 	strassen(m7, s1, s2, space, flags)
 
+	// The results are combined with fused passes, instead of
+	// separate add/sub passes over the same memory.
+
 	// C11 = M1 + M4 - M5 + M7
 	mut c11 := z.getQuadrant(0, 0, k, k)
-	addView(c11, m1, m4)
-	subView(c11, c11, m5)
-	addView(c11, c11, m7)
+	addSubAddView(c11, m1, m4, m5, m7)
 
 	// C12 = M3 + M5
 	mut c12 := z.getQuadrant(0, k, k, k)
@@ -1690,11 +1970,9 @@ fn strassen[T: numeric](mut z: matrixView[T], mut x: matrixView[T], mut y: matri
 	mut c21 := z.getQuadrant(k, 0, k, k)
 	addView(c21, m2, m4)
 
-	// C22 = M1 - M2 + M3 + M6
+	// C22 = M1 - M2 + M3 + M6 = M1 + M3 - M2 + M6
 	mut c22 := z.getQuadrant(k, k, k, k)
-	subView(c22, m1, m2)
-	addView(c22, c22, m3)
-	addView(c22, c22, m6)
+	addSubAddView(c22, m1, m3, m2, m6)
 }
 
 // Copies submatrix (of m × n) from source k at (a, b) to z.
@@ -1713,18 +1991,26 @@ fn copySubMatrix[T: numeric](mut &z: *Matrix[T], &k: *Matrix[T], a: int, b: int,
 }
 
 // Same as padAndCopy but for matrix-view.
+// Only the padding is cleared, the copied part is written once.
+// k must not be larger than z in any dimension.
 #disable boundary nilptr
 fn padAndCopyView[T: numeric](mut z: matrixView[T], &k: *Matrix[T]) {
-	// Clear the z matrix if k is smaller than.
-	if k.m < z.m || k.n < z.n {
-		clear(z.data)
-	}
-
 	mut j := 0
 	for j < k.n; j++ {
 		zm := j * z.stride
 		km := j * k.m
 		copy(z.data[zm:zm+k.m], k.data[km:km+k.m])
+
+		// Clear the padding rows under the copied part of the column.
+		if z.m > k.m {
+			clear(z.data[zm+k.m : zm+z.m])
+		}
+	}
+
+	// Clear the padding columns.
+	for j < z.n; j++ {
+		zm := j * z.stride
+		clear(z.data[zm : zm+z.m])
 	}
 }
 
